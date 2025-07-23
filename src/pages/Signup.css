@@ -293,3 +293,14 @@ h3 {
   }
 }
 
+.success-text {
+  color: green;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.error-text {
+  color: red;
+  text-align: center;
+  margin-bottom: 10px;
+}

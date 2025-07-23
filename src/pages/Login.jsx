@@ -1,6 +1,6 @@
 // src/pages/Login.jsx
 import React, { useState, useEffect } from 'react';
-import './Signup.css';                        // reuse the same styles
+import './Signup.css'; // reuse the same styles
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../Firebase';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
@@ -12,13 +12,29 @@ const Login = () => {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const navigate = useNavigate();            
+  const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
+    const redirectMsg = sessionStorage.getItem("redirectMsg");
+  if (redirectMsg) {
+    setError(redirectMsg);
+    sessionStorage.removeItem("redirectMsg");
+    setTimeout(() => setError(''), 5000);
+  }
+
     if (location.state?.signupSuccess) {
       setSuccessMessage('Account created successfully. Please login.');
+      setTimeout(() => setSuccessMessage(''), 5000);
     }
+    if (location.state?.redirected) {
+      setError('You have to be logged in to track your shots.');
+      setTimeout(() => setError(''), 5000);
+    }
+    if (location.state?.errorMessage) {
+      setError(location.state.errorMessage);
+    }
+    
   }, [location.state]);
 
   const handleSubmit = async (e) => {
@@ -50,6 +66,7 @@ const Login = () => {
         default:
           setError('Login failed. Please check your details.');
       }
+      setTimeout(() => setError(''), 5000);
     }
 
     setLoading(false);
@@ -57,11 +74,6 @@ const Login = () => {
 
   return (
     <div className="signup-page"> {/* same wrapper/video styles */}
-      <video autoPlay loop muted playsInline className="bg-video">
-        <source src="/bg-video.mp4" type="video/mp4" />
-      </video>
-      <div className="video-overlay"></div>
-
       <form onSubmit={handleSubmit} className="form-box">
         <img src="/hoop.png" alt="Hoop Logs Logo" className="logo" />
         <h2>Log In to Hoop Logs</h2>

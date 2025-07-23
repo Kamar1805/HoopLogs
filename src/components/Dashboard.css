@@ -1,0 +1,626 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    
+  }
+
+  /* Prevent horizontal overflow on all pages */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Ensure components never exceed screen width */
+* {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+  
+  .dashboard-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Poppins', sans-serif;
+    background-color: #F8FAFC;
+    color: #384959;
+    max-width: 100%;
+  }
+  
+  /* HEADER */
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #e0e0e0;
+    position: relative;
+    height: 80px;
+  }
+  
+  
+  .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .logo-img {
+    height: 120px;
+    width: 160px;
+    object-fit: contain;
+
+  }
+    .logo-img:hover {
+    transform: scale(1.05);
+  }
+  
+  .logo-text {
+    font-weight: bold;
+    font-size: 1.25rem;
+    color: #6A89A7;
+  }
+  
+  .nav-links {
+    display: flex;
+    gap: 1.2rem;
+    align-items: center;
+  }
+  
+  .nav-link {
+    color: #384959;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  
+  .nav-link:hover {
+    color: #6A89A7;
+  }
+  
+  /* DROPDOWN */
+  .dropdown {
+    position: relative;
+  }
+  
+  .dropdown-toggle {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+
+  }
+  .dropdown-toggle:hover {
+    color: #6A89A7;
+    border: 1px solid lightblue;
+    background-color: lightblue;
+    
+
+  }
+  
+  .dropdown-menu {
+    position: absolute;
+    top: 2.8rem;
+    left: 0;
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+  }
+  
+  .dropdown-item {
+    padding: 0.75rem 1rem;
+    white-space: nowrap;
+    font-size: 0.95rem;
+    color: #384959;
+    text-decoration: none;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #F0F6FF;
+  }
+  
+  /* HAMBURGER MENU */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+  }
+  
+  .bar {
+    width: 25px;
+    height: 3px;
+    background-color: #384959;
+    border-radius: 2px;
+  }
+  
+  /* MOBILE STYLES */
+  @media (max-width: 768px) {
+    .nav-links {
+      position: absolute;
+      top: 80px;
+      right: 0;
+      background: white;
+      width: 200px;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem;
+      display: none;
+      box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+      z-index: 20;
+      border-left: 1px solid #ddd;
+    }
+    
+    
+  
+    .nav-links.open {
+      display: flex;
+    }
+  
+    .hamburger {
+      display: flex;
+    }
+  
+    .dropdown-menu {
+      position: static;
+      box-shadow: none;
+      border-radius: 0;
+    }
+  
+    .dropdown-item {
+      border-bottom: none;
+    }
+  }
+  
+  /* CONTENT */
+  .dashboard-content {
+    flex: 1;
+    padding: 2rem;
+  }
+  
+  /* FOOTER */
+  .dashboard-footer {
+    background-color: #ffffff;
+    padding: 1rem 2rem;
+    text-align: center;
+    border-top: 1px solid #e0e0e0;
+    font-size: 0.9rem;
+    color: #888;
+  }
+
+  /* Dashboard.css additions for welcome and motivation */
+.welcome-box {
+  text-align: center;
+  margin-top: 40px;
+  padding: 30px;
+  background-color: #D9EAFD;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.welcome-box h1 {
+  font-size: 2.2rem;
+  color: #384959;
+  font-family: 'Poppins', sans-serif;
+}
+
+.motivation-text {
+  margin-top: 10px;
+  font-size: 1.2rem;
+  color: #6A89A7;
+  font-family: 'Montserrat', sans-serif;
+  animation: fade-in 0.5s ease-in-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.welcome-text {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #384959;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.motivational-text.fade-out {
+  opacity: 0;
+}
+  
+@media (max-width: 768px) {
+  .welcome-box {
+    text-align: left;
+    padding: 20px;
+    margin: 20px 16px;
+    max-width: 100%;
+  }
+
+  .welcome-box h1 {
+    font-size: 1.2rem;
+  }
+
+  .motivation-text {
+    font-size: 0.8rem;
+  }
+}
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.dashboard-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Poppins', sans-serif;
+  background-color: #F8FAFC;
+  color: #384959;
+  max-width: 100%;
+}
+
+/* HEADER */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #e0e0e0;
+  position: relative;
+  height: 80px;
+}
+
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logo-img {
+  height: 120px;
+  width: 160px;
+  object-fit: contain;
+
+}
+  .logo-img:hover {
+  transform: scale(1.05);
+}
+
+.logo-text {
+  font-weight: bold;
+  font-size: 1.25rem;
+  color: #6A89A7;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+}
+
+.nav-link {
+  color: #384959;
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.nav-link:hover {
+  color: #6A89A7;
+}
+
+/* DROPDOWN */
+.dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+
+}
+.dropdown-toggle:hover {
+  color: #6A89A7;
+  border: 1px solid lightblue;
+  background-color: lightblue;
+  
+
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 2.8rem;
+  left: 0;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+
+.dropdown-item {
+  padding: 0.75rem 1rem;
+  white-space: nowrap;
+  font-size: 0.95rem;
+  color: #384959;
+  text-decoration: none;
+  border-bottom: 1px solid #eee;
+}
+
+.dropdown-item:hover {
+  background-color: #F0F6FF;
+}
+
+/* HAMBURGER MENU */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.bar {
+  width: 25px;
+  height: 3px;
+  background-color: #384959;
+  border-radius: 2px;
+}
+
+/* MOBILE STYLES */
+@media (max-width: 768px) {
+  .nav-links {
+    position: absolute;
+    top: 80px;
+    right: 0;
+    background: white;
+    width: 200px;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    display: none;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+    z-index: 20;
+    border-left: 1px solid #ddd;
+  }
+  
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .dropdown-menu {
+    position: static;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .dropdown-item {
+    border-bottom: none;
+  }
+}
+
+/* CONTENT */
+.dashboard-content {
+  flex: 1;
+  padding: 2rem;
+}
+
+/* FOOTER */
+.dashboard-footer {
+  background-color: #ffffff;
+  padding: 1rem 2rem;
+  text-align: center;
+  border-top: 1px solid #e0e0e0;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+/* Dashboard.css additions for welcome and motivation */
+.welcome-box {
+text-align: center;
+margin-top: 40px;
+padding: 30px;
+background-color: #D9EAFD;
+border-radius: 20px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+max-width: 600px;
+margin-left: auto;
+margin-right: auto;
+}
+
+.welcome-box h1 {
+font-size: 2.2rem;
+color: #384959;
+font-family: 'Poppins', sans-serif;
+}
+
+.motivation-text {
+margin-top: 10px;
+font-size: 1.2rem;
+color: #6A89A7;
+font-family: 'Montserrat', sans-serif;
+animation: fade-in 0.5s ease-in-out;
+}
+
+@keyframes fade-in {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.welcome-text {
+font-size: 2rem;
+font-weight: 700;
+color: #384959;
+margin-top: 2rem;
+text-align: center;
+}
+
+.motivational-text.fade-out {
+opacity: 0;
+}
+
+@media (max-width: 768px) {
+.welcome-box {
+  text-align: left;
+  padding: 20px;
+  margin: 20px 16px;
+  max-width: 100%;
+}
+
+.welcome-box h1 {
+  font-size: 1.2rem;
+}
+
+.motivation-text {
+  font-size: 0.8rem;
+}
+}
+
+.ring-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  text-align: center;
+  max-width: 260px;
+  margin: 0 auto;
+}
+
+.ring-card h4 {
+  color: #384959;
+  margin-bottom: 12px;
+}
+
+.ring-wrapper {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
+}
+
+.ring-sub {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #6A89A7;
+}
+
+/* === Shot Logs Table === */
+
+.shot-logs-table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.shot-logs-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 500px;
+}
+
+.shot-logs-table th,
+.shot-logs-table td {
+  padding: 6px 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.shot-logs-table thead {
+  background: #f0f6ff;
+}
+
+.shot-logs-table tbody tr {
+  border-bottom: 1px solid #eee;
+}
+
+/* Responsive font size for very small screens */
+@media (max-width: 480px) {
+  .shot-logs-table th,
+  .shot-logs-table td {
+    padding: 2px 2px;
+    font-size: 8px;
+  }
+}
+
+.shot-logs-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.shot-logs-table {
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  width: auto;
+  min-width: 300px;
+  max-width: 100%;
+}
+
+.shot-logs-table th,
+.shot-logs-table td {
+  padding: 6px 10px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.shot-logs-table th {
+  background-color: #F0F6FF;
+  color: #384959;
+}
+
+.shot-logs-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+@media (max-width: 600px) {
+  .shot-logs-table {
+    font-size: 0.8rem;
+  }
+
+  .shot-logs-table th,
+  .shot-logs-table td {
+    padding: 4px 8px;
+  }
+}
+
+.dashboard-wrapper {
+  width: 100%;
+  overflow-x: hidden;
+  padding: 0;
+  margin: 0 auto;
+}
+
+.dashboard-content {
+  padding: 16px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-content {
+    padding: 12px;
+  }
+}
