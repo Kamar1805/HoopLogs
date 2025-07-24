@@ -75,7 +75,7 @@ const Login = () => {
   return (
     <div className="signup-page"> {/* same wrapper/video styles */}
       <form onSubmit={handleSubmit} className="form-box">
-        <img src="/hoop.png" alt="Hoop Logs Logo" className="logo" />
+        <img src="/hooplogs.png" alt="Hoop Logs Logo" className="logo" />
         <h2>Log In to Hoop Logs</h2>
 
         {successMessage && <p className="success-text">{successMessage}</p>}

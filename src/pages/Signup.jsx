@@ -81,7 +81,7 @@ const Signup = () => {
   return (
     <div className="signup-page">
       <form onSubmit={handleSubmit} className="form-box">
-        <img src='hoop.png' alt="Hoop Logs Logo" className="logo" />
+        <img src='hooplogs.png' alt="Hoop Logs Logo" className="logo" />
         <h2>Sign Up to Hoop Logs</h2>
 
         {error && <p className="error-text">{error}</p>}
