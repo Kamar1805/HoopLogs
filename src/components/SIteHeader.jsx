@@ -1,13 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 import hoopLogo from '../assets/hooplogs.png';
-import './Dashboard.css';            // re‑use your existing styles
+import './Dashboard.css';
 
 const SiteHeader = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const auth = getAuth();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+    });
+    return () => unsubscribe();
+  }, [auth]);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(prev => !prev);
-  const toggleDropdown   = () => setIsDropdownOpen(prev => !prev);
+  const toggleDropdown = () => setIsDropdownOpen(prev => !prev);
+
+  const handleLogout = () => {
+    signOut(auth);
+    navigate('/login');
+  };
 
   return (
     <header className="dashboard-header">
@@ -20,17 +37,23 @@ const SiteHeader = () => {
           <span className="nav-link dropdown-toggle">Progress Tracker ▾</span>
           {isDropdownOpen && (
             <div className="dropdown-menu">
-              <a href="/shottracker"     className="dropdown-item">Shot Tracker</a>
-              <a href="#"                className="dropdown-item">Workout Tracker</a>
-              <a href="#"                className="dropdown-item">Progress Summary</a>
+              <a href="/shottracker" className="dropdown-item">Shot Tracker</a>
+              <a href="#" className="dropdown-item">Workout Tracker</a>
+              <a href="#" className="dropdown-item">Progress Summary</a>
             </div>
           )}
         </div>
-        <a href="/dashboard"          className="dropdown-item">Dashboard</a>
-        <a href="#"          className="dropdown-item">Hoopers of HoopLogs</a>
-        <a href="/coachgpt"  className="dropdown-item">Talk with CoachGPT</a>
-        <a href="#"          className="dropdown-item">My Profile</a>
-        <a href="/login"     className="dropdown-item">Log Out</a>
+        <a href="/" className="dropdown-item">Dashboard</a>
+        <a href="#" className="dropdown-item">Hoopers of HoopLogs</a>
+        <a href="/coachgpt" className="dropdown-item">Talk with CoachGPT</a>
+        <a href="/profile" className="dropdown-item">My Profile</a>
+
+        {user ? (
+  <button onClick={handleLogout} className="nav-auth-btn">Log Out</button>
+) : (
+  <a href="/login" className="nav-auth-btn">Log In</a>
+)}
+
       </nav>
 
       <div className="hamburger" onClick={toggleMobileMenu}>

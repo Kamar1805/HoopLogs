@@ -239,6 +239,7 @@ input:focus, select:focus, textarea:focus {
 @media (max-width: 600px) {
   .form-box {
     padding: 25px 20px;
+    margin-top: 10px;
   }
 
   .form-box h2 {
@@ -264,6 +265,7 @@ input:focus, select:focus, textarea:focus {
     border-radius: 5px;
     box-shadow: none;
     padding: 20px;
+    
   }
 }
 

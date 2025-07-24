@@ -624,3 +624,60 @@ opacity: 0;
     padding: 12px;
   }
 }
+
+.logout-btn, .login-btn {
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.nav-auth-btn {
+  padding: 8px 16px;
+  border: 2px solid #6A89A7; /* Primary HoopLogs color */
+  border-radius: 8px;
+  color: #6A89A7;
+  background-color: transparent;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  margin-left: 1rem;
+}
+
+.nav-auth-btn:hover {
+  background-color: #6A89A7;
+  color: white;
+}
+
+
+.fade-in-slide {
+  opacity: 0;
+  transform: translateY(20px) scale(0.98);
+  animation: fadeZoomIn 1.5s ease forwards;
+}
+
+@keyframes fadeZoomIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.fade-in-text {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 1.2s ease-out forwards;
+}
+
+.fade-in-text.delayed {
+  animation-delay: 1.0s;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,3 +1,4 @@
+import SplashScreen from "./SplashScreen";
 import React, { useState, useEffect } from "react";
 import "./Dashboard.css";
 
@@ -35,6 +36,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   /* state */
+  const [nicknameLoading, setNicknameLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
+
   const [nickname, setNickname] = useState("Hoop Logger");
   const [user, setUser]         = useState(null);
 
@@ -57,9 +61,11 @@ const Dashboard = () => {
           setNickname(
             snap.data().nickname || snap.data().name || "Hoop Logger"
           );
+          setTimeout(() => {
+            setNicknameLoading(false);
+            setShowSplash(false);
+          }, 1500); 
         }
-
-        /* real‑time shots listener */
         const q = query(
           collection(db, "shots"),
           where("userId", "==", firebaseUser.uid)
@@ -91,9 +97,25 @@ const Dashboard = () => {
               (a, b) => a.made / a.attempted - b.made / b.attempted
             )[0]
           );
-          setFav(
-            [...docs].sort((a, b) => b.attempted - a.attempted)[0]
-          );
+          if (docs.length > 0) {
+            const maxAttempt = Math.max(...docs.map(d => d.attempted));
+          
+            const mostAttempted = docs.filter(d => d.attempted === maxAttempt);
+          
+            if (mostAttempted.length === 1) {
+              setFav(mostAttempted[0]);
+            } else {
+              const best = mostAttempted.sort((a, b) => {
+                const aPct = a.attempted ? a.made / a.attempted : 0;
+                const bPct = b.attempted ? b.made / b.attempted : 0;
+                return bPct - aPct;
+              })[0];
+              setFav(best);
+            }
+          } else {
+            setFav(null); // Or fallback to default
+          }
+          
         });
 
         /* clean‑up shots on sign‑out */
@@ -101,6 +123,10 @@ const Dashboard = () => {
       } else {
         /* signed out */
         setNickname("Hoop Logger");
+setTimeout(() => {
+  setNicknameLoading(false);
+  setShowSplash(false);
+}, 1500);
         setLatest(null); setBest(null); setWorst(null); setFav(null);
       }
     });
@@ -142,15 +168,24 @@ const Dashboard = () => {
     }
   };
 
+  if (nicknameLoading || showSplash) {
+    return <SplashScreen fadeOut={!nicknameLoading} />;
+  }
+  
+
   return (
     <>
       <SiteHeader />
 
       <main className="dashboard-content">
-        <div className="welcome-box">
-          <h1>Welcome {nickname}!</h1>
-          <p className="motivation-text">{welcomeQuotes[welcomeIdx]}</p>
-        </div>
+      <div className="welcome-box">
+  <h1 className="fade-in-text">Welcome {nickname}!</h1>
+  <p className="motivation-text fade-in-text delayed">  
+    {welcomeQuotes[welcomeIdx]}
+  </p>
+</div>
+
+
 
         <section style={{ marginTop: "3rem" }}>
           <h2 style={{ textAlign: "center", color: "#384959", marginBottom: "1.5rem" }}>

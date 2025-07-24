@@ -50,7 +50,7 @@ const Login = () => {
         password
       );
       console.log('Logged in:', userCredential.user.uid);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       console.error('Firebase login error:', err.code, err.message);
       switch (err.code) {

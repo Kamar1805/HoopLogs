@@ -92,11 +92,11 @@ const Signup = () => {
             <h3>Personal Information</h3>
             <div className="form-group">
               <label>Name</label>
-              <input type="text" name="name" onChange={handleChange} required />
+              <input type="text" name="name" onChange={handleChange} required placeholder='e.g Kamar' />
               <label>Email Address</label>
-              <input type="email" name="email" onChange={handleChange} required />
+              <input type="email" name="email" onChange={handleChange} required  placeholder='e.g Kamar@gmail.com'/>
               <label>Password</label>
-              <input type="password" name="password" onChange={handleChange} required />
+              <input type="password" name="password" onChange={handleChange} required placeholder='e.g 12345##AK' />
               <label>Confirm Password</label>
               <input type="password" name="confirmPassword" onChange={handleChange} required />
             </div>
@@ -139,11 +139,11 @@ const Signup = () => {
           <label><input type="radio" name="inTeam" value="No" onChange={handleChange} /> No</label>
         </div>
 
-        <label>Enter Height (in cm)</label>
-        <input type="number" name="height" onChange={handleChange} required />
+        <label>Enter Height (in feet and inches)</label>
+        <input type="text" name="height" onChange={handleChange} required placeholder="e.g 5'10 " />
 
         <label>Enter Weight (in kg)</label>
-        <input type="number" name="weight" onChange={handleChange} required />
+        <input type="number" name="weight" onChange={handleChange} required placeholder="e.g 70 kg" />
       </div>
       <div className="btn-group">
         <button type="button" onClick={prevStep} className="back-btn">Back</button>
@@ -157,13 +157,13 @@ const Signup = () => {
       <h3>Additional Information</h3>
       <div className="form-group">
         <label>Nickname</label>
-        <input type="text" name="nickname" onChange={handleChange} required/>
+        <input type="text" name="nickname" onChange={handleChange} required placeholder='e.g AK'/>
 
         <label>Favorite Basketball Player</label>
-        <input type="text" name="favPlayer" onChange={handleChange} required />
+        <input type="text" name="favPlayer" onChange={handleChange} required placeholder='e.g Lebron James' />
 
         <label>Favorite NBA Team</label>
-        <input type="text" name="favTeam" onChange={handleChange} required />
+        <input type="text" name="favTeam" onChange={handleChange} required placeholder="e.g Timberwolves"/>
       </div>
       <div className="btn-group">
         <button type="button" onClick={prevStep} className="back-btn">Back</button>

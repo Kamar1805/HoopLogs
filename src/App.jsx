@@ -6,16 +6,18 @@ import './App.css';
 import Dashboard from './components/Dashboard';
 import CoachGPT from './pages/CoachGPT';
 import ShotTracker from './pages/ShotTracker';
+import MyProfile from './pages/MyProfile';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Signup />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/" element={<Dashboard />} />
         <Route path="/coachgpt" element={<CoachGPT />} />
         <Route path="/shottracker" element={<ShotTracker />} />
+        <Route path="/profile" element={<MyProfile />} />
       </Routes>
     </Router>
   );
