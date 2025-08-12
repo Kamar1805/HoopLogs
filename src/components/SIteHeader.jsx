@@ -44,7 +44,7 @@ const SiteHeader = () => {
           )}
         </div>
         <a href="/" className="dropdown-item">Dashboard</a>
-        <a href="#" className="dropdown-item">Hoopers of HoopLogs</a>
+        <a href="/request-coaching" className="dropdown-item">Request Coaching</a>
         <a href="/coachgpt" className="dropdown-item">Talk with CoachGPT</a>
         <a href="/profile" className="dropdown-item">My Profile</a>
 

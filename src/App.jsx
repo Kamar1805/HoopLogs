@@ -7,6 +7,7 @@ import Dashboard from './components/Dashboard';
 import CoachGPT from './pages/CoachGPT';
 import ShotTracker from './pages/ShotTracker';
 import MyProfile from './pages/MyProfile';
+import RequestCoaching from './pages/RequestCoaching';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/coachgpt" element={<CoachGPT />} />
         <Route path="/shottracker" element={<ShotTracker />} />
         <Route path="/profile" element={<MyProfile />} />
+        <Route path="/request-coaching" element={<RequestCoaching />} />
       </Routes>
     </Router>
   );
