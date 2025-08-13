@@ -682,3 +682,49 @@ opacity: 0;
     transform: translateY(0);
   }
 }
+
+/* Compact navbar: smaller font and tighter spacing */
+.dashboard-header {
+  padding: 0.5rem 1rem; /* was larger */
+}
+
+.dashboard-header .nav-links {
+  gap: 0.6rem; /* was ~1.2rem */
+}
+
+.dashboard-header .nav-link {
+  font-size: 0.9rem;     /* smaller text */
+  padding: 0.25rem 0.4rem;
+}
+
+.dashboard-header .dropdown-toggle {
+  font-size: 0.9rem;
+}
+
+.dashboard-header .nav-auth-btn {
+  padding: 6px 10px;     /* tighter button */
+  font-size: 0.9rem;
+  margin-left: 0.5rem;
+  border-width: 1.5px;
+}
+
+/* Compact navbar: smaller font and tighter spacing */
+.site-header {
+  padding: 0.5rem 1rem;
+}
+
+.site-header .nav-links {
+  gap: 0.6rem;
+}
+
+.site-header .nav-link {
+  font-size: 0.9rem;
+  padding: 0.25rem 0.4rem;
+}
+
+.site-header .nav-auth-btn {
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  margin-left: 0.5rem;
+  border-width: 1.5px;
+}

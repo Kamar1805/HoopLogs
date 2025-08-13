@@ -52,24 +52,38 @@ export default function CourtSideChat() {
   const [isMobileView, setIsMobileView] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const [otherTyping, setOtherTyping] = useState(false);
+  const typingTimerRef = useRef(null);
+  const amTypingRef = useRef(false);
+  const [bootLoading, setBootLoading] = useState(true); // ADD
 
   // total unread for header badge
   const totalUnread = recentChats.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
 
-  // Track auth state
+  // Track auth state + wait for initial data
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setCurrentUser(user);
-        fetchHoopMates(user.uid);
-        fetchRecentChats(user.uid);
-      } else {
-        setCurrentUser(null);
-      }
+      (async () => {
+        if (user) {
+          setCurrentUser(user);
+          try {
+            await Promise.all([
+              fetchHoopMates(user.uid),
+              fetchRecentChats(user.uid),
+            ]);
+          } catch (err) {
+            console.error("Initial load error:", err);
+          } finally {
+            setBootLoading(false);
+          }
+        } else {
+          setCurrentUser(null);
+          setBootLoading(false);
+        }
+      })();
     });
     return () => unsubscribe();
   }, []);
-
   // Detect mobile view
   useEffect(() => {
     const handleResize = () => {
@@ -219,6 +233,62 @@ export default function CourtSideChat() {
     }
   }
 
+  // Listen for typing state from the other user
+  useEffect(() => {
+    if (!chatId || !selectedUser) return;
+    const chatDocRef = doc(db, "chats", chatId);
+    const unsub = onSnapshot(chatDocRef, (snap) => {
+      const data = snap.data() || {};
+      const typing = data.typing || {};
+      setOtherTyping(Boolean(typing?.[selectedUser.uid]));
+    });
+    return () => unsub();
+  }, [chatId, selectedUser?.uid]);
+
+  // Announce typing to Firestore (debounced)
+  const pulseTyping = async () => {
+    if (!chatId || !currentUser) return;
+    try {
+      if (!amTypingRef.current) {
+        amTypingRef.current = true;
+        await updateDoc(doc(db, "chats", chatId), {
+          [`typing.${currentUser.uid}`]: true,
+        });
+      }
+      if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = setTimeout(async () => {
+        if (!amTypingRef.current) return;
+        amTypingRef.current = false;
+        await updateDoc(doc(db, "chats", chatId), {
+          [`typing.${currentUser.uid}`]: false,
+        });
+      }, 1500);
+    } catch (_) {}
+  };
+
+  const stopTyping = async () => {
+    if (!chatId || !currentUser) return;
+    if (!amTypingRef.current) return;
+    amTypingRef.current = false;
+    if (typingTimerRef.current) {
+      clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = null;
+    }
+    try {
+      await updateDoc(doc(db, "chats", chatId), {
+        [`typing.${currentUser.uid}`]: false,
+      });
+    } catch (_) {}
+  };
+
+  useEffect(() => {
+    // cleanup when leaving chat
+    return () => {
+      stopTyping();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatId]);
+
   // Listen for messages
   useEffect(() => {
     if (!chatId) return;
@@ -239,13 +309,12 @@ export default function CourtSideChat() {
   async function handleSend(e) {
     e.preventDefault();
     if (!chatId || !currentUser) return;
-
     const text = newMessage.trim();
     if (!text) return;
 
-    // Clear input immediately and keep focus
     setNewMessage("");
     requestAnimationFrame(() => inputRef.current?.focus());
+    await stopTyping();
 
     try {
       const messagesRef = collection(db, "chats", chatId, "messages");
@@ -256,14 +325,12 @@ export default function CourtSideChat() {
       };
       await addDoc(messagesRef, newMsg);
 
-      // Persist lastMessage with senderId for both ends
       const chatDocRef = doc(db, "chats", chatId);
       await updateDoc(chatDocRef, {
         lastMessage: { text, createdAt: serverTimestamp(), senderId: currentUser.uid },
         [`lastRead.${currentUser.uid}`]: serverTimestamp(),
       });
 
-      // Update local recentChats immediately so sender sees preview right away
       setRecentChats((prev) => {
         let found = false;
         const updated = (prev || []).map((c) => {
@@ -297,9 +364,15 @@ export default function CourtSideChat() {
   }
 
   return (
-    <>
+    <div className="page-shell">  {/* ADD this wrapper */}
       {/* Pass total unread to header for navbar badge */}
       <SiteHeader unreadCount={totalUnread} />
+      {bootLoading && (
+        <div className="page-loader">
+          <div className="page-spinner" />
+          <div className="loader-text">Loading…</div>
+        </div>
+      )}
 
       <div className={`court-container ${selectedUser ? "chat-active" : ""}`}>
         {/* LEFT: Mobile list page (Header + Search + Recent + HoopMates) */}
@@ -357,59 +430,66 @@ export default function CourtSideChat() {
 
         {/* RIGHT: Chat panel; full-screen on mobile when a chat is open */}
         {(!isMobileView || selectedUser) && (
-          <main className={`chat-panel ${isMobileView && selectedUser ? "mobile-full" : ""}`}>
-            {selectedUser && (
-              <button
-                type="button"
-                className="back-button"
-                onClick={() => setSelectedUser(null)}
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                  <path d="M14 7l-5 5 5 5V7z"></path>
-                </svg>
-                Back
-              </button>
-            )}
+        <main className={`chat-panel ${isMobileView && selectedUser ? "mobile-full" : ""}`}>
+          {selectedUser && (
+            <button
+              type="button"
+              className="back-button"
+              onClick={() => setSelectedUser(null)}
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M14 7l-5 5 5 5V7z"></path>
+              </svg>
+              Back
+            </button>
+          )}
 
-            {!selectedUser ? (
-              <div className="welcome-message">
-                Welcome to Locker Room! Search your fellow HoopLoggers and start the trash talk!
+          {!selectedUser ? (
+            <div className="welcome-message">Welcome to Locker Room! Search your fellow HoopLoggers and start the trash talk!</div>
+          ) : (
+            <>
+              <header className="chat-header">
+                <h2>Chat with {selectedUser.name}</h2>
+              </header>
+
+              <div className="messages">
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={msg.senderId === currentUser.uid ? "message sent" : "message received"}
+                  >
+                    <p>{msg.text}</p>
+                    <span>{formatTimestamp(msg.createdAt)}</span>
+                  </div>
+                ))}
+                {otherTyping && (
+                  <div className="typing-indicator">
+                    <span></span><span></span><span></span>
+                  </div>
+                )}
+                <div ref={messagesEndRef}></div>
               </div>
-            ) : (
-              <>
-                <header className="chat-header">
-                  <h2>Chat with {selectedUser.name}</h2>
-                </header>
 
-                <div className="messages">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={msg.senderId === currentUser.uid ? "message sent" : "message received"}
-                    >
-                      <p>{msg.text}</p>
-                      <span>{formatTimestamp(msg.createdAt)}</span>
-                    </div>
-                  ))}
-                  <div ref={messagesEndRef}></div>
-                </div>
-
-                <form onSubmit={handleSend} className="message-input">
-                  <input
-                    ref={inputRef}
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type a message..."
-                  />
-                  <button type="submit" className="send-button">Send</button>
-                </form>
-              </>
-            )}
-          </main>
-        )}
+              <form onSubmit={handleSend} className="message-input">
+                <input
+                  ref={inputRef}
+                  value={newMessage}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    pulseTyping();
+                  }}
+                  onBlur={stopTyping}
+                  placeholder="Type a message..."
+                />
+                <button type="submit" className="send-button">Send</button>
+              </form>
+            </>
+          )}
+        </main>
+      )}
       </div>
 
       <SiteFooter />
-    </>
+      </div>
   );
 }

@@ -135,7 +135,7 @@ html, body {
 
 .messages .sent {
   background-color: #6A89A7;
-  color: white;
+  color: black;
   align-self: flex-end;
 }
 
@@ -599,5 +599,188 @@ html, body {
   .recent-chats .recent-chat-item:not(:last-child),
   .hoopmates .hoopmate-item:not(:last-child) {
     border-bottom-color: #D9E1EA;
+  }
+}
+
+/* Prevent iOS text auto-zoom and scroll bounce */
+html, body {
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
+}
+
+/* Stable viewport height (fallback + modern units) */
+.court-container {
+  height: 100dvh;       /* dynamic viewport height (iOS 15+, modern) */
+  min-height: 100vh;    /* fallback */
+}
+
+/* Mobile-specific stability */
+@media (max-width: 768px) {
+  /* Inputs >=16px to stop iOS zoom on focus */
+  input, textarea, select, button {
+    font-size: 16px !important;
+  }
+
+  /* Search/message inputs explicitly */
+  .search-form input,
+  .message-input input {
+    font-size: 16px !important;
+    line-height: 1.2;
+  }
+
+  /* Fullscreen chat panel with stable height */
+  .chat-panel.mobile-full {
+    position: fixed;
+    inset: 0;
+    height: 100svh;     /* small viewport height for stability under URL bar */
+    max-height: 100svh;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;        /* prevent background scroll */
+    overscroll-behavior: contain;
+  }
+
+  /* Smooth scroll area; avoid layout shift while typing */
+  .chat-panel.mobile-full .messages {
+    flex: 1;
+    margin: 8px;
+    border-radius: 10px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    contain: content;        /* reduce jank */
+  }
+
+  .chat-panel.mobile-full .message-input {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+  }
+/* Sender timestamp should be black for better visibility */
+.messages .sent span {
+  color: #000 !important;
+}
+  
+}
+
+/* Typing indicator bubble */
+.typing-indicator {
+  align-self: flex-start;
+  display: inline-flex;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #F0F6FF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  margin: 2px 0 8px;
+}
+
+.typing-indicator span {
+  width: 6px;
+  height: 6px;
+  background: #6A89A7;
+  border-radius: 50%;
+  display: inline-block;
+  animation: typingBounce 1s infinite ease-in-out;
+}
+
+.typing-indicator span:nth-child(2) { animation-delay: 0.15s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes typingBounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: .45; }
+  40% { transform: translateY(-3px); opacity: 1; }
+}
+
+/* Full-page loading overlay */
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(248, 250, 252, 0.92); /* matches app bg with slight overlay */
+  backdrop-filter: blur(2px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #6A89A7;
+  border-radius: 50%;
+  animation: pageSpin 0.8s linear infinite;
+  margin-bottom: 10px;
+}
+
+.loader-text {
+  color: #384959;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+@keyframes pageSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Full-height app shell so content fills between header and footer */
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh; /* stable mobile height */
+}
+
+/* Page shell wraps Header + Content + Footer */
+.page-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh; /* dynamic viewport height */
+}
+
+/* Let the chat container stretch to fill available space */
+.page-shell > .court-container {
+  flex: 1 1 auto;
+  min-height: 0;    /* allow inner scroll areas to work */
+  height: auto;     /* override any earlier fixed heights */
+}
+
+/* Ensure inner panels can scroll without forcing parent to grow */
+.left-panel,
+.chat-panel {
+  min-height: 0;
+}
+
+/* Message text bigger; timestamps smaller */
+.messages .message p {
+  font-size: 1.05rem;  /* was ~0.9rem */
+  line-height: 1.4;
+}
+
+.messages .message span {
+  font-size: 0.7rem;   /* was 0.8rem */
+}
+
+/* Timestamp colors */
+.messages .sent span {
+  color: #000 !important;   /* sender timestamp black */
+}
+
+.messages .received span {
+  color: #6b7a8a;           /* slightly muted for receiver */
+}
+
+/* Mobile tuning */
+@media (max-width: 768px) {
+  .messages .message p {
+    font-size: 0.95rem;
+  }
+  .messages .message span {
+    font-size: 0.65rem;
   }
 }
