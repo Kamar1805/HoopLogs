@@ -1,0 +1,495 @@
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #F8FAFC;
+  color: #384959;
+  overflow-x: hidden;
+}
+
+/* CourtSideChat Container */
+.court-container {
+  display: flex;
+  flex-direction: row; /* Ensure both panels are side by side */
+  height: 100vh;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Left Panel */
+.left-panel {
+  width: 300px;
+  background-color: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  overflow-y: auto; /* Allow scrolling if content overflows */
+}
+
+.left-panel .brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #6A89A7;
+  margin-bottom: 1rem;
+}
+
+.search-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.search-form input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.search-form button {
+  padding: 0.5rem 1rem;
+  background-color: #6A89A7;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.search-form button:hover {
+  background-color: #5a7b9a;
+}
+
+.hoopmates, .recent-chats {
+  margin-top: 1rem;
+}
+
+.hoopmates h3, .recent-chats h3 {
+  font-size: 1.2rem;
+  color: #384959;
+  margin-bottom: 0.5rem;
+}
+
+.hoopmates div, .recent-chats div {
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.hoopmates div:hover, .recent-chats div:hover {
+  background-color: #F0F6FF;
+}
+
+/* Chat Panel */
+.chat-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  height: 100%;
+  overflow-y: auto; /* Allow scrolling if content overflows */
+  transition: all 0.3s ease-in-out;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #F8FAFC;
+}
+
+.chat-header h2 {
+  font-size: 1.5rem;
+  color: #384959;
+}
+
+.messages {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  background-color: #F8FAFC;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.messages .sent, .messages .received {
+  margin-bottom: 1rem;
+  max-width: 70%;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  animation: slideIn 0.3s ease-in-out;
+}
+
+.messages .sent {
+  background-color: #6A89A7;
+  color: white;
+  align-self: flex-end;
+}
+
+.messages .received {
+  background-color: #F0F6FF;
+  color: #384959;
+  align-self: flex-start;
+}
+
+.messages span {
+  display: block;
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+.message-input {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid #e0e0e0;
+  background-color: #ffffff;
+}
+
+.message-input input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.message-input button {
+  padding: 0.5rem 1rem;
+  background-color: #6A89A7;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.message-input button:hover {
+  background-color: #5a7b9a;
+}
+
+/* Welcome Message */
+.welcome-message {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 1.5rem;
+  color: #6A89A7;
+  padding: 2rem;
+  background-color: #F8FAFC;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .court-container {
+    flex-direction: column; /* Stack panels vertically */
+  }
+
+  .left-panel {
+    width: 100%; /* Full width for mobile */
+    height: auto; /* Adjust height */
+  }
+
+  .chat-panel {
+    width: 100%; /* Full width for mobile */
+  }
+
+  .welcome-message {
+    font-size: 1.2rem;
+    padding: 1rem;
+  }
+
+  .messages .sent, .messages .received {
+    max-width: 90%; /* Allow messages to take up more space */
+    font-size: 0.8rem;
+  }
+
+  .message-input input {
+    font-size: 12px;
+    padding: 0.4rem;
+  }
+
+  .message-input button {
+    font-size: 12px;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .chat-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .messages .sent, .messages .received {
+    font-size: 0.7rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .message-input input {
+    font-size: 10px;
+    padding: 0.3rem;
+  }
+
+  .message-input button {
+    font-size: 10px;
+    padding: 0.3rem 0.6rem;
+  }
+}
+
+/* When Chat is Active */
+.court-container.chat-active .left-panel {
+  display: none; /* Hide the left panel */
+}
+
+.court-container.chat-active .chat-panel {
+  width: 100%; /* Full width for chat panel */
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Notification Badge */
+.unread-badge {
+  display: inline-block;
+  background-color: #FF6B6B;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 0.2rem 0.5rem;
+  border-radius: 50%;
+  margin-left: 0.5rem;
+}
+
+
+/* Back button visible on desktop and mobile */
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #6A89A7;
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 0.75rem 1rem;
+}
+
+.back-button:hover {
+  background-color: #5a7b9a;
+}
+
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #6A89A7;
+  color: #ffffff;
+  border: none;
+  padding: 0.375rem 0.75rem; /* tighter padding */
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 0.75rem 1rem;
+  align-self: flex-start; /* prevent stretching full width in column layout */
+  width: auto;            /* ensure content width */
+  flex: 0 0 auto;         /* don't grow/shrink */
+}
+
+.back-button svg {
+  display: block;
+}
+
+.back-button:hover {
+  background-color: #5a7b9a;
+}
+
+
+
+/* Chat wall styling when a conversation is open */
+.court-container.chat-active .messages {
+  background-color: #ECEFF3;         /* grey background */
+  border: 1px solid #e0e0e0;         /* subtle border */
+  border-radius: 12px;               /* rounded corners */
+  margin: 12px;                      /* space from edges */
+  padding: 1rem;                     /* keep padding inside */
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Mobile tweaks */
+@media (max-width: 768px) {
+  .court-container.chat-active .messages {
+    margin: 8px;
+    border-radius: 10px;
+  }
+}
+
+/* Recent chat rows: place badge on the right */
+.recent-chats .recent-chat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* badge to the right */
+  gap: 12px;
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.recent-chats .chat-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;       /* enable text truncation */
+  flex: 1 1 auto;
+}
+
+.recent-chats .chat-name {
+  font-weight: 600;
+  color: #384959;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-chats .chat-preview {
+  color: #6b7a8a;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-chats .unread-badge {
+  margin-left: 8px;  /* small gap from text block */
+}
+
+/* Header/navbar unread badge */
+.nav-unread-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background-color: #FF6B6B;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: 6px;
+}
+
+.main-nav .nav-link.nav-messages {
+  position: relative;
+}
+
+.hamburger {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.hamburger .nav-unread-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+}
+
+/* Chat wall background image (replace path with your asset) */
+.court-container.chat-active .messages {
+  background-color: #ECEFF3;
+  background-image: url('/images/image.png'); /* ← replace with your image path */
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  margin: 12px;
+  padding: 1rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Mobile tweaks */
+@media (max-width: 768px) {
+  .court-container.chat-active .messages {
+    margin: 8px;
+    border-radius: 10px;
+    background-size: contain; /* better scaling on small screens */
+  }
+}
+
+
+/* Chat wall: better mobile fit */
+@media (max-width: 768px) {
+  .court-container.chat-active .messages {
+    /* fill the chat wall area without gaps */
+    background-size: cover;         /* was contain */
+    background-position: center;    /* keep centered */
+    margin: 8px;
+    border-radius: 10px;
+  }
+}
+
+/* Ultra-narrow phones: ensure full-width fit */
+@media (max-width: 420px) {
+  .court-container.chat-active .messages {
+    background-size: 100% auto;     /* fit width, keep aspect */
+    background-position: top center;
+  }
+}
+
+/* Optional: landscape phones can use cover but center vertically */
+@media (max-width: 768px) and (orientation: landscape) {
+  .court-container.chat-active .messages {
+    background-size: cover;
+    background-position: center center;
+  }
+}
+
+/* Mobile: use dedicated chat wall background image */
+@media (max-width: 768px) {
+  .court-container.chat-active .messages {
+    background-image: url('/images/imagemobile.png'); /* replace with your mobile image path */
+    background-size: cover;     /* ensure it fills the wall */
+    background-position: center;
+  }
+}

@@ -2,7 +2,7 @@ import SplashScreen from "./SplashScreen";
 import React, { useState, useEffect } from "react";
 import "./Dashboard.css";
 
-import { auth, db } from "../Firebase";
+import { auth, db } from "../firebase";
 import {
   collection, doc, getDoc,
   query, where, onSnapshot
