@@ -298,12 +298,15 @@ export default function CourtSideChat() {
 
   return (
     <>
-       {/* Pass total unread to header for navbar badge */}
-       <SiteHeader unreadCount={totalUnread} />
+      {/* Pass total unread to header for navbar badge */}
+      <SiteHeader unreadCount={totalUnread} />
+
       <div className={`court-container ${selectedUser ? "chat-active" : ""}`}>
+        {/* LEFT: Mobile list page (Header + Search + Recent + HoopMates) */}
         {!selectedUser || !isMobileView ? (
           <aside className="left-panel">
             <div className="brand">Locker Room</div>
+
             <form onSubmit={handleSearch} className="search-form">
               <input
                 value={searchTerm}
@@ -312,18 +315,10 @@ export default function CourtSideChat() {
               />
               <button type="submit">Search</button>
             </form>
+
             {loading && <div className="loading-spinner">Loading...</div>}
 
-            <div className="hoopmates">
-              <h3>HoopMates</h3>
-              {hoopMates.map((mate, idx) => (
-                <div key={mate?.uid || `mate-${idx}`} className="hoopmate-item">
-                  <p>{mate?.name || "Unnamed Player"}</p>
-                  <button onClick={() => openChatWith(mate)}>Chat</button>
-                </div>
-              ))}
-            </div>
-
+            {/* ORDER: Recent Chats first */}
             <div className="recent-chats">
               <h3>Recent Chats</h3>
               {recentChats.map((chat, idx) => {
@@ -346,11 +341,23 @@ export default function CourtSideChat() {
                 );
               })}
             </div>
+
+            {/* Then HoopMates */}
+            <div className="hoopmates">
+              <h3>HoopMates</h3>
+              {hoopMates.map((mate, idx) => (
+                <div key={mate?.uid || `mate-${idx}`} className="hoopmate-item">
+                  <p>{mate?.name || "Unnamed Player"}</p>
+                  <button onClick={() => openChatWith(mate)}>Chat</button>
+                </div>
+              ))}
+            </div>
           </aside>
         ) : null}
 
+        {/* RIGHT: Chat panel; full-screen on mobile when a chat is open */}
         {(!isMobileView || selectedUser) && (
-          <main className="chat-panel">
+          <main className={`chat-panel ${isMobileView && selectedUser ? "mobile-full" : ""}`}>
             {selectedUser && (
               <button
                 type="button"
@@ -363,6 +370,7 @@ export default function CourtSideChat() {
                 Back
               </button>
             )}
+
             {!selectedUser ? (
               <div className="welcome-message">
                 Welcome to Locker Room! Search your fellow HoopLoggers and start the trash talk!
@@ -372,6 +380,7 @@ export default function CourtSideChat() {
                 <header className="chat-header">
                   <h2>Chat with {selectedUser.name}</h2>
                 </header>
+
                 <div className="messages">
                   {messages.map((msg) => (
                     <div
@@ -384,6 +393,7 @@ export default function CourtSideChat() {
                   ))}
                   <div ref={messagesEndRef}></div>
                 </div>
+
                 <form onSubmit={handleSend} className="message-input">
                   <input
                     ref={inputRef}
@@ -398,7 +408,8 @@ export default function CourtSideChat() {
           </main>
         )}
       </div>
-      <SiteFooter />  
-       </>
+
+      <SiteFooter />
+    </>
   );
 }

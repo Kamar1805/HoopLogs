@@ -493,3 +493,111 @@ html, body {
     background-position: center;
   }
 }
+
+
+
+
+/* Mobile layout: list page full width; chat opens full-screen */
+@media (max-width: 768px) {
+  .court-container {
+    flex-direction: column;
+    height: 100vh;
+  }
+  .left-panel {
+    width: 100%;
+    padding-bottom: 12px;
+    overflow-y: auto;
+  }
+  /* When a chat is open on mobile, make panel full-screen */
+  .chat-panel.mobile-full {
+    position: fixed;
+    inset: 0;                 /* full screen */
+    z-index: 20;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+  }
+  .chat-panel.mobile-full .back-button {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0.5rem;
+  }
+  .chat-panel.mobile-full .chat-header {
+    position: sticky;
+    top: 46px;                /* sits under back button */
+    background: #F8FAFC;
+    z-index: 1;
+  }
+  .chat-panel.mobile-full .messages {
+    flex: 1;
+    margin: 8px;
+    border-radius: 10px;
+    overflow-y: auto;
+  }
+  .chat-panel.mobile-full .message-input {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+  }
+}
+
+/* Recent Chats first, with badge on the right stays as you have */
+
+/* Panels: use solid background color + border (no images) */
+.left-panel .recent-chats,
+.left-panel .hoopmates {
+  background: #F3F6FB;        /* soft grey-blue */
+  background-image: none;      /* override any previous images */
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* Section headings inside panels */
+.left-panel .recent-chats h3,
+.left-panel .hoopmates h3 {
+  margin-bottom: 8px;
+  color: #384959;
+}
+
+/* Item hover stays subtle over solid background */
+.recent-chats .recent-chat-item,
+.hoopmates .hoopmate-item {
+  background: transparent;
+  border-radius: 8px;
+  padding: 10px;
+  transition: background-color 0.2s ease, transform 0.12s ease;
+}
+
+.recent-chats .recent-chat-item:hover,
+.hoopmates .hoopmate-item:hover {
+  background-color: rgba(106, 137, 167, 0.08);
+}
+
+/* Mobile: slightly stronger contrast */
+@media (max-width: 768px) {
+  .left-panel .recent-chats,
+  .left-panel .hoopmates {
+    background: #EEF2F7;
+    border-color: #D9E1EA;
+  }
+}
+/* Item separators (demarcation lines) */
+.recent-chats .recent-chat-item,
+.hoopmates .hoopmate-item {
+  padding: 10px 8px; /* tighten horizontal padding slightly */
+}
+
+.recent-chats .recent-chat-item:not(:last-child),
+.hoopmates .hoopmate-item:not(:last-child) {
+  border-bottom: 2px solid black; /* subtle divider */
+}
+
+/* Slightly stronger divider on mobile */
+@media (max-width: 768px) {
+  .recent-chats .recent-chat-item:not(:last-child),
+  .hoopmates .hoopmate-item:not(:last-child) {
+    border-bottom-color: #D9E1EA;
+  }
+}

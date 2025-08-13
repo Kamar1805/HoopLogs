@@ -30,7 +30,7 @@ const coaches = [
     name: 'Coach Ernest',
     description: 'Fitness Coach, Ocean Warriors, focuses on endurance and strength training.',
     fee: 10000,
-    image: '/images/ernest.jpg',
+    image: '/images/ernest.JPG',
   },
   {
     id: 5,
