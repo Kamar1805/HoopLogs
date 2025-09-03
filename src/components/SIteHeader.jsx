@@ -40,6 +40,7 @@ const SiteHeader = () => {
               <a href="/shottracker" className="dropdown-item">Shot Tracker</a>
               <a href="workouttracker" className="dropdown-item">Workout Tracker</a>
               <a href="#" className="dropdown-item">Progress Summary</a>
+              <a href="/statstracker" className="dropdown-item">Stats Tracker</a>
             </div>
           )}
         </div>

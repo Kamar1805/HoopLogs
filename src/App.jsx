@@ -11,6 +11,7 @@ import RequestCoaching from './pages/RequestCoaching';
 import CourtSideChat from './pages/CourtSideChat';
 import WorkoutTracker from './pages/WorkoutTracker';
 import LandingPage from "./pages/LandingPage";
+import Statstracker from './pages/Statstracker';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/chat" element={<CourtSideChat />} />
         <Route path="/workouttracker" element={<WorkoutTracker />} />
         <Route path="/land" element={<LandingPage />} />
+        <Route path="/statstracker" element={<Statstracker />} />
       </Routes>
     </Router>
   );

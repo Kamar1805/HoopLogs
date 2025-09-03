@@ -117,6 +117,13 @@ const workoutCategories = [
   },
 ];
 
+// New distribution constants
+const FIRST_WEEK_DAYS = 7;
+const DRILLS_PER_DAY_MIN = 6;
+const DRILLS_PER_DAY_MAX = 10;
+const FOCUS_RATIO_AFTER_WEEK = 0.7; // 70% focus drills, 30% others
+
+
 /* UNLOCK / PLAN SETTINGS -------------------------------------------------- */
 const FREE_KEYS = ["conditioning", "shooting", "vertical"];
 const PLAN_DAYS = 30;
@@ -229,40 +236,64 @@ function guideSteps(drillName) {
 }
 
 /* PLAN GENERATION --------------------------------------------------------- */
-function generatePlan(focusKey) {
-  const pool = workoutCategories.flatMap(cat =>
-    Array(cat.key === focusKey ? 4 : 1).fill(cat.key)
-  );
+/* PLAN GENERATION --------------------------------------------------------- */
+// REPLACED generatePlan with 70/30 logic + first week pure focus + 6-10 drills/day
+function generatePlan(focusKey){
+  const focusCat = workoutCategories.find(c=>c.key===focusKey) || workoutCategories[0];
+  const others   = workoutCategories.filter(c=>c.key!==focusKey);
   const start = todayISO();
   const plan = {};
-  const rotation = {};
-  workoutCategories.forEach(c => (rotation[c.key] = 0));
+  const rotations = {};
+  workoutCategories.forEach(c => rotations[c.key]=0);
 
-  for (let i = 0; i < PLAN_DAYS; i++) {
-    const date = addDays(start, i);
-    const catKey = pool[(i * 13 + 7) % pool.length];
-    const cat = workoutCategories.find(c => c.key === catKey) || workoutCategories[0];
-    const allDrills = cat.drills;
-    const numDrills = catKey === focusKey ? 4 : 2;
-    const drillsForDay = [];
-    for (let d = 0; d < numDrills; d++) {
-      const idx = (rotation[catKey] + d) % allDrills.length;
-      const name = allDrills[idx];
-      drillsForDay.push({
-        name,
-        summary: buildInstruction(catKey, name, cat.emoji),
-        steps: guideSteps(name),
-      });
+  for (let i=0;i<PLAN_DAYS;i++){
+    const date = addDays(start,i);
+    const drillCount = DRILLS_PER_DAY_MIN + Math.floor(Math.random() * (DRILLS_PER_DAY_MAX - DRILLS_PER_DAY_MIN + 1));
+    let drills=[];
+
+    if (i < FIRST_WEEK_DAYS){
+      drills = pickFromCategory(focusCat, drillCount);
+    } else {
+      const focusNeeded = Math.max(1, Math.round(drillCount * FOCUS_RATIO_AFTER_WEEK));
+      const otherNeeded = Math.max(0, drillCount - focusNeeded);
+      drills = [
+        ...pickFromCategory(focusCat, focusNeeded),
+        ...pickFromOthers(others, otherNeeded)
+      ];
     }
-    rotation[catKey] = (rotation[catKey] + numDrills) % allDrills.length;
     plan[date] = {
-      day: i + 1,
-      categoryKey: catKey,
-      categoryTitle: cat.title,
-      drills: drillsForDay,
+      day: i+1,
+      categoryKey: focusCat.key,
+      categoryTitle: focusCat.title,
+      drills: drills
     };
   }
-  return { focusKey, startDate: start, days: PLAN_DAYS, plan };
+  return { focusKey, startDate:start, days:PLAN_DAYS, plan };
+
+  function pickFromCategory(cat, count){
+    const out=[];
+    for (let k=0;k<count;k++){
+      const list = cat.drills;
+      const idx = rotations[cat.key] % list.length;
+      const name = list[idx];
+      out.push({
+        name,
+        summary: buildInstruction(cat.key, name, cat.emoji),
+        steps: guideSteps(name)
+      });
+      rotations[cat.key] = (rotations[cat.key] + 1) % list.length;
+    }
+    return out;
+  }
+  function pickFromOthers(cats, count){
+    if (!count || !cats.length) return [];
+    const out=[];
+    for (let k=0;k<count;k++){
+      const cat = cats[k % cats.length];
+      out.push(...pickFromCategory(cat,1));
+    }
+    return out;
+  }
 }
 
 /* COMPONENT ---------------------------------------------------------------- */
@@ -272,6 +303,8 @@ const WorkoutTracker = () => {
   /* AUTH */
   const [user, setUser] = useState(null);
   const [authChecking, setAuthChecking] = useState(true);
+
+  
 
   /* PREMIUM (placeholder) */
   const [hasPremium, setHasPremium] = useState(false);
@@ -289,6 +322,12 @@ const WorkoutTracker = () => {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [now, setNow] = useState(new Date());
+
+   // NEW: focus change confirmation state
+   const [focusChangeConfirm, setFocusChangeConfirm] = useState({
+    open: false,
+    newKey: null,
+  });
 
   /* AUTH LISTENER */
   useEffect(() => {
@@ -465,32 +504,46 @@ const WorkoutTracker = () => {
     setFocusModalOpen(true);
   };
 
-  const startFocusedPlan = async focusKey => {
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-    if (!hasPremium && !FREE_KEYS.includes(focusKey)) {
-      setSelectedFeature(
-        workoutCategories.find(c => c.key === focusKey)?.title || "Premium"
-      );
-      setPremiumOpen(true);
-      return;
-    }
-    const newPlan = generatePlan(focusKey);
-    setPlanData(newPlan);
-    setCompletedDates([]);
-    setDrillProgress({});
-    await setDoc(doc(db, "workoutPlans", user.uid), {
-      ...newPlan,
-      completedDates: [],
-      drillProgress: {},
-      updatedAt: serverTimestamp(),
-    });
-    setFocusModalOpen(false);
-    showToast("Plan created. Day 1 ready.");
-  };
+ // New wrapper to request focus selection with confirmation if progress exists
+ const requestFocusSelection = (focusKey) => {
+  if (
+    planData?.focusKey &&
+    planData.focusKey !== focusKey &&
+    (completedDates.length > 0 ||
+      Object.keys(drillProgress || {}).length > 0)
+  ){
+    setFocusChangeConfirm({ open:true, newKey:focusKey });
+    return;
+  }
+  startFocusedPlan(focusKey);
+};
 
+const startFocusedPlan = async focusKey => {
+  if (!user) {
+    navigate("/login");
+    return;
+  }
+  if (!hasPremium && !FREE_KEYS.includes(focusKey)) {
+    setSelectedFeature(
+      workoutCategories.find(c => c.key === focusKey)?.title || "Premium"
+    );
+    setPremiumOpen(true);
+    return;
+  }
+  const newPlan = generatePlan(focusKey);
+  setPlanData(newPlan);
+  setCompletedDates([]);
+  setDrillProgress({});
+  await setDoc(doc(db, "workoutPlans", user.uid), {
+    ...newPlan,
+    completedDates: [],
+    drillProgress: {},
+    updatedAt: serverTimestamp(),
+  });
+  setFocusModalOpen(false);
+  setFocusChangeConfirm({ open: false, newKey: null });
+  showToast("Plan created. Day 1 ready.");
+};
   const resetPlan = async () => {
     if (!user) return;
     setPlanData(null);
@@ -889,65 +942,83 @@ const WorkoutTracker = () => {
 
       <SiteFooter />
 
-      {/* FOCUS MODAL */}
-      {focusModalOpen && (
-        <div className="wt-modal" role="dialog" aria-modal="true">
-          <div className="wt-modal-panel">
-            <h3>Select Your Main Focus</h3>
-            <p className="wt-modal-blurb">
-              A 30‑day schedule is generated. Your focus track appears more
-              often.
-            </p>
-            <div className="wt-focus-grid">
-              {workoutCategories.map(cat => {
-                const locked = !hasPremium && !FREE_KEYS.includes(cat.key);
-                return (
-                  <button
-                    key={cat.key}
-                    className={`wt-focus-option ${
-                      locked ? "locked" : ""
-                    }`}
-                    onClick={() =>
-                      locked
-                        ? handleLockedTrackClick(cat)
-                        : startFocusedPlan(cat.key)
-                    }
-                  >
-                    <span className="em">{cat.emoji}</span>
-                    <span className="ttl">{cat.title}</span>
-                    {locked && (
-                      <span className="lock-label">
-                        <FaLock /> Locked
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="wt-modal-actions">
-              <button
-                className="wt-btn ghost small"
-                onClick={() => setFocusModalOpen(false)}
-              >
-                Cancel
-              </button>
-              {planData?.focusKey && (
-                <button
-                  className="wt-btn danger small"
-                  onClick={resetPlan}
-                >
-                  Reset Plan
-                </button>
-              )}
-            </div>
-          </div>
-          <button
-            className="wt-modal-backdrop"
-            aria-label="Close"
-            onClick={() => setFocusModalOpen(false)}
-          />
-        </div>
-      )}
+ {/* FOCUS MODAL */}
+ {focusModalOpen && (
+  <div className="wt-modal" role="dialog" aria-modal="true">
+    <div className="wt-modal-panel">
+      <h3>Select Your Main Focus</h3>
+      <p className="wt-modal-blurb">
+        A 30‑day schedule will be generated. Week 1 = 100% focus drills. After that ~70% focus / 30% cross‑training.
+      </p>
+      <div className="wt-focus-grid">
+        {workoutCategories.map(cat=>{
+          const locked = !hasPremium && !FREE_KEYS.includes(cat.key);
+          return (
+            <button
+              key={cat.key}
+              className={`wt-focus-option ${locked?"locked":""}`}
+              disabled={locked}
+              onClick={()=>{
+                if (locked) { handleLockedTrackClick(cat); return; }
+                requestFocusSelection(cat.key);
+              }}
+            >
+              <span className="em">{cat.emoji}</span>
+              <span className="ttl">{cat.title}</span>
+              {locked && <span className="lock-label"><FaLock/> Locked</span>}
+            </button>
+          );
+        })}
+      </div>
+      <div className="wt-modal-actions">
+        <button className="wt-btn ghost small" onClick={()=>setFocusModalOpen(false)}>Close</button>
+        {planData?.focusKey && (
+          <button className="wt-btn danger small" onClick={resetPlan}>Reset Plan</button>
+        )}
+      </div>
+    </div>
+    <button className="wt-modal-backdrop" aria-label="Close" onClick={()=>setFocusModalOpen(false)} />
+  </div>
+)}
+
+      {/* NEW: Focus Change Confirmation Modal */}
+      {focusChangeConfirm.open && (
+  <div className="wt-modal" role="dialog" aria-modal="true">
+    <div className="wt-modal-panel">
+      <h3>Change Focus?</h3>
+      <p className="wt-modal-blurb">
+        Switching focus will erase this plan’s progress:
+      </p>
+      <ul className="wt-confirm-points">
+        <li>All completed day records removed</li>
+        <li>Current drill completion & progress cleared</li>
+        <li>New 30‑day plan generated (Week 1 pure focus, then 70/30 mix)</li>
+      </ul>
+      <p className="wt-modal-blurb">
+        This cannot be undone. Continue?
+      </p>
+      <div className="wt-modal-actions">
+        <button
+          className="wt-btn ghost small"
+          onClick={()=>setFocusChangeConfirm({open:false,newKey:null})}
+        >
+          Go Back
+        </button>
+        <button
+          className="wt-btn danger small"
+          onClick={()=>startFocusedPlan(focusChangeConfirm.newKey)}
+        >
+          Continue & Reset
+        </button>
+      </div>
+    </div>
+    <button
+      className="wt-modal-backdrop"
+      aria-label="Cancel"
+      onClick={()=>setFocusChangeConfirm({open:false,newKey:null})}
+    />
+  </div>
+)}
 
       {/* HISTORY MODAL */}
       {historyOpen && (
