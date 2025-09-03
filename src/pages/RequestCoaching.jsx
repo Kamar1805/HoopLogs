@@ -1,6 +1,6 @@
 import React from 'react';
 import './RequestCoaching.css';
-import SiteHeader from '../components/SIteHeader';
+import SiteHeader from '../components/SiteHeader';
 import SiteFooter from '../components/SiteFooter';
 
 const coaches = [

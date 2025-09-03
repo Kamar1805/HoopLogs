@@ -15,7 +15,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import SiteHeader from "../components/SIteHeader";
+import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import "./CourtSideChat.css";
 

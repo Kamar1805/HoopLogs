@@ -12,7 +12,7 @@ import { auth, db } from "../Firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 
-import SIteHeader from "../components/SIteHeader";
+import SIteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import HalfCourtSVG from "../components/HalfCourtSVG";
 import ShotFormModal from "../components/ShotFormModal";

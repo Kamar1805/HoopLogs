@@ -38,7 +38,7 @@ const SiteHeader = () => {
           {isDropdownOpen && (
             <div className="dropdown-menu">
               <a href="/shottracker" className="dropdown-item">Shot Tracker</a>
-              <a href="#" className="dropdown-item">Workout Tracker</a>
+              <a href="workouttracker" className="dropdown-item">Workout Tracker</a>
               <a href="#" className="dropdown-item">Progress Summary</a>
             </div>
           )}

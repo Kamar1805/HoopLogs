@@ -2,7 +2,7 @@
 import React from 'react';
 import './CoachGPT.css';
 import SiteFooter from "../components/SiteFooter";
-import SiteHeader from "../components/SIteHeader";
+import SiteHeader from "../components/SiteHeader";
 
 const CoachGPT = () => {
   return (

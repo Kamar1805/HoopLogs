@@ -3,9 +3,9 @@ import { getAuth, updatePassword, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../Firebase";
 import './MyProfile.css';
-import SIteHeader from "../components/SIteHeader";
+import SIteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
-import SiteHeader from "../components/SIteHeader";
+import SiteHeader from "../components/SiteHeader";
 
 export default function MyProfile() {
   const auth = getAuth();

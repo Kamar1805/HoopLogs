@@ -728,3 +728,476 @@ opacity: 0;
   margin-left: 0.5rem;
   border-width: 1.5px;
 }
+
+/* ...existing code... */
+
+/* === Unified page gradient background === */
+html, body {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255,140,50,0.28) 0%, transparent 55%),
+    radial-gradient(circle at 82% 28%, rgba(106,137,167,0.32) 0%, transparent 60%),
+    radial-gradient(circle at 70% 82%, rgba(47,72,88,0.45) 0%, transparent 65%),
+    linear-gradient(135deg,#e6f2fa 0%, #edf5fb 45%, #d6e3f1 100%);
+  min-height: 100%;
+}
+
+/* Remove previous solid #F8FAFC (if still defined above) and convert to glass */
+.dashboard-wrapper {
+  position: relative;
+  min-height: 100vh;
+  background: transparent;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Internal soft frosted veil (adds depth, very subtle) */
+.dashboard-wrapper::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  backdrop-filter: blur(34px) saturate(155%);
+  -webkit-backdrop-filter: blur(34px) saturate(155%);
+  background:
+    linear-gradient(220deg, rgba(255,255,255,0.55), rgba(255,255,255,0.25) 40%, rgba(255,255,255,0.15) 70%);
+  pointer-events:none;
+  z-index:-1;
+}
+
+/* Optional light noise layer */
+.dashboard-wrapper::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.06) 0 2px, rgba(0,0,0,0.04) 2px 4px);
+  mix-blend-mode: overlay;
+  opacity:.22;
+  pointer-events:none;
+  z-index:-1;
+}
+
+/* Glass header */
+.dashboard-header {
+  background: rgba(255,255,255,0.30);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.55);
+  box-shadow: 0 4px 18px -6px rgba(40,65,82,0.25);
+}
+
+/* Welcome box glass */
+.welcome-box {
+  background: linear-gradient(140deg, rgba(255,255,255,0.55), rgba(255,255,255,0.25));
+  backdrop-filter: blur(26px) saturate(170%);
+  -webkit-backdrop-filter: blur(26px) saturate(170%);
+  border: 1px solid rgba(255,255,255,0.55);
+  box-shadow: 0 8px 28px -6px rgba(40,65,82,0.28), 0 2px 6px rgba(40,65,82,0.18);
+  transition: transform .4s ease, box-shadow .4s ease;
+}
+.welcome-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px -6px rgba(40,65,82,0.34), 0 4px 12px rgba(40,65,82,0.22);
+}
+
+/* Generic reusable glass card */
+.glass-card {
+  background: rgba(255,255,255,0.28);
+  backdrop-filter: blur(20px) saturate(165%);
+  -webkit-backdrop-filter: blur(20px) saturate(165%);
+  border: 1px solid rgba(255,255,255,0.5);
+  border-radius: 20px;
+  box-shadow: 0 6px 22px -4px rgba(40,65,82,0.22);
+}
+
+/* Convert existing ring cards if desired */
+.ring-card {
+  background: rgba(255,255,255,0.32);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.55);
+  box-shadow: 0 6px 20px -4px rgba(40,65,82,0.22);
+}
+
+/* Fallback (no backdrop-filter support) */
+@supports not (backdrop-filter: blur(10px)) {
+  .dashboard-wrapper::before {
+    background: rgba(255,255,255,0.9);
+  }
+  .dashboard-header,
+  .welcome-box,
+  .ring-card,
+  .glass-card {
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+/* ...existing code... */
+.dashboard-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  /* Layer order: (1) big watermark, (2) optional scattered minis, (3) noise grain */
+  background:
+    /* Big centered basketball watermark */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='800' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop stop-color='%23ff8c32' stop-opacity='0.22'/><stop offset='1' stop-color='%23ffb347' stop-opacity='0.18'/></linearGradient></defs><circle cx='50' cy='50' r='49' fill='url(%23g)' stroke='%23ff8c32' stroke-opacity='0.15' stroke-width='1'/><path d='M50 1 A49 49 0 0 0 50 99 M1 50 A49 49 0 0 1 99 50' stroke='%23ff8c32' stroke-opacity='0.12' stroke-width='1.4' fill='none'/><path d='M0 50 Q50 58 100 50 M0 50 Q50 42 100 50' stroke='%23ff8c32' stroke-opacity='0.12' stroke-width='1.2' fill='none'/></svg>") center/62vmin no-repeat,
+    /* Optional scattered small faint balls (comment out if too busy) */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 100 100'><circle cx='50' cy='50' r='49' fill='none' stroke='%23ff9c42' stroke-opacity='0.18' stroke-width='2'/><path d='M50 1 A49 49 0 0 0 50 99 M1 50 A49 49 0 0 1 99 50' stroke='%23ff9c42' stroke-opacity='0.15' stroke-width='1.4' fill='none'/><path d='M0 50 Q50 58 100 50 M0 50 Q50 42 100 50' stroke='%23ff9c42' stroke-opacity='0.15' stroke-width='1.2' fill='none'/></svg>") 8% 22% / 120px no-repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 100 100'><circle cx='50' cy='50' r='49' fill='none' stroke='%23ff9c42' stroke-opacity='0.14' stroke-width='2'/><path d='M50 1 A49 49 0 0 0 50 99 M1 50 A49 49 0 0 1 99 50' stroke='%23ff9c42' stroke-opacity='0.11' stroke-width='1.4' fill='none'/><path d='M0 50 Q50 58 100 50 M0 50 Q50 42 100 50' stroke='%23ff9c42' stroke-opacity='0.11' stroke-width='1.2' fill='none'/></svg>") 82% 30% / 90px no-repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 100 100'><circle cx='50' cy='50' r='49' fill='none' stroke='%23ff9c42' stroke-opacity='0.16' stroke-width='2'/><path d='M50 1 A49 49 0 0 0 50 99 M1 50 A49 49 0 0 1 99 50' stroke='%23ff9c42' stroke-opacity='0.13' stroke-width='1.4' fill='none'/><path d='M0 50 Q50 58 100 50 M0 50 Q50 42 100 50' stroke='%23ff9c42' stroke-opacity='0.13' stroke-width='1.2' fill='none'/></svg>") 70% 78% / 140px no-repeat,
+    /* Fine grain */
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.06) 0 2px, rgba(0,0,0,0.05) 2px 4px);
+  opacity: 0.42; /* overall intensity */
+  mix-blend-mode: normal;
+}
+
+/* Optional slow rotation for big ball (uses an extra pseudo to isolate transform) */
+.dashboard-wrapper::before {
+  /* keep your existing blur/gradient, append an inner wrapper for rotation */
+  animation: none; /* unchanged */
+}
+@keyframes spinWatermark {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* If you want it to rotate: add this extra element in markup inside wrapper:
+   <div class="bg-ball-rotator" aria-hidden="true"></div>
+   Then include styles below.
+*/
+.bg-ball-rotator {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 62vmin;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='800' viewBox='0 0 100 100'><defs><linearGradient id='g2' x1='0' y1='0' x2='1' y2='1'><stop stop-color='%23ff8c32' stop-opacity='0.20'/><stop offset='1' stop-color='%23ffb347' stop-opacity='0.16'/></linearGradient></defs><circle cx='50' cy='50' r='49' fill='url(%23g2)' stroke='%23ff8c32' stroke-opacity='0.15' stroke-width='1.2'/><path d='M50 1 A49 49 0 0 0 50 99 M1 50 A49 49 0 0 1 99 50' stroke='%23ff8c32' stroke-opacity='0.12' stroke-width='1.5' fill='none'/><path d='M0 50 Q50 58 100 50 M0 50 Q50 42 100 50' stroke='%23ff8c32' stroke-opacity='0.12' stroke-width='1.3' fill='none'/></svg>")
+    center/100% 100% no-repeat;
+  opacity: 0.28;
+  filter: blur(.4px);
+  animation: spinWatermark 120s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .bg-ball-rotator { animation: none; }
+}
+/* ...existing code... */
+
+/* ...existing code... */
+
+/* === Remove navbar border and footer border/background === */
+.dashboard-header {
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: 0 4px 18px -6px rgba(40,65,82,0.25); /* keep shadow (optional) */
+}
+
+.dashboard-footer {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure header & dropdown sit above content panels */
+.dashboard-header {
+  position: sticky; /* or relative if you don't want sticky */
+  top: 0;
+  z-index: 500;
+}
+
+/* Dropdown menu always on top */
+.dropdown-menu {
+  z-index: 1000;
+}
+
+/* Welcome box stays below nav/dropdowns */
+.welcome-box {
+  position: relative;
+  z-index: 1;
+}
+
+/* If any earlier .welcome-box has a higher z-index or transform that interferes, this overrides it */
+
+/* --- Fix Progress Summary dropdown truncation --- */
+.dropdown-menu {
+  min-width: 190px;          /* ensures full phrase fits */
+  padding: 4px 0;
+  overflow: visible;          /* was hidden – could clip text */
+}
+
+.dropdown-item {
+  display: block;
+  padding: 0.65rem 1rem;
+  font-size: 0.95rem;         /* A) keep readable size */
+  letter-spacing: 0.2px;
+  line-height: 1.15;
+  white-space: nowrap;        /* keep on one line; remove if you prefer wrap */
+}
+
+/* B) Optional compact variant (uncomment to use instead) */
+/*
+.dropdown-item {
+  font-size: 0.88rem;
+  padding: 0.55rem 0.9rem;
+  letter-spacing: 0.15px;
+}
+*/
+
+/* If the toggle itself is cramped, expand hit area */
+.dropdown-toggle {
+  padding: 0.35rem 0.6rem;
+  line-height: 1;
+}
+
+/* ---- TODAY'S WORKOUT DASHBOARD SNAPSHOT (add below existing styles) ---- */
+.dash-workout-section {
+  margin: 3.5rem auto 4.5rem;
+  max-width: 980px;
+  padding: 0 1rem;
+}
+.dash-workout-heading {
+  text-align:center;
+  font-size:1.05rem;
+  margin:0 0 1.2rem;
+  letter-spacing:.6px;
+  font-weight:600;
+  color:#384959;
+}
+.dash-workout-card {
+  background:#131f26;
+  border:1px solid #263c49;
+  border-radius:26px;
+  padding:1.35rem 1.45rem 1.55rem;
+  box-shadow:0 10px 30px -12px rgba(0,0,0,.5);
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:.95rem;
+}
+.dash-workout-card.done {
+  border-color:#4F6F89;
+  background:#14242c;
+}
+.dash-workout-card.no-plan {
+  text-align:center;
+}
+.dw-top {
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  flex-wrap:wrap;
+}
+.dw-title {
+  margin:0;
+  font-size:.9rem;
+  font-weight:600;
+  color:#f2f8fb;
+  flex:1;
+  letter-spacing:.4px;
+}
+.dw-status {
+  font-size:.55rem;
+  text-transform:uppercase;
+  letter-spacing:.9px;
+  padding:.38rem .7rem;
+  border-radius:999px;
+  background:#2a4250;
+  color:#d5e4eb;
+  font-weight:600;
+}
+.dw-status.complete {
+  background:#466276;
+  color:#fff;
+}
+.dw-status.in-progress {
+  background:#325368;
+  color:#f2f8fb;
+}
+.dw-status.rest {
+  background:#3a4d57;
+  color:#d9e5eb;
+}
+.dw-drills {
+  list-style:none;
+  margin:.1rem 0 .35rem;
+  padding:0;
+  display:grid;
+  gap:.45rem;
+  font-size:.62rem;
+  color:#c2d2da;
+  grid-template-columns:1fr;
+}
+.dw-drills li {
+  padding:.42rem .6rem;
+  background:#182a33;
+  border:1px solid #263c49;
+  border-radius:10px;
+  line-height:1.25;
+  font-weight:500;
+}
+.dw-progress-wrap {
+  display:flex;
+  align-items:center;
+  gap:.8rem;
+  flex-wrap:wrap;
+}
+.dw-progress-bar {
+  flex:1;
+  height:6px;
+  border-radius:4px;
+  background:#1e303a;
+  overflow:hidden;
+  position:relative;
+}
+.dw-progress-bar .fill {
+  position:absolute;
+  inset:0;
+  width:0;
+  background:linear-gradient(90deg,#6A89A7,#4F6F89);
+  transition:.7s cubic-bezier(.55,.15,.25,1);
+}
+.dw-progress-label {
+  font-size:.55rem;
+  letter-spacing:.7px;
+  text-transform:uppercase;
+  font-weight:600;
+  color:#98adb9;
+  white-space:nowrap;
+}
+.dw-actions { margin-top:.2rem; }
+.dw-btn {
+  background:#6A89A7;
+  color:#fff;
+  font-size:.68rem;
+  font-weight:600;
+  padding:.66rem 1.15rem;
+  border:none;
+  border-radius:14px;
+  letter-spacing:.6px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:.45rem;
+  box-shadow:0 6px 18px -8px rgba(80,120,150,.55);
+  transition:.35s;
+}
+.dw-btn:hover { filter:brightness(1.07); transform:translateY(-2px); }
+.dw-btn.ghost {
+  background:#1f323d;
+  box-shadow:none;
+  border:1px solid #2f4a59;
+}
+.dw-line { margin:0 0 .85rem; font-size:.75rem; color:#c4d3db; }
+
+@media (max-width:680px){
+  .dash-workout-card { padding:1.15rem 1.05rem 1.3rem; }
+  .dw-title { font-size:.85rem; }
+  .dw-drills { grid-template-columns:1fr 1fr; }
+  .dw-drills li { font-size:.6rem; padding:.4rem .55rem; }
+  .dash-workout-section { margin-top:3rem; }
+}
+
+/* --- additions / tweaks for no‑plan marketing card --- */
+.dash-workout-card.no-plan .dw-start-title {
+  margin:0 0 .4rem;
+  font-size:.95rem;
+  font-weight:600;
+  letter-spacing:.5px;
+  color:#f2f8fb;
+}
+.dw-intro {
+  font-size:.7rem;
+  line-height:1.45;
+}
+.dw-benefits {
+  list-style:none;
+  margin:0 0 .9rem;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:.35rem;
+  font-size:.6rem;
+  color:#c3d3db;
+}
+.dw-benefits li {
+  padding:.4rem .55rem;
+  background:#182a33;
+  border:1px solid #263c49;
+  border-radius:10px;
+  position:relative;
+  font-weight:500;
+}
+.dw-benefits li:before {
+  content:"✓";
+  color:#6A89A7;
+  margin-right:.45rem;
+  font-weight:700;
+}
+@media (max-width:680px){
+  .dash-workout-card.no-plan .dw-start-title { font-size:.9rem; }
+  .dw-benefits { font-size:.58rem; }
+}
+
+/* ADD / REPLACE only the relevant new / changed blocks if already present */
+
+/* No-plan marketing card tweaks */
+.dash-workout-card.no-plan {
+  text-align:center;
+}
+.dash-workout-card.no-plan .dw-start-title {
+  margin:0 0 .55rem;
+  font-size:.98rem;
+  font-weight:600;
+  letter-spacing:.5px;
+  color:#f2f8fb;
+}
+.dw-intro {
+  font-size:.7rem;
+  line-height:1.45;
+  color:#c9d7de;
+}
+.dw-benefits {
+  list-style:none;
+  margin:.2rem 0 1rem;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:.4rem;
+  font-size:.6rem;
+  color:#c3d3db;
+}
+.dw-benefits li {
+  padding:.45rem .6rem;
+  background:#182a33;
+  border:1px solid #263c49;
+  border-radius:10px;
+  font-weight:500;
+  display:flex;
+  align-items:center;
+  gap:.4rem;
+}
+.dw-benefits li:before {
+  content:"✓";
+  color:#6A89A7;
+  font-weight:700;
+  font-size:.75rem;
+}
+
+/* Status colors (already had some) */
+.dw-status.in-progress { background:#325368; color:#f2f8fb; }
+.dw-status.rest { background:#3a4d57; color:#d9e5eb; }
+
+/* Keep responsive adjustment */
+@media (max-width:680px){
+  .dash-workout-card.no-plan .dw-start-title { font-size:.9rem; }
+  .dw-benefits { font-size:.57rem; }
+  .dw-benefits li { padding:.4rem .55rem; }
+}

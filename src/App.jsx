@@ -9,6 +9,8 @@ import ShotTracker from './pages/ShotTracker';
 import MyProfile from './pages/MyProfile';
 import RequestCoaching from './pages/RequestCoaching';
 import CourtSideChat from './pages/CourtSideChat';
+import WorkoutTracker from './pages/WorkoutTracker';
+import LandingPage from "./pages/LandingPage";
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
         <Route path="/profile" element={<MyProfile />} />
         <Route path="/request-coaching" element={<RequestCoaching />} />
         <Route path="/chat" element={<CourtSideChat />} />
+        <Route path="/workouttracker" element={<WorkoutTracker />} />
+        <Route path="/land" element={<LandingPage />} />
       </Routes>
     </Router>
   );
