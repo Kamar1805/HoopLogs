@@ -1,0 +1,107 @@
+.coachgpt-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  background: #384959;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  font-size: 2rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: box-shadow 0.2s;
+  
+  margin-bottom: 52px;
+}
+
+.coachgpt-fab:active,
+.coachgpt-fab:focus {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.22);
+  outline: none;
+}
+
+.coachgpt-img-icon {
+  display: block;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  margin: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.coachgpt-widget-modal {
+  position: fixed;
+  bottom: 96px;
+  right: 32px;
+  z-index: 10000;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+  overflow: hidden;
+  width: 370px;
+  max-width: 95vw;
+  animation: fadeIn .2s;
+}
+
+.coachgpt-widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #384959;
+  color: #fff;
+  padding: 0.7rem 1rem;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.coachgpt-iframe {
+  width: 100%;
+  height: 500px;
+  border: none;
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(30px);}
+  to   { opacity: 1; transform: translateY(0);}
+}
+
+/* Responsive: shrink modal on small screens */
+@media (max-width: 500px) {
+  .coachgpt-widget-modal {
+    width: 98vw;
+    right: 1vw;
+    bottom: 80px;
+    border-radius: 10px;
+  }
+  .coachgpt-iframe {
+    height: 70vh;
+  }
+  .coachgpt-fab {
+    bottom: 16px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+  }
+  .coachgpt-img-icon {
+    width: 28px;
+    height: 28px;
+  }
+}

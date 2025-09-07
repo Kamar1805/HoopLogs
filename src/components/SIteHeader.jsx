@@ -47,7 +47,7 @@ const SiteHeader = () => {
         <a href="/" className="dropdown-item">Dashboard</a>
         <a href="/chat" className="dropdown-item">Locker Room</a>
         <a href="/request-coaching" className="dropdown-item">Request Coaching</a>
-        <a href="/coachgpt" className="dropdown-item">Talk with CoachGPT</a>
+        
         <a href="/profile" className="dropdown-item">My Profile</a>
 
         {user ? (
