@@ -1,0 +1,261 @@
+.hoopers-main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2.5rem 1.2rem 3.5rem 1.2rem;
+    min-height: 80vh;
+    background: #f7fafc;
+    animation: fadeInUp 0.7s cubic-bezier(.23,1.01,.32,1) both;
+  }
+  
+  .hoopers-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #384959;
+    margin-bottom: 0.3rem;
+    text-align: center;
+    letter-spacing: -1px;
+  }
+  
+  .hoopers-desc {
+    color: #6a89a7;
+    font-size: 1.08rem;
+    text-align: center;
+    margin-bottom: 2.2rem;
+    font-weight: 500;
+  }
+  
+  .hoopers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .hoopers-loading,
+  .hoopers-empty {
+    text-align: center;
+    color: #b0bfc9;
+    font-size: 1.1rem;
+    margin-top: 2.5rem;
+    font-weight: 600;
+  }
+  
+  .hooper-card {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(56,73,89,0.07), 0 1.5px 6px rgba(56,73,89,0.04);
+    padding: 1.2rem 1.5rem;
+    gap: 1.3rem;
+    transition: transform 0.22s cubic-bezier(.23,1.01,.32,1), box-shadow 0.22s;
+    animation: cardFadeIn 0.6s cubic-bezier(.23,1.01,.32,1);
+    will-change: transform;
+    position: relative;
+  }
+  
+  .hooper-card:hover {
+    transform: translateY(-4px) scale(1.025);
+    box-shadow: 0 8px 32px rgba(56,73,89,0.13), 0 2px 8px rgba(56,73,89,0.08);
+  }
+  
+  .hooper-img-wrap {
+    min-width: 64px;
+    min-height: 64px;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #e7ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(56,73,89,0.07);
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
+  
+  .hooper-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  
+  .hooper-img-placeholder {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .hooper-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .hooper-name {
+    font-size: 1.18rem;
+    font-weight: 700;
+    color: #384959;
+    margin: 0 0 0.1rem 0;
+    letter-spacing: -0.5px;
+  }
+  
+  .hooper-nickname {
+    font-size: 0.98rem;
+    color: #6a89a7;
+    margin-bottom: 0.2rem;
+    font-weight: 500;
+  }
+  
+  .hooper-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    font-size: 0.97rem;
+    color: #4a5d6e;
+    margin-bottom: 0.4rem;
+  }
+  
+  .hooper-meta span {
+    opacity: 0.92;
+  }
+  
+  .hooper-chat-btn {
+    display: inline-block;
+    background: linear-gradient(90deg, #6A89A7 0%, #384959 100%);
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.48rem 1.2rem;
+    border-radius: 24px;
+    text-decoration: none;
+    margin-top: 0.2rem;
+    box-shadow: 0 2px 8px rgba(56,73,89,0.08);
+    transition: background 0.18s, box-shadow 0.18s, transform 0.18s;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+  }
+  
+  .hooper-chat-btn:hover,
+  .hooper-chat-btn:focus {
+    background: linear-gradient(90deg, #384959 0%, #6A89A7 100%);
+    box-shadow: 0 4px 16px rgba(56,73,89,0.13);
+    transform: translateY(-2px) scale(1.03);
+  }
+  
+  @media (max-width: 600px) {
+    .hoopers-main {
+      padding: 1.2rem 0.2rem 2.5rem 0.2rem;
+    }
+    .hooper-card {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 1.1rem 0.8rem;
+      gap: 0.8rem;
+    }
+    .hooper-img-wrap {
+      margin-right: 0;
+      margin-bottom: 0.5rem;
+      width: 56px;
+      height: 56px;
+      min-width: 56px;
+      min-height: 56px;
+    }
+    .hooper-info {
+      width: 100%;
+    }
+    .hooper-meta {
+      gap: 0.7rem;
+      font-size: 0.93rem;
+    }
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(32px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes cardFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .hoopers-main.wide {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.5rem 2.5rem 3.5rem 2.5rem;
+    min-height: 80vh;
+    background: #f7fafc;
+    animation: fadeInUp 0.7s cubic-bezier(.23,1.01,.32,1) both;
+  }
+  
+  .hoopers-search-panel {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+  
+  .hoopers-search-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.7rem 1.2rem;
+    border-radius: 24px;
+    border: 1.5px solid #dbe5ee;
+    font-size: 1.08rem;
+    background: #fff;
+    color: #384959;
+    outline: none;
+    transition: border 0.18s;
+    box-shadow: 0 2px 8px rgba(56,73,89,0.04);
+  }
+  .hoopers-search-input:focus {
+    border: 1.5px solid #6A89A7;
+  }
+  
+  .hoopers-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    width: 60px;
+    margin: 0 auto;
+  }
+  
+  .hooper-chat-btn.disabled {
+    background: #e7ecef;
+    color: #b0bfc9;
+    cursor: not-allowed;
+    pointer-events: none;
+    box-shadow: none;
+  }
+  
+  @media (max-width: 900px) {
+    .hoopers-main.wide {
+      max-width: 98vw;
+      padding: 1.2rem 0.5rem 2.5rem 0.5rem;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .hoopers-main.wide {
+      padding: 1.2rem 0.2rem 2.5rem 0.2rem;
+    }
+  }

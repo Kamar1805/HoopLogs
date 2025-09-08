@@ -1506,6 +1506,7 @@ html, body {
   background: linear-gradient(110deg,var(--ws-accent), var(--ws-accent-alt));
   -webkit-background-clip: text;
   color: transparent;
+  text-decoration: underline;
 }
 
 .ws-sub {
@@ -2020,4 +2021,126 @@ html, body {
     gap: .55rem;
   }
   .mini-stat-value { font-size: .85rem; }
+}
+
+.profile-incomplete-banner {
+  background: #fffbe6;
+  color: red;
+  border: 1.5px solid #ffe58f;
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem auto 2rem auto;
+  max-width: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  font-weight: 500;
+  font-size: 0.78rem;
+}
+.profile-complete-btn {
+  background: #6A89A7;
+  color: #fff;
+  padding: 0.5rem 1.2rem;
+  border-radius: 24px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.18s;
+}
+.profile-complete-btn:hover {
+  background: #384959;
+}
+
+.profile-incomplete-banner {
+  background: white;
+  color: #384959;
+  border: 1px solid black;
+  border-radius: 7px;
+  padding: 0.35rem 0.8rem;
+  margin: 1.2rem auto 1.2rem auto;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  font-weight: 500;
+  font-size: 0.92rem;
+  line-height: 1.1;
+}
+
+.profile-complete-btn {
+  background: #6A89A7;
+  color: #fff;
+  padding: 0.28rem 0.85rem;
+  border-radius: 16px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin-left: 0.7rem;
+  transition: background 0.18s;
+  border: none;
+  outline: none;
+  display: inline-block;
+}
+
+.profile-complete-btn:hover {
+  background: #384959;
+}
+
+/* Logout Modal Styles */
+.logout-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(56,73,89,0.18);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logout-modal {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px rgba(56,73,89,0.13);
+  padding: 2.2rem 1.5rem;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+}
+.logout-modal h3 {
+  margin: 0 0 0.5rem 0;
+  color: #6A89A7;
+  font-weight: 700;
+}
+.logout-modal p {
+  color: #384959;
+  font-size: 1.08rem;
+  margin-bottom: 1.2rem;
+}
+.logout-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1.2rem;
+}
+.logout-yes, .logout-no {
+  padding: 0.5rem 1.2rem;
+  border-radius: 24px;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.logout-yes {
+  background: #e74c3c;
+  color: #fff;
+}
+.logout-no {
+  background: #6A89A7;
+  color: #fff;
+}
+.logout-yes:hover {
+  background: #c0392b;
+}
+.logout-no:hover {
+  background: #384959;
 }

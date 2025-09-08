@@ -8,6 +8,7 @@
 import SplashScreen from "./SplashScreen";
 import React, { useState, useEffect, useMemo } from "react";
 import "./Dashboard.css";
+import { Link } from "react-router-dom";
 
 import { auth, db } from "../Firebase";
 import {
@@ -56,7 +57,43 @@ const Dashboard = () => {
   /* rotating quote indexes */
   const [welcomeIdx, setWelcomeIdx] = useState(0);
   const [legendIdx,  setLegendIdx]  = useState(0);
+  const [profile, setProfile] = useState(null);
+  useEffect(() => {
+    if (!user) {
+      setProfile(null);
+      return;
+    }
+    // Fetch user profile from Firestore
+    getDoc(doc(db, "users", user.uid)).then((snap) => {
+      if (snap.exists()) setProfile(snap.data());
+      else setProfile(null);
+    });
+  }, [user]);
 
+  // Define required fields for completeness
+  const requiredFields = [
+    "name",
+    "nickname",
+    "height",
+    "weight",
+    "position",
+    "experience",
+    "photoURL",
+    "bio",
+    "teamName"
+  ];
+
+  // Check if any required field is missing or empty
+  const isProfileIncomplete =
+    !!user &&
+    profile &&
+    requiredFields.some(
+      (field) =>
+        profile[field] === undefined ||
+        profile[field] === null ||
+        profile[field] === "" ||
+        (field === "photoURL" && !profile.photoURL)
+    );
   /* shot stats */
   const [latest, setLatest] = useState(null);
   const [best,   setBest]   = useState(null);
@@ -347,6 +384,17 @@ const Dashboard = () => {
     <>
       <SiteHeader />
       <main className="dashboard-content">
+         {/* Profile completeness notice */}
+         {user && profile && isProfileIncomplete && (
+          <div className="profile-incomplete-banner">
+            <span>
+              Please complete your profile to unlock all features.
+            </span>
+            <Link to="/profile" className="profile-complete-btn">
+              Go to Profile
+            </Link>
+          </div>
+        )}
         <div className="welcome-box">
           <h1 className="fade-in-text">Welcome {nickname}!</h1>
           <p className="motivation-text fade-in-text delayed">
@@ -355,7 +403,7 @@ const Dashboard = () => {
         </div>
 
         <section style={{ marginTop: "3rem" }}>
-          <h2 style={{ textAlign: "center", color: "#384959", marginBottom: "1.5rem" }}>
+          <h2 style={{ textAlign: "center", color: "#384959", marginBottom: "1.5rem", textDecoration: "underline" }}>
             Your Shot Performance
           </h2>
           <div style={{ display:"flex", flexWrap:"wrap", gap:"28px", justifyContent:"center" }}>

@@ -11,6 +11,7 @@ import CourtSideChat from './pages/CourtSideChat';
 import WorkoutTracker from './pages/WorkoutTracker';
 import LandingPage from "./pages/LandingPage";
 import Statstracker from './pages/Statstracker';
+import Hoopers from './pages/Hoopers';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/workouttracker" element={<WorkoutTracker />} />
         <Route path="/land" element={<LandingPage />} />
         <Route path="/statstracker" element={<Statstracker />} />
+        <Route path="/hoopers" element={<Hoopers />} />
       </Routes>
     </Router>
   );

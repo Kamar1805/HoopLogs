@@ -7,6 +7,7 @@ import './Dashboard.css';
 const SiteHeader = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const auth = getAuth();
@@ -22,8 +23,17 @@ const SiteHeader = () => {
   const toggleDropdown = () => setIsDropdownOpen(prev => !prev);
 
   const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
     signOut(auth);
+    setShowLogoutModal(false);
     navigate('/login');
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutModal(false);
   };
 
   return (
@@ -45,17 +55,15 @@ const SiteHeader = () => {
           )}
         </div>
         <a href="/" className="dropdown-item">Dashboard</a>
-        <a href="/chat" className="dropdown-item">Locker Room</a>
+        <a href="/hoopers" className="dropdown-item">Hoopers of Hooplogs</a>
         <a href="/request-coaching" className="dropdown-item">Request Coaching</a>
-        
         <a href="/profile" className="dropdown-item">My Profile</a>
 
         {user ? (
-  <button onClick={handleLogout} className="nav-auth-btn">Log Out</button>
-) : (
-  <a href="/login" className="nav-auth-btn">Log In</a>
-)}
-
+          <button onClick={handleLogout} className="nav-auth-btn">Log Out</button>
+        ) : (
+          <a href="/login" className="nav-auth-btn">Log In</a>
+        )}
       </nav>
 
       <div className="hamburger" onClick={toggleMobileMenu}>
@@ -63,6 +71,21 @@ const SiteHeader = () => {
         <div className="bar" />
         <div className="bar" />
       </div>
+
+      {/* Logout Modal */}
+      {showLogoutModal && (
+        <div className="logout-modal-overlay">
+          <div className="logout-modal">
+            <div className="coachpt-emoji" style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>😢</div>
+            <h3>CoachPT says...</h3>
+            <p>Are you sure you want to log out?<br />We'll miss you on the court!</p>
+            <div className="logout-modal-actions">
+              <button className="logout-yes" onClick={confirmLogout}>Yes, Log Out</button>
+              <button className="logout-no" onClick={cancelLogout}>No, Stay</button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

@@ -137,3 +137,107 @@
         order: 3; /* Ensure the button appears last */
     }
 }
+
+/* ...existing styles... */
+
+.premium-blur {
+    position: relative;
+    filter: blur(2.5px) grayscale(0.2) brightness(0.93);
+    pointer-events: none;
+    user-select: none;
+  }
+  
+  /* Overlay is NOT blurred and sits above the blur */
+  .premium-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+    background: transparent;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    pointer-events: auto;
+    user-select: auto;
+    min-height: 100vh;
+    padding-top: 60px; /* Move message up */
+  }
+  
+  /* Make the message box bigger and more visible */
+  .premium-message {
+    text-align: center;
+    background: rgba(255,255,255,0.98);
+    border-radius: 22px;
+    box-shadow: 0 6px 32px rgba(56,73,89,0.13);
+    padding: 3.2rem 2.2rem;
+    max-width: 480px;
+    width: 100%;
+  }
+  
+  .premium-message h2 {
+    font-size: 2.5rem;
+    color: #6A89A7;
+    margin-bottom: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+  
+  .premium-message p {
+    color: #384959;
+    font-size: 1.22rem;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+  /* Only blur the page content, not the overlay */
+.premium-blur {
+    position: relative;
+    filter: blur(2.5px) grayscale(0.2) brightness(0.93);
+    pointer-events: none;
+    user-select: none;
+  }
+  
+  /* Overlay is fully clear and sits above the blur */
+  .premium-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+    background: none; /* No background, fully clear */
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    pointer-events: auto;
+    user-select: auto;
+    min-height: 100vh;
+    padding-top: 60px;
+  }
+  
+  /* Message box is fully clear and sharp */
+  .premium-message {
+    text-align: center;
+    background: #fff;
+    border-radius: 22px;
+    box-shadow: 0 6px 32px rgba(56,73,89,0.13);
+    padding: 3.2rem 2.2rem;
+    max-width: 480px;
+    width: 100%;
+    filter: none !important;
+    opacity: 1 !important;
+  }
+  
+  .premium-message h2 {
+    font-size: 2.5rem;
+    color: #6A89A7;
+    margin-bottom: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    filter: none !important;
+    opacity: 1 !important;
+  }
+  
+  .premium-message p {
+    color: #384959;
+    font-size: 1.22rem;
+    font-weight: 600;
+    line-height: 1.6;
+    filter: none !important;
+    opacity: 1 !important;
+  }

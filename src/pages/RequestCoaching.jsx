@@ -42,30 +42,37 @@ const coaches = [
 ];
 
 const RequestCoaching = () => {
-  return ( <>
-    <SiteHeader />
-    
-    <div className="request-coaching">
-        
-      <h1>Request a Personal Workout from our Top Coaches</h1>
-      <div className="coaches-list">
-        {coaches.map((coach) => (
-          <div key={coach.id} className="coach-card">
-            <div className="coach-info">
-              <h2>{coach.name}</h2>
-              <p>{coach.description}</p>
-              <p className="fee">Fee per hour: ₦{coach.fee}</p>
-              <button className="request-btn">Request Workout</button>
-            </div>
-            <div className="coach-image">
-              <img src={coach.image} alt={`${coach.name}`} />
-            </div>
+  return (
+    <>
+      <SiteHeader />
+      <div className="request-coaching premium-blur">
+        <div className="premium-overlay">
+          <div className="premium-message">
+            <h2>Premium Feature</h2>
+            <p>
+              <b>Personal Coaching</b> is coming soon for HoopLogs Premium users.<br />
+              Stay tuned for exclusive access to top coaches!
+            </p>
           </div>
-        ))}
+        </div>
+        <h1>Request a Personal Workout from our Top Coaches</h1>
+        <div className="coaches-list">
+          {coaches.map((coach) => (
+            <div key={coach.id} className="coach-card">
+              <div className="coach-info">
+                <h2>{coach.name}</h2>
+                <p>{coach.description}</p>
+                <p className="fee">Fee per hour: ₦{coach.fee}</p>
+                <button className="request-btn" disabled>Request Workout</button>
+              </div>
+              <div className="coach-image">
+                <img src={coach.image} alt={`${coach.name}`} />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    
-    </div>
-    <SiteFooter />
+      <SiteFooter />
     </>
   );
 };

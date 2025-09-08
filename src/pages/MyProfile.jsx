@@ -3,9 +3,42 @@ import { getAuth, updatePassword, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../Firebase";
 import './MyProfile.css';
-import SIteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import SiteHeader from "../components/SiteHeader";
+
+// --- Cloudinary config ---
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dmybkmqs6/upload";
+const CLOUDINARY_PRESET = "hooplogs_unsigned";
+
+// Spinner loader SVG
+function Spinner() {
+  return (
+    <span className="profile-spinner" aria-label="Loading">
+      <svg width="36" height="36" viewBox="0 0 36 36">
+        <circle
+          cx="18"
+          cy="18"
+          r="16"
+          stroke="#6A89A7"
+          strokeWidth="4"
+          fill="none"
+          strokeDasharray="80"
+          strokeDashoffset="60"
+          strokeLinecap="round"
+        >
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            from="0 18 18"
+            to="360 18 18"
+            dur="0.9s"
+            repeatCount="indefinite"
+          />
+        </circle>
+      </svg>
+    </span>
+  );
+}
 
 export default function MyProfile() {
   const auth = getAuth();
@@ -15,6 +48,7 @@ export default function MyProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [newPassword, setNewPassword] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   // ✅ Watch auth state
   useEffect(() => {
@@ -53,6 +87,32 @@ export default function MyProfile() {
     setProfile({ ...profile, [field]: !profile[field] });
   };
 
+  // --- Cloudinary image upload handler ---
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_PRESET);
+
+    try {
+      const res = await fetch(CLOUDINARY_URL, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.secure_url) {
+        setProfile((prev) => ({ ...prev, photoURL: data.secure_url }));
+      } else {
+        alert("Upload failed. Please try again.");
+      }
+    } catch (err) {
+      alert("Upload error. Please try again.");
+    }
+    setUploading(false);
+  };
+
   const handleSave = async () => {
     const docRef = doc(db, "users", user.uid);
     await updateDoc(docRef, profile);
@@ -64,15 +124,18 @@ export default function MyProfile() {
     setIsEditing(false);
   };
 
-  if (loading) return <p className="loading-text">Loading...</p>;
+  if (loading) return (
+    <div className="profile-loading">
+      <Spinner />
+    </div>
+  );
 
   if (!user) return <p className="loading-text">No user found. Please log in.</p>;
 
   return (
-   
     <div className="profile-container">
-        <SiteHeader />
-        
+      <SiteHeader />
+
       <h2 className="profile-header">My Profile</h2>
 
       {/* Profile Picture */}
@@ -82,7 +145,19 @@ export default function MyProfile() {
           alt="Profile"
           className="profile-image"
         />
-        <p className="photo-note">Image upload (Cloudinary) coming soon</p>
+        {isEditing && (
+          <div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="profile-upload-input"
+              disabled={uploading}
+            />
+            {uploading && <Spinner />}
+            <p className="photo-note">Upload a clear photo. Max 5MB. (Powered by Cloudinary)</p>
+          </div>
+        )}
       </div>
 
       <div className="profile-grid">
@@ -136,22 +211,65 @@ export default function MyProfile() {
         <Field label="Weight (kg)" name="weight" value={profile.weight} isEditing={isEditing} onChange={handleChange} />
         <Field label="Favorite Player" name="favPlayer" value={profile.favPlayer} isEditing={isEditing} onChange={handleChange} />
         <Field label="Favorite NBA Team" name="favTeam" value={profile.favTeam} isEditing={isEditing} onChange={handleChange} />
-      </div>
 
-      {/* Public Profile Toggle */}
-      <div className="public-toggle">
-        <span className="toggle-label">Set Profile to Public</span>
-        <input
-          type="checkbox"
-          checked={profile.publicProfile || false}
-          onChange={() => handleToggle("publicProfile")}
-          disabled={!isEditing}
-          className="checkbox"
-        />
+        {/* --- BIO SECTION --- */}
+        <div className="grid-span">
+          <label className="field-label">Bio</label>
+          {!isEditing ? (
+            <p className="field-display">{profile.bio || "—"}</p>
+          ) : (
+            <textarea
+              name="bio"
+              value={profile.bio || ""}
+              onChange={handleChange}
+              className="field-input"
+              rows={3}
+              placeholder="Tell us about yourself, your basketball journey, or anything you'd like others to know..."
+            />
+          )}
+        </div>
+
+        {/* --- PHONE NUMBER SECTION --- */}
+        <div className="grid-span">
+          <label className="field-label">
+            Phone Number (for WhatsApp)
+            <span className="phone-note">
+              <br />
+              <small>
+                <b>Optional:</b> If you add your phone number and set it to public, other hoopers will be able to reach out to you directly via WhatsApp from the Hoopers page.<br />
+                <b>Format:</b> Use your full international number (e.g. 2348012345678).
+              </small>
+            </span>
+          </label>
+          {!isEditing ? (
+            <p className="field-display">{profile.phoneNumber ? profile.phoneNumber : "—"}</p>
+          ) : (
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={profile.phoneNumber || ""}
+              onChange={handleChange}
+              className="field-input"
+              placeholder="e.g. 2348012345678"
+              autoComplete="tel"
+            />
+          )}
+          <div className="public-toggle mt-1">
+            <span className="toggle-label">Make phone number public</span>
+            <input
+              type="checkbox"
+              checked={profile.phonePublic || false}
+              onChange={() => handleToggle("phonePublic")}
+              disabled={!isEditing}
+              className="checkbox"
+            />
+          </div>
+          <p className="public-note">
+            If set to public, your WhatsApp button will appear on your Hooper profile for others to contact you.
+          </p>
+        </div>
+        {/* --- END PHONE NUMBER SECTION --- */}
       </div>
-      <p className="public-note">
-        Once set to public, your profile will be publicly visible on <strong>Locker Room</strong>.
-      </p>
 
       {/* Buttons */}
       <div className="button-group">
@@ -165,6 +283,7 @@ export default function MyProfile() {
           </button>
         )}
       </div>
+      <SiteFooter />
     </div>
   );
 }
