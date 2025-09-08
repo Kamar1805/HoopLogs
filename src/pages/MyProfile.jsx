@@ -237,7 +237,7 @@ export default function MyProfile() {
               <br />
               <small>
                 <b>Optional:</b> If you add your phone number and set it to public, other hoopers will be able to reach out to you directly via WhatsApp from the Hoopers page.<br />
-                <b>Format:</b> Use your full international number (e.g. 2348012345678).
+                <b>Format:</b> Use your full international number (e.g. 08012345678).
               </small>
             </span>
           </label>
@@ -250,7 +250,7 @@ export default function MyProfile() {
               value={profile.phoneNumber || ""}
               onChange={handleChange}
               className="field-input"
-              placeholder="e.g. 2348012345678"
+              placeholder="e.g. 08012345678"
               autoComplete="tel"
             />
           )}
