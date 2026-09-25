@@ -363,7 +363,7 @@ const ShotTracker = () => {
             className={`court-mode-tab ${courtTab === 'workout' ? 'active' : ''}`}
             onClick={() => setCourtTab('workout')}
           >
-            <LuZap size={14} /> My Athletic Workouts
+            My Athletic Workouts
           </button>
         </div>
 
@@ -480,7 +480,6 @@ const ShotTracker = () => {
         <section className="zones-breakdown-section">
           <div className="breakdown-header">
             <div className="breakdown-title">
-              <LuZap size={14} color="#ff5500" />
               <span>5-Zone Performance (Tap to Log Set)</span>
             </div>
           </div>

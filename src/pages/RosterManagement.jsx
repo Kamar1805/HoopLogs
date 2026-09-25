@@ -716,10 +716,12 @@ export default function RosterManagement() {
             <IoBasketball size={20} color="#ff5500" />
             <h1>Teams & Arena League</h1>
           </div>
-          <div className={`admin-mode-pill ${isCoach ? 'admin' : 'player'}`}>
-            {isCoach ? <LuShieldCheck size={13} /> : <LuZap size={13} />}
-            <span>{isCoach ? 'ADMIN MODE' : 'PLAYER VIEW'}</span>
-          </div>
+          {isCoach && (
+            <div className="admin-mode-pill admin">
+              <LuShieldCheck size={13} />
+              <span>ADMIN MODE</span>
+            </div>
+          )}
         </div>
 
         {/* Feature Navigation Tabs */}
@@ -1026,7 +1028,11 @@ export default function RosterManagement() {
               <div className="empty-roster-state">
                 <IoBasketball size={48} color="#ff5500" />
                 <p className="empty-roster-title">NO SQUADS AVAILABLE</p>
-                <p className="empty-roster-sub">Tap "+ NEW TEAM" above to start building your squad.</p>
+                {isCoach ? (
+                  <p className="empty-roster-sub">Tap "+ NEW TEAM" above to start building your squad.</p>
+                ) : (
+                  <p className="empty-roster-sub">Your team roster will appear here once your coach assigns you to a squad.</p>
+                )}
               </div>
             )}
           </>

@@ -6,6 +6,7 @@ import { supabase } from '../supabase';
 import SiteHeader from './SiteHeader';
 import MobileBottomNav from './MobileBottomNav';
 import AppGuideModal from './AppGuideModal';
+import ArenaSplashLoader from './ArenaSplashLoader';
 import { IoBasketball, IoLogoWhatsapp } from 'react-icons/io5';
 import {
   LuCrosshair,
@@ -58,6 +59,14 @@ const Dashboard = () => {
   });
   const [topShooters, setTopShooters] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [entranceLoading, setEntranceLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setEntranceLoading(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
   const [showTour, setShowTour] = useState(false);
 
   // Guide prompt visibility (only on first sign up / login until dismissed)
@@ -279,8 +288,11 @@ const Dashboard = () => {
   const athleteHandle = profile?.nickname ? `@${profile.nickname}` : '@hooper';
   const position = profile?.position || 'GUARD';
   const expLevel = profile?.experience || 'ATHLETE';
-  const gender = profile?.gender || 'ATHLETE';
   const cleanWhatsapp = profile?.whatsapp ? profile.whatsapp.replace(/\D/g, '') : null;
+
+  if (loading || entranceLoading) {
+    return <ArenaSplashLoader subtitle="ENTERING ARENA…" />;
+  }
 
   return (
     <div className="home-arena-page">
@@ -299,7 +311,11 @@ const Dashboard = () => {
                     style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
                   />
                 ) : (
-                  athleteName.charAt(0).toUpperCase()
+                  <img
+                    src="/hooplogs-logo.png"
+                    alt="HoopLogs"
+                    style={{ width: '28px', height: '28px', objectFit: 'contain' }}
+                  />
                 )}
               </div>
               <span className="online-indicator-dot" title="Active on Court" />
@@ -364,7 +380,6 @@ const Dashboard = () => {
         <section className="arena-announcements-card">
           <div className="announcements-card-header">
             <div className="announcements-header-title">
-              <LuMegaphone size={16} color="#ff5500" />
               <h2>Arena Notice Board</h2>
             </div>
             {isCoach && (
@@ -586,7 +601,6 @@ const Dashboard = () => {
         {/* PRIMARY MODULES LIST */}
         <div className="section-title-bar">
           <div className="section-title-wrap">
-            <LuZap size={14} color="#ff5500" />
             <h2>Training Modules</h2>
           </div>
         </div>
@@ -662,7 +676,6 @@ const Dashboard = () => {
           <>
             <div className="section-title-bar" style={{ marginTop: '1.25rem' }}>
               <div className="section-title-wrap">
-                <LuTrendingUp size={14} color="#f59e0b" />
                 <h2>Top Sharpshooters</h2>
               </div>
               <Link to="/leaderboards" className="section-title-link">

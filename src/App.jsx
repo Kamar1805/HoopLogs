@@ -20,6 +20,14 @@ import SuperAdminPortal from './pages/SuperAdminPortal';
 import ForgotPassword from './pages/ForgotPassword';
 import LiveGameStatkeeper from './pages/LiveGameStatkeeper';
 
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) {
+    return <ArenaSplashLoader subtitle="ENTERING ARENA…" />;
+  }
+  return user ? children : <Navigate to="/login" replace />;
+};
+
 const HomeRoute = () => {
   const { user, loading } = useAuth();
   if (loading) {
@@ -35,23 +43,23 @@ function App() {
         <Router>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/land" element={<LandingPage />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/superadmin" element={<SuperAdminPortal />} />
-          <Route path="/shottracker" element={<ShotTracker />} />
-          <Route path="/teams" element={<RosterManagement />} />
-          <Route path="/rosters" element={<RosterManagement />} />
-          <Route path="/hoopers" element={<Leaderboards />} />
-          <Route path="/leaderboards" element={<Leaderboards />} />
+          <Route path="/shottracker" element={<ProtectedRoute><ShotTracker /></ProtectedRoute>} />
+          <Route path="/teams" element={<ProtectedRoute><RosterManagement /></ProtectedRoute>} />
+          <Route path="/rosters" element={<ProtectedRoute><RosterManagement /></ProtectedRoute>} />
+          <Route path="/hoopers" element={<ProtectedRoute><Leaderboards /></ProtectedRoute>} />
+          <Route path="/leaderboards" element={<ProtectedRoute><Leaderboards /></ProtectedRoute>} />
           <Route path="/live-stat/:gameId" element={<LiveGameStatkeeper />} />
           <Route path="/chat" element={<Navigate to="/hoopers" replace />} />
-          <Route path="/statstracker" element={<Statstracker />} />
-          <Route path="/profile" element={<MyProfile />} />
-          <Route path="/request-coaching" element={<RequestCoaching />} />
-          <Route path="/workouttracker" element={<WorkoutTracker />} />
+          <Route path="/statstracker" element={<ProtectedRoute><Statstracker /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
+          <Route path="/request-coaching" element={<ProtectedRoute><RequestCoaching /></ProtectedRoute>} />
+          <Route path="/workouttracker" element={<ProtectedRoute><WorkoutTracker /></ProtectedRoute>} />
         </Routes>
       </Router>
     </AuthProvider>

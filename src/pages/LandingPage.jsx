@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   LuCrosshair, LuTrophy, LuUsers, LuMessageSquare,
-  LuActivity, LuClipboardList, LuArrowRight, LuZap,
-  LuChartBar, LuShield, LuMenu, LuX
+  LuActivity, LuClipboardList, LuArrowRight,
+  LuShield, LuMenu, LuX
 } from 'react-icons/lu';
 import { IoBasketball } from 'react-icons/io5';
 import './LandingPage.css';
@@ -108,10 +108,10 @@ const LandingPage = () => {
               </button>
             </div>
             <nav className="lp-drawer-links">
-              <a href="#install" onClick={() => setMobileMenuOpen(false)}>📲 How to Download (PWA)</a>
-              <a href="#showcase" onClick={() => setMobileMenuOpen(false)}>🏀 Arena Mobile App</a>
-              <a href="#features" onClick={() => setMobileMenuOpen(false)}>⚡ Training Features</a>
-              <a href="#about" onClick={() => setMobileMenuOpen(false)}>🛡️ About HoopLogs</a>
+              <a href="#install" onClick={() => setMobileMenuOpen(false)}>How to Download (PWA)</a>
+              <a href="#showcase" onClick={() => setMobileMenuOpen(false)}>Arena Mobile App</a>
+              <a href="#features" onClick={() => setMobileMenuOpen(false)}>Training Features</a>
+              <a href="#about" onClick={() => setMobileMenuOpen(false)}>About HoopLogs</a>
             </nav>
             <div className="lp-drawer-cta">
               <Link to="/signup" className="lp-drawer-btn-signup" onClick={() => setMobileMenuOpen(false)}>
@@ -139,12 +139,10 @@ const LandingPage = () => {
           </p>
           <div className="lp-hero-actions">
             <Link to="/signup" className="lp-cta-primary">
-              <LuZap size={18} />
               Start For Free
             </Link>
             <Link to="/login" className="lp-cta-secondary">
               Sign In
-              <LuArrowRight size={14} />
             </Link>
           </div>
         </div>
@@ -358,7 +356,6 @@ const LandingPage = () => {
               <li>Coach scouting reviews and custom shooting workouts</li>
             </ul>
             <Link to="/signup" className="lp-cta-primary" style={{ maxWidth: 280 }}>
-              <LuZap size={18} />
               Join HoopLogs Free
             </Link>
           </div>
@@ -379,12 +376,10 @@ const LandingPage = () => {
         </p>
         <div className="lp-cta-banner-actions">
           <Link to="/signup" className="lp-cta-primary">
-            <LuZap size={18} />
             Create Free Account
           </Link>
-          <Link to="/dashboard" className="lp-cta-secondary">
-            <LuChartBar size={16} />
-            Enter Arena
+          <Link to="/login" className="lp-cta-secondary">
+            Sign In
           </Link>
         </div>
       </div>
@@ -403,10 +398,10 @@ const LandingPage = () => {
             </p>
           </div>
           <div className="lp-footer-col">
-            <h5>App</h5>
-            <Link to="/">Dashboard</Link>
-            <Link to="/shottracker">Shot Tracker</Link>
-            <Link to="/rosters">Rosters</Link>
+            <h5>Explore</h5>
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#showcase">Mobile App</a>
           </div>
           <div className="lp-footer-col">
             <h5>Account</h5>

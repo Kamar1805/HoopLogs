@@ -69,7 +69,11 @@ const SiteHeader = () => {
                         style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
                       />
                     ) : (
-                      profile?.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase() || 'H'
+                      <img
+                        src="/hooplogs-logo.png"
+                        alt="HoopLogs"
+                        style={{ width: '22px', height: '22px', objectFit: 'contain' }}
+                      />
                     )}
                   </div>
                 </Link>
