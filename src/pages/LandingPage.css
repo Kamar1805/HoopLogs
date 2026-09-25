@@ -13,19 +13,23 @@
 }
 
 /* ── Header / Nav ─────────────────────────────────── */
+/* ── Header / Nav ─────────────────────────────────── */
 .lp-header {
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 100;
-  height: 52px;
+  height: calc(56px + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1rem;
-  background: rgba(6, 8, 16, 0.92);
+  background: rgba(6, 8, 16, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-0);
+  box-sizing: border-box;
 }
 
 .lp-logo {
@@ -43,7 +47,7 @@
 
 .lp-logo-text {
   font-family: var(--f-score);
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   letter-spacing: 0.05em;
   color: #fff;
   line-height: 1;
@@ -79,44 +83,183 @@
 .lp-header-cta {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .lp-btn-login {
   font-family: var(--f-athletic);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 0.74rem;
+  font-weight: 800;
   letter-spacing: 0.05em;
   color: var(--t-secondary);
-  background: none;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   text-transform: uppercase;
-  padding: 4px 8px;
+  padding: 6px 12px;
   border-radius: var(--r-sm);
-  transition: color 0.15s;
+  transition: all 0.15s ease;
   text-decoration: none;
 }
 
-.lp-btn-login:hover { color: var(--t-primary); }
-
-.lp-btn-signup {
-  font-family: var(--f-athletic);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+.lp-btn-login:hover {
   color: #fff;
-  background: var(--orange);
-  text-transform: uppercase;
-  padding: 5px 10px;
-  border-radius: var(--r-sm);
-  transition: opacity 0.15s;
-  text-decoration: none;
-  box-shadow: 0 0 10px rgba(255, 85, 0, 0.3);
+  background: rgba(255, 255, 255, 0.12);
 }
 
-.lp-btn-signup:hover { opacity: 0.9; }
+/* Hamburger button on mobile */
+.lp-hamburger-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
 
-@media (min-width: 700px) {
+.lp-hamburger-btn:hover {
+  background: rgba(255, 85, 0, 0.18);
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
+@media (min-width: 768px) {
   .lp-nav-desktop { display: flex; }
+  .lp-hamburger-btn { display: none; }
+}
+
+/* ── Mobile Drawer Navigation Menu ─────────────────── */
+.lp-mobile-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 200;
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.lp-mobile-drawer {
+  width: 82%;
+  max-width: 320px;
+  height: 100%;
+  background: #090d16;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  padding: calc(env(safe-area-inset-top, 0px) + 1.25rem) 1.25rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.7);
+  box-sizing: border-box;
+  animation: slideDrawer 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDrawer {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.lp-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.lp-drawer-title {
+  font-family: var(--f-athletic);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--orange);
+  text-transform: uppercase;
+}
+
+.lp-drawer-close {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.lp-drawer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.lp-drawer-links a {
+  color: #f1f5f9;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: color 0.15s ease;
+}
+
+.lp-drawer-links a:hover {
+  color: var(--orange);
+}
+
+.lp-drawer-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+.lp-drawer-btn-signup {
+  background: linear-gradient(135deg, #ff6b00 0%, #e63d00 100%);
+  color: #fff;
+  text-decoration: none;
+  text-align: center;
+  padding: 12px;
+  border-radius: 10px;
+  font-family: var(--f-athletic);
+  font-size: 0.88rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 15px rgba(255, 85, 0, 0.4);
+}
+
+.lp-drawer-btn-login {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  text-decoration: none;
+  text-align: center;
+  padding: 11px;
+  border-radius: 10px;
+  font-family: var(--f-athletic);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 /* ── Hero Section ─────────────────────────────────── */
@@ -129,7 +272,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding-top: calc(52px + 2rem);
+  padding-top: calc(72px + env(safe-area-inset-top, 0px));
   padding-bottom: 2.5rem;
 }
 

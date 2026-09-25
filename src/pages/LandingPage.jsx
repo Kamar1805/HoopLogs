@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   LuCrosshair, LuTrophy, LuUsers, LuMessageSquare,
   LuActivity, LuClipboardList, LuArrowRight, LuZap,
-  LuChartBar, LuShield
+  LuChartBar, LuShield, LuMenu, LuX
 } from 'react-icons/lu';
 import { IoBasketball } from 'react-icons/io5';
 import './LandingPage.css';
@@ -50,6 +50,7 @@ const FEATURES = [
 const LandingPage = () => {
   const navigate = useNavigate();
   const heroRef = useRef(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -70,10 +71,11 @@ const LandingPage = () => {
       {/* ── HEADER ────────────────────────────────────── */}
       <header className="lp-header">
         <Link to="/" className="lp-logo">
-          <img src="/hooplogs-logo.png" alt="HoopLogs Logo" className="lp-logo-img" style={{ width: '30px', height: '30px', borderRadius: '7px', objectFit: 'cover' }} />
-          <span className="lp-logo-text" style={{ fontSize: '1.18rem' }}>HOOP<span>LOGS</span></span>
+          <img src="/hooplogs-logo.png" alt="HoopLogs Logo" className="lp-logo-img" style={{ width: '28px', height: '28px', borderRadius: '7px', objectFit: 'cover' }} />
+          <span className="lp-logo-text" style={{ fontSize: '1.15rem' }}>HOOP<span>LOGS</span></span>
         </Link>
 
+        {/* Desktop Nav Links */}
         <nav className="lp-nav-desktop">
           <a href="#install">How to Download</a>
           <a href="#showcase">Arena App</a>
@@ -81,11 +83,47 @@ const LandingPage = () => {
           <a href="#about">About</a>
         </nav>
 
+        {/* Header Right Actions: Login + Hamburger on Mobile */}
         <div className="lp-header-cta">
           <Link to="/login" className="lp-btn-login">Log In</Link>
-          <Link to="/signup" className="lp-btn-signup">Get Started</Link>
+          <button
+            type="button"
+            className="lp-hamburger-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle Navigation Menu"
+          >
+            {mobileMenuOpen ? <LuX size={19} /> : <LuMenu size={19} />}
+          </button>
         </div>
       </header>
+
+      {/* ── MOBILE DRAWER NAVIGATION MENU ─────────────────── */}
+      {mobileMenuOpen && (
+        <div className="lp-mobile-drawer-backdrop" onClick={() => setMobileMenuOpen(false)}>
+          <div className="lp-mobile-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="lp-drawer-header">
+              <span className="lp-drawer-title">MENU</span>
+              <button type="button" className="lp-drawer-close" onClick={() => setMobileMenuOpen(false)}>
+                <LuX size={18} />
+              </button>
+            </div>
+            <nav className="lp-drawer-links">
+              <a href="#install" onClick={() => setMobileMenuOpen(false)}>📲 How to Download (PWA)</a>
+              <a href="#showcase" onClick={() => setMobileMenuOpen(false)}>🏀 Arena Mobile App</a>
+              <a href="#features" onClick={() => setMobileMenuOpen(false)}>⚡ Training Features</a>
+              <a href="#about" onClick={() => setMobileMenuOpen(false)}>🛡️ About HoopLogs</a>
+            </nav>
+            <div className="lp-drawer-cta">
+              <Link to="/signup" className="lp-drawer-btn-signup" onClick={() => setMobileMenuOpen(false)}>
+                Get Started Free
+              </Link>
+              <Link to="/login" className="lp-drawer-btn-login" onClick={() => setMobileMenuOpen(false)}>
+                Sign In
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── HERO ──────────────────────────────────────── */}
       <section className="lp-hero" ref={heroRef}>
