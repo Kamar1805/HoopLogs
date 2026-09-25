@@ -13,7 +13,6 @@ import RequestCoaching from './pages/RequestCoaching';
 import WorkoutTracker from './pages/WorkoutTracker';
 import LandingPage from './pages/LandingPage';
 import Statstracker from './pages/Statstracker';
-import Hoopers from './pages/Hoopers';
 import RosterManagement from './pages/RosterManagement';
 import Leaderboards from './pages/Leaderboards';
 
