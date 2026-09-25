@@ -1,0 +1,29 @@
+{
+  "short_name": "HoopLogs",
+  "name": "HoopLogs | Basketball Training, Shot Tracker & Team Rosters",
+  "description": "Mobile-first basketball training operating system, team rosters & live game scorekeeper.",
+  "icons": [
+    {
+      "src": "/hooplogs-logo.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/hooplogs-logo.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "180x180"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#060810",
+  "theme_color": "#ff5500",
+  "display": "standalone",
+  "orientation": "portrait"
+}
