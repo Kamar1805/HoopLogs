@@ -1,0 +1,484 @@
+/* src/components/AthleticWorkoutView.css */
+.athletic-workout-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* HERO PROGRAM CARD */
+.athletic-program-hero {
+  background: linear-gradient(135deg, rgba(255, 85, 0, 0.12) 0%, rgba(13, 18, 31, 0.95) 100%);
+  border: 1px solid rgba(255, 85, 0, 0.35);
+  border-radius: var(--radius-lg, 16px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.program-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.program-badge-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.goal-badge {
+  background: #ff5500;
+  color: #ffffff;
+  font-family: var(--f-athletic);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  letter-spacing: 0.05em;
+}
+
+.equip-badge {
+  background: var(--bg-3, rgba(255, 255, 255, 0.08));
+  color: var(--t-primary, #ffffff);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-1, rgba(255, 255, 255, 0.1));
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-open-config {
+  background: var(--bg-3, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--border-2, rgba(255, 255, 255, 0.15));
+  color: var(--t-primary, #ffffff);
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-open-config:hover {
+  border-color: #ff5500;
+  color: #ff7a2e;
+}
+
+.program-main-title {
+  font-family: var(--f-score, 'Bebas Neue', sans-serif);
+  font-size: 1.55rem;
+  letter-spacing: 0.04em;
+  margin: 0;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+.program-tagline {
+  font-size: 0.78rem;
+  color: #ff7a2e;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* SESSION BAR */
+.program-session-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.session-day-info {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.session-day-num {
+  font-family: var(--f-athletic);
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: #ffffff;
+}
+
+.session-day-focus {
+  font-size: 0.78rem;
+  color: var(--t-secondary, #94a3b8);
+}
+
+.session-pct-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #ff7a2e;
+  background: rgba(255, 85, 0, 0.15);
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 85, 0, 0.3);
+}
+
+.program-progress-meter {
+  height: 6px;
+  background: var(--bg-0, #060810);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff5500, #ff7a2e);
+  border-radius: 999px;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* FINISHED CELEBRATION */
+.finished-celebration-banner {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: modalPopIn 0.3s ease;
+}
+
+.finished-banner-text {
+  flex: 1;
+}
+
+.finished-banner-text h4 {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #34d399;
+  margin: 0;
+}
+
+.finished-banner-text p {
+  font-size: 0.75rem;
+  color: var(--t-secondary, #94a3b8);
+  margin: 2px 0 0;
+}
+
+.btn-next-day {
+  background: #10b981;
+  color: #060810;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-weight: 800;
+  font-size: 0.78rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* DRILLS HEADER */
+.drills-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px;
+}
+
+.drills-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.drills-title-wrap h3 {
+  font-family: var(--f-athletic);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--t-secondary, #94a3b8);
+  margin: 0;
+}
+
+.btn-reset-drills {
+  background: transparent;
+  border: none;
+  color: var(--t-muted, #64748b);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-reset-drills:hover {
+  color: #ff7a2e;
+}
+
+/* DRILLS STACK */
+.drills-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drill-card {
+  background: var(--bg-2, #0d121f);
+  border: 1px solid var(--border-1, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.drill-card:hover {
+  border-color: rgba(255, 85, 0, 0.35);
+  transform: translateY(-1px);
+}
+
+.drill-card.completed {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.drill-checkbox {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--bg-3, rgba(255, 255, 255, 0.06));
+  border: 1.5px solid var(--border-2, rgba(255, 255, 255, 0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--t-muted, #64748b);
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.drill-card.completed .drill-checkbox {
+  background: #10b981;
+  border-color: #10b981;
+  color: #060810;
+}
+
+.drill-content-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.drill-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.drill-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--t-primary, #ffffff);
+  margin: 0;
+}
+
+.drill-card.completed .drill-name {
+  text-decoration: line-through;
+  color: var(--t-muted, #64748b);
+}
+
+.drill-parameters {
+  display: flex;
+  gap: 5px;
+}
+
+.drill-param {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: rgba(255, 85, 0, 0.12);
+  color: #ff7a2e;
+  border: 1px solid rgba(255, 85, 0, 0.25);
+}
+
+.drill-coaching-cue {
+  font-size: 0.76rem;
+  color: var(--t-secondary, #94a3b8);
+  margin: 2px 0 0;
+  line-height: 1.35;
+}
+
+.drill-meta-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.rest-timer-badge {
+  font-size: 0.68rem;
+  color: var(--t-muted, #64748b);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tap-status-hint {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--t-muted, #64748b);
+}
+
+.drill-card.completed .tap-status-hint {
+  color: #34d399;
+}
+
+/* CONFIG MODAL */
+.config-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+
+.config-modal-sheet {
+  background: var(--bg-1, #0a0d16);
+  border-top: 1px solid var(--border-2, rgba(255, 255, 255, 0.15));
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 480px;
+  padding: 20px 16px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.7);
+  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.config-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.config-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.config-header-title h3 {
+  font-family: var(--f-score, 'Bebas Neue', sans-serif);
+  font-size: 1.3rem;
+  margin: 0;
+  color: #ffffff;
+}
+
+.config-close-btn {
+  background: var(--bg-3, rgba(255, 255, 255, 0.08));
+  border: none;
+  color: var(--t-secondary, #94a3b8);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.config-sheet-sub {
+  font-size: 0.78rem;
+  color: var(--t-secondary, #94a3b8);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.config-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.config-group label {
+  font-family: var(--f-athletic);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--t-muted, #64748b);
+  letter-spacing: 0.06em;
+}
+
+.config-chips-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.config-chips-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.config-chip {
+  background: var(--bg-2, #0d121f);
+  border: 1px solid var(--border-1, rgba(255, 255, 255, 0.1));
+  border-radius: 10px;
+  color: var(--t-secondary, #94a3b8);
+  padding: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.config-chip.active {
+  background: rgba(255, 85, 0, 0.15);
+  border-color: #ff5500;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(255, 85, 0, 0.25);
+}
+
+.btn-apply-config {
+  background: linear-gradient(135deg, #ff6b00 0%, #e63d00 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-family: var(--f-athletic);
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 6px;
+}

@@ -1,0 +1,125 @@
+/* src/components/Court5ZonesSVG.css - Basketball Arena Mobile Court */
+.court-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  user-select: none;
+}
+
+.court-instruction-bar {
+  background: rgba(255, 85, 0, 0.1);
+  border: 1px solid rgba(255, 85, 0, 0.25);
+  color: #ff9d66;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.court-svg-wrapper {
+  position: relative;
+  width: 100%;
+  background: radial-gradient(circle at 50% 100%, #151d2c 0%, #090d15 100%);
+  border-radius: 20px;
+  padding: 10px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1.5px solid #1f2a3f;
+  overflow: hidden;
+}
+
+.court-svg-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.zone-polygon {
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  fill-opacity: 0.22;
+}
+
+.zone-polygon:hover {
+  fill-opacity: 0.48;
+}
+
+.zone-polygon.selected {
+  fill-opacity: 0.7;
+  stroke: #ff5500;
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 14px rgba(255, 85, 0, 0.9));
+}
+
+.zone-badge-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  fill: #ffffff;
+  pointer-events: none;
+}
+
+.zone-badge-stat {
+  font-family: 'Chakra Petch', monospace, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  fill: #ffaa00;
+  pointer-events: none;
+}
+
+/* Quick Zone Selector Horizontal Scroll Pills on Mobile */
+.court-quick-select-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  width: 100%;
+  padding: 10px 4px 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.court-quick-select-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.zone-pill-btn {
+  background: #111724;
+  color: #94a3b8;
+  border: 1px solid #1e293d;
+  padding: 7px 13px;
+  border-radius: 9999px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.zone-pill-btn:active {
+  transform: scale(0.96);
+}
+
+.zone-pill-btn.active {
+  background: #ff5500;
+  color: #ffffff;
+  border-color: #ff772e;
+  box-shadow: 0 0 12px rgba(255, 85, 0, 0.5);
+}

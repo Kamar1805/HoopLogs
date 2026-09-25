@@ -1,10 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
-import { auth, db } from '../Firebase';
+import { useAuth } from '../context/AuthContext';
 import "./Statstracker.css";
 
 /* -------------------------------------------------------------------------- */
@@ -24,12 +22,7 @@ const fallbackProfile = {
 /* -------------------------------------------------------------------------- */
 const Statstracker = () => {
   const navigate = useNavigate();
-
-  /* AUTH / PROFILE --------------------------------------------------------- */
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [profile, setProfile] = useState(fallbackProfile);
-  const [avatarBroken, setAvatarBroken] = useState(false);
+  const { user, profile: authProfile, loading: authLoading } = useAuth();
 
   /* UI / FORM -------------------------------------------------------------- */
   const [showForm, setShowForm] = useState(false);
@@ -56,53 +49,20 @@ const Statstracker = () => {
   const [form, setForm] = useState(emptyForm);
 
   /* LOCAL STORAGE GAME LOG (PER USER) -------------------------------------- */
-  const storageKey = user ? `hl_stats_games_${user.uid}` : null;
+  const storageKey = user ? `hl_stats_games_${user.id}` : 'hl_stats_games_guest';
   const [games, setGames] = useState([]);
 
-  /* AUTH + PROFILE FETCH --------------------------------------------------- */
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async fbUser => {
-      if (!fbUser) {
-        setUser(null);
-        setAuthLoading(false);
-        navigate("/login", { replace: true });
-        return;
-      }
-      setUser(fbUser);
-      try {
-        const snap = await getDoc(doc(db, "users", fbUser.uid));
-        let photo =
-          (snap.exists() &&
-            (snap.data().photoURL ||
-              snap.data().avatar ||
-              snap.data().image ||
-              snap.data().profilePic)) ||
-          fbUser.photoURL ||
-          null;
-        if (photo && typeof photo === "string") {
-            photo = photo.trim() || null;
-        }
-        if (snap.exists()) {
-          const data = snap.data();
-            setProfile({
-              name: data.name || data.displayName || data.nickname || fallbackProfile.name,
-              height: data.height || fallbackProfile.height,
-              weight: data.weight || data.bodyWeight || fallbackProfile.weight,
-              team: data.teamName || data.team || data.inTeam || "",
-              position: data.position || fallbackProfile.position,
-              photoURL: photo
-            });
-        } else {
-          setProfile(p => ({ ...fallbackProfile, photoURL: photo }));
-        }
-      } catch (e) {
-        console.warn("Profile fetch failed:", e);
-        setProfile(fallbackProfile);
-      }
-      setAuthLoading(false);
-    });
-    return () => unsub();
-  }, [navigate]);
+  const profile = useMemo(() => {
+    if (!authProfile) return fallbackProfile;
+    return {
+      name: authProfile.full_name || fallbackProfile.name,
+      height: authProfile.height || fallbackProfile.height,
+      weight: authProfile.weight || fallbackProfile.weight,
+      team: authProfile.team || "",
+      position: authProfile.position || fallbackProfile.position,
+      photoURL: authProfile.avatar_url || null,
+    };
+  }, [authProfile]);
 
   /* LOAD GAMES FOR USER ---------------------------------------------------- */
   useEffect(() => {
@@ -210,10 +170,10 @@ const Statstracker = () => {
 
   /* AVATAR / INITIALS ------------------------------------------------------ */
   const initials = useMemo(() => {
-    if (!profile.name) return "🏀";
+    if (!profile.name) return "HL";
     const parts = profile.name.trim().split(/\s+/);
     const letters = parts.slice(0, 2).map(p => p[0]?.toUpperCase()).join("");
-    return letters || "🏀";
+    return letters || "HL";
   }, [profile.name]);
 
   const avatarUrl = !avatarBroken && profile.photoURL ? profile.photoURL : null;
@@ -610,8 +570,8 @@ const Statstracker = () => {
         {/* COACH WIDGET ----------------------------------------------------- */}
         <div className="coach-widget bump-in" aria-live="polite">
           <div className="coach-bubble">
-            <strong>CoachGPT:</strong>
-            <span> Don’t deceive yourself, put in the right numbers.</span>
+            <strong>Coach's Tip:</strong>
+            <span> Put in the accurate numbers — your growth shows in the data.</span>
           </div>
         </div>
       </main>

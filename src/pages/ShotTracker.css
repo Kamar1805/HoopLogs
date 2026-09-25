@@ -1,0 +1,385 @@
+/* src/pages/ShotTracker.css - Basketball Arena Mobile First */
+
+.shot-tracker-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg-1);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 12px) + 20px);
+}
+
+.tracker-main-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0.85rem 0.85rem 1.5rem;
+}
+
+/* Court Mode Switch Tabs */
+.court-mode-switch-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: var(--bg-2, #0d121f);
+  border: 1px solid var(--border-1, rgba(255, 255, 255, 0.08));
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.court-mode-tab {
+  background: transparent;
+  border: none;
+  color: var(--t-secondary, #94a3b8);
+  font-family: var(--f-athletic);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 8px 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.court-mode-tab.active {
+  background: #ff5500;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(255, 85, 0, 0.35);
+}
+
+/* Arena Top Header / Title Bar */
+.arena-header-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.arena-header-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.arena-header-title h1 {
+  font-family: var(--f-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.persistence-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #34d399;
+  font-family: var(--f-ui);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 9999px;
+}
+
+/* JUMBOTRON SCOREBOARD BANNER */
+.arena-jumbotron {
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-lg);
+  padding: 0.85rem 1rem 0.75rem;
+  margin-bottom: 0.85rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.jumbotron-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.jumbotron-session-tag {
+  font-family: var(--f-ui);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--orange-hot);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.jumbotron-career-tag {
+  font-family: var(--f-ui);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--t-muted);
+}
+
+.jumbotron-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.jumbotron-metric-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.jumbotron-metric-label {
+  font-family: var(--f-ui);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--t-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.jumbotron-metric-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.jumbotron-metric-value.accuracy {
+  color: var(--orange-hot);
+}
+
+.jumbotron-metric-value.makes {
+  color: #34d399;
+}
+
+.jumbotron-metric-sub {
+  font-size: 0.62rem;
+  color: var(--t-secondary);
+  margin-top: 2px;
+}
+
+.jumbotron-trend-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+}
+
+.trend-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.trend-text.positive {
+  color: #34d399;
+}
+
+.trend-text.negative {
+  color: #f87171;
+}
+
+.trend-text.neutral {
+  color: var(--t-muted);
+}
+
+/* Jumbotron Action Strip */
+.jumbotron-actions-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+}
+
+.btn-complete-workout {
+  flex: 1;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #ff5500 0%, #d94100 100%);
+  border: none;
+  border-radius: var(--r-md);
+  color: #ffffff;
+  font-family: var(--f-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(255, 85, 0, 0.3);
+  transition: transform 0.15s ease;
+}
+
+.btn-complete-workout:active {
+  transform: scale(0.98);
+}
+
+.btn-new-reps {
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--r-md);
+  color: var(--t-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.btn-new-reps:active {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Tracker Court Section */
+.tracker-court-section {
+  margin-bottom: 0.85rem;
+}
+
+/* 5-Zone Breakdown Grid */
+.zones-breakdown-section {
+  margin-bottom: 1rem;
+}
+
+.breakdown-header {
+  margin-bottom: 6px;
+}
+
+.breakdown-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--t-primary);
+}
+
+.zone-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 6px;
+}
+
+.zone-performance-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.zone-performance-card:active {
+  transform: scale(0.98);
+  background: var(--bg-3);
+}
+
+.zone-performance-card.active {
+  border-color: var(--orange);
+  box-shadow: 0 0 12px rgba(255, 85, 0, 0.2);
+}
+
+.zone-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.zone-dot-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.zone-name-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--t-primary);
+  flex: 1;
+  margin-left: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zone-pts-tag {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--t-muted);
+}
+
+.zone-card-middle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 4px 0;
+}
+
+.zone-makes-ratio {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--t-secondary);
+}
+
+.zone-pct-large {
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.zone-card-bottom {
+  margin-top: 4px;
+}
+
+.zone-trend-pill {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.zone-trend-pill.positive {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+}
+
+.zone-trend-pill.negative {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+}
+
+.zone-trend-pill.neutral {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--t-muted);
+}

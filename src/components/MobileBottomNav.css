@@ -1,0 +1,98 @@
+/* src/components/MobileBottomNav.css */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(52px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: rgba(6, 8, 16, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 999;
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.35);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+@media (min-width: 481px) {
+  .mobile-bottom-nav {
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 1px solid rgba(255, 255, 255, 0.07);
+    border-right: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 16px 16px 0 0;
+  }
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  position: relative;
+  gap: 2px;
+}
+
+.bottom-nav-item:active {
+  transform: scale(0.94);
+}
+
+.bottom-nav-icon {
+  font-size: 1.15rem;
+  transition: transform 0.15s ease;
+}
+
+.bottom-nav-label {
+  font-family: var(--f-ui);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
+}
+
+.bottom-nav-item.active {
+  color: var(--orange-hot);
+}
+
+.bottom-nav-item.active .bottom-nav-icon {
+  transform: translateY(-1px);
+}
+
+.bottom-nav-indicator {
+  position: absolute;
+  top: 0;
+  width: 22px;
+  height: 2.5px;
+  background: var(--orange);
+  border-radius: 0 0 3px 3px;
+  box-shadow: 0 0 6px var(--orange);
+}
+
+/* Primary Center Tracker Button */
+.bottom-nav-item.primary-tracker {
+  position: relative;
+}
+
+.bottom-nav-item.primary-tracker .tracker-ball-badge {
+  background: linear-gradient(135deg, #ff6b00 0%, #ff3d00 100%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -12px;
+  box-shadow: 0 3px 12px rgba(255, 85, 0, 0.45);
+  border: 2px solid var(--bg-1);
+  color: #ffffff;
+}

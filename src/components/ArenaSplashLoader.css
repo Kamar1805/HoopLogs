@@ -1,0 +1,181 @@
+/* src/components/ArenaSplashLoader.css */
+.arena-splash-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--bg-1, #060810);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  font-family: var(--f-ui, 'Plus Jakarta Sans', sans-serif);
+  padding: 24px;
+  overflow: hidden;
+}
+
+.arena-splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 20px;
+  flex: 1;
+}
+
+/* BOUNCING BASKETBALL ANIMATION */
+.bouncing-ball-wrapper {
+  position: relative;
+  width: 90px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.basketball-sphere {
+  width: 72px;
+  height: 72px;
+  animation: basketballBounce 0.75s cubic-bezier(0.28, 0.84, 0.42, 1) infinite alternate;
+  transform-origin: center bottom;
+  filter: drop-shadow(0 6px 14px rgba(255, 85, 0, 0.35));
+}
+
+.ball-svg {
+  width: 100%;
+  height: 100%;
+  animation: ballSpin 4s linear infinite;
+}
+
+.court-ball-shadow {
+  width: 54px;
+  height: 12px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0) 75%);
+  border-radius: 50%;
+  animation: shadowPulse 0.75s cubic-bezier(0.28, 0.84, 0.42, 1) infinite alternate;
+  margin-top: 4px;
+}
+
+/* KEYFRAMES */
+@keyframes basketballBounce {
+  0% {
+    transform: translateY(-55px) scale(1, 1);
+  }
+  85% {
+    transform: translateY(0px) scale(1, 1);
+  }
+  100% {
+    transform: translateY(5px) scale(1.15, 0.85); /* Squash on impact */
+  }
+}
+
+@keyframes shadowPulse {
+  0% {
+    transform: scale(0.45);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+@keyframes ballSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* BRAND TITLE */
+.arena-splash-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.arena-brand-title {
+  font-family: var(--f-score, 'Bebas Neue', sans-serif);
+  font-size: 2.8rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.hoop-text {
+  color: var(--t-primary, #ffffff);
+}
+
+.logs-text {
+  color: #ff5500;
+  text-shadow: 0 0 16px rgba(255, 85, 0, 0.45);
+}
+
+.arena-tagline {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--t-secondary, #94a3b8);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0;
+  max-width: 320px;
+}
+
+/* STATUS PILL */
+.arena-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 85, 0, 0.12);
+  border: 1px solid rgba(255, 85, 0, 0.3);
+  padding: 6px 14px;
+  border-radius: 999px;
+  margin-top: 4px;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff5500;
+  box-shadow: 0 0 8px #ff5500;
+  animation: dotBlink 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes dotBlink {
+  0% { opacity: 0.3; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1.2); }
+}
+
+.status-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ff7a2e;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* FOOTER */
+.arena-splash-footer {
+  padding-bottom: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--t-muted, #64748b);
+  text-transform: uppercase;
+}
+
+.sozidara-brand {
+  color: var(--t-primary, #ffffff);
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}

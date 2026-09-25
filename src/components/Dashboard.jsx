@@ -1,642 +1,755 @@
-/**
- * Dashboard.jsx
- * Daily Workout Snapshot + Season Stats now side‑by‑side (same row) using .ws-two-col grid.
- * Mini stats hooks are placed before conditional returns to satisfy Rules of Hooks.
- * Ensure Dashboard.css updated with new responsive .ws-two-col styles.
- */
-
-import SplashScreen from "./SplashScreen";
-import React, { useState, useEffect, useMemo } from "react";
-import "./Dashboard.css";
-import { Link } from "react-router-dom";
-
-import { auth, db } from "../Firebase";
+// src/components/Dashboard.jsx
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../supabase';
+import SiteHeader from './SiteHeader';
+import MobileBottomNav from './MobileBottomNav';
+import AppGuideModal from './AppGuideModal';
+import { IoBasketball, IoLogoWhatsapp } from 'react-icons/io5';
 import {
-  collection, doc, getDoc,
-  query, where, onSnapshot
-} from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+  LuCrosshair,
+  LuTrophy,
+  LuUsers,
+  LuChevronRight,
+  LuZap,
+  LuTrendingUp,
+  LuCompass,
+  LuActivity,
+  LuMegaphone,
+  LuPlus,
+  LuX,
+  LuShieldCheck,
+  LuCalendar,
+  LuClock
+} from 'react-icons/lu';
+import './Dashboard.css';
 
-import SiteHeader   from "./SiteHeader";
-import SiteFooter   from "./SiteFooter";
-import ShotProgressRing from "./ShotProgressRing";
-
-/* BASE (legacy) LOCAL STORAGE KEYS */
-const LS_PLAN_KEY_BASE = "hl_schedule_v2";
-const LS_DONE_KEY_BASE = "hl_completed_v2";
-
-/* QUOTES */
-const dashboardQuotes = [
-  `Michael Jordan: “I’ve missed more than 9,000 shots in my career. ...”`,
-  `Kobe Bryant: “The most important thing is to try and inspire people ...”`,
-  `Larry Bird: “If you give 100% all of the time, somehow things will work out ...”`,
-  `Magic Johnson: “Ask not what your teammates can do for you. Ask what you can do ...”`,
-  `LeBron James: “You can’t be afraid to fail. It’s the only way you succeed.”`,
-  `Tim Duncan: “Good, better, best. Never let it rest ...”`,
-  `Kevin Durant: “Hard work beats talent when talent fails to work hard.”`,
-];
-
-const welcomeQuotes = [
-  "Let's get back to the grind...",
-  "Every day is a chance to get better.",
-  "Hard work beats talent when talent doesn’t work hard.",
-  "Success is earned one rep at a time.",
-  "Grind now, shine later.",
+const DEFAULT_POSTS = [
+  {
+    id: 'post-1',
+    authorName: 'Coach Kamar (AK)',
+    team: 'Amazon Girls',
+    text: 'Training for Amazon Girls by 6:00 PM today at Court 2. Focus is fastbreak transition and defensive rotations. Don’t be late!',
+    time: 'Today • 2:30 PM',
+    date: 'Sep 25',
+  },
+  {
+    id: 'post-2',
+    authorName: 'Coach Marcus',
+    team: 'All Hoopers',
+    text: 'Weekend 3-Point Shootout qualifier opens Saturday morning. Get your 5-Zone reps logged to lock in your tournament seeding.',
+    time: 'Yesterday • 10:15 AM',
+    date: 'Sep 24',
+  }
 ];
 
 const Dashboard = () => {
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
 
-  /* auth / ui state */
-  const [nicknameLoading, setNicknameLoading] = useState(true);
-  const [showSplash, setShowSplash] = useState(true);
-  const [nickname, setNickname]   = useState("Hoop Logger");
-  const [user, setUser]           = useState(null);
+  const isCoach = profile?.role === 'admin' || (typeof window !== 'undefined' && localStorage.getItem('hooplogs_admin_elevated') === 'true');
 
-  /* rotating quote indexes */
-  const [welcomeIdx, setWelcomeIdx] = useState(0);
-  const [legendIdx,  setLegendIdx]  = useState(0);
-  const [profile, setProfile] = useState(null);
-  useEffect(() => {
-    if (!user) {
-      setProfile(null);
-      return;
-    }
-    // Fetch user profile from Firestore
-    getDoc(doc(db, "users", user.uid)).then((snap) => {
-      if (snap.exists()) setProfile(snap.data());
-      else setProfile(null);
-    });
-  }, [user]);
+  const [careerStats, setCareerStats] = useState({
+    attempted: 0,
+    made: 0,
+    accuracy: 0,
+    sessionsCount: 0,
+  });
+  const [topShooters, setTopShooters] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showTour, setShowTour] = useState(false);
 
-  // Define required fields for completeness
-  const requiredFields = [
-    "name",
-    "nickname",
-    "height",
-    "weight",
-    "position",
-    "experience",
-    "photoURL",
-    "bio",
-    "teamName"
-  ];
-
-  // Check if any required field is missing or empty
-  const isProfileIncomplete =
-    !!user &&
-    profile &&
-    requiredFields.some(
-      (field) =>
-        profile[field] === undefined ||
-        profile[field] === null ||
-        profile[field] === "" ||
-        (field === "photoURL" && !profile.photoURL)
-    );
-  /* shot stats */
-  const [latest, setLatest] = useState(null);
-  const [best,   setBest]   = useState(null);
-  const [worst,  setWorst]  = useState(null);
-  const [fav,    setFav]    = useState(null);
-
-  /* workout snapshot (user‑scoped) */
-  const [planData, setPlanData] = useState(null);
-  const [completedDates, setCompletedDates] = useState([]);
-  const [planLoading, setPlanLoading] = useState(false);
-
-  /* derive user‑scoped keys */
-  const planKey = user ? `${LS_PLAN_KEY_BASE}_${user.uid}` : null;
-  const doneKey = user ? `${LS_DONE_KEY_BASE}_${user.uid}` : null;
-
-  /* -------- MINI GAMES / STATS (before returns) -------- */
-  const [miniGames, setMiniGames] = useState([]);
-
-  useEffect(() => {
-    if (!user) {
-      setMiniGames([]);
-      return;
-    }
+  // Guide prompt visibility (only on first sign up / login until dismissed)
+  const [showGuideBanner, setShowGuideBanner] = useState(() => {
     try {
-      const key = `hl_stats_games_${user.uid}`;
-      const raw = localStorage.getItem(key);
-      setMiniGames(raw ? JSON.parse(raw) : []);
+      const dismissed = localStorage.getItem('hooplogs_guide_dismissed');
+      const completed = localStorage.getItem('hooplogs_tour_completed');
+      return !dismissed && !completed;
     } catch {
-      setMiniGames([]);
+      return false;
     }
-  }, [user]);
+  });
 
-  const miniStats = useMemo(() => {
-    if (!miniGames.length) {
-      return {
-        gp: 0,
-        avg: { ppg:0,rpg:0,apg:0,bpg:0,spg:0,topg:0 },
-        pct: { fg:0, three:0, ft:0 }
+  // Announcements state - ZERO MOCK DATA
+  const [announcements, setAnnouncements] = useState(() => {
+    try {
+      const saved = localStorage.getItem('hooplogs_arena_announcements');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [showNewPostModal, setShowNewPostModal] = useState(false);
+  const [newPostText, setNewPostText] = useState('');
+  const [newPostTeam, setNewPostTeam] = useState('All Teams');
+  const [postingAnnouncement, setPostingAnnouncement] = useState(false);
+  const [announcementMsg, setAnnouncementMsg] = useState('');
+  const [activeCommentPostId, setActiveCommentPostId] = useState(null);
+  const [commentInput, setCommentInput] = useState('');
+
+  // Active workout program state
+  const [activeWorkout, setActiveWorkout] = useState(() => {
+    try {
+      const saved = localStorage.getItem('hooplogs_active_workout');
+      return saved ? JSON.parse(saved) : {
+        name: 'Vertical & Explosiveness',
+        tagline: 'Legs Loading • Kinetic Jump Springs',
+        dayNumber: 1,
+        focus: 'Elastic Jump & Ankle Stiffness',
+        percentDone: 35,
+        drillsCount: 4,
+        doneCount: 1
       };
+    } catch {
+      return null;
     }
-    const totals = miniGames.reduce((a,g)=>{
-      a.pts+=g.pts; a.reb+=g.reb; a.ast+=g.ast; a.blk+=g.blk; a.stl+=g.stl; a.tov+=g.tov;
-      a.fgM+=g.fgM; a.fgA+=g.fgA; a.threeM+=g.threeM; a.threeA+=g.threeA; a.ftM+=g.ftM; a.ftA+=g.ftA;
-      return a;
-    }, {pts:0,reb:0,ast:0,blk:0,stl:0,tov:0,fgM:0,fgA:0,threeM:0,threeA:0,ftM:0,ftA:0});
-    const gp = miniGames.length;
-    const avg = {
-      ppg:+(totals.pts/gp).toFixed(1),
-      rpg:+(totals.reb/gp).toFixed(1),
-      apg:+(totals.ast/gp).toFixed(1),
-      bpg:+(totals.blk/gp).toFixed(1),
-      spg:+(totals.stl/gp).toFixed(1),
-      topg:+(totals.tov/gp).toFixed(1)
-    };
-    const pct = {
-      fg: totals.fgA ? +(totals.fgM/totals.fgA*100).toFixed(1) : 0,
-      three: totals.threeA ? +(totals.threeM/totals.threeA*100).toFixed(1) : 0,
-      ft: totals.ftA ? +(totals.ftM/totals.ftA*100).toFixed(1) : 0
-    };
-    return { gp, avg, pct };
-  }, [miniGames]);
+  });
 
-  const MiniStat = ({ label, value, suffix="" }) => (
-    <div className="mini-stat-badge">
-      <span className="mini-stat-label">{label}</span>
-      <span className="mini-stat-value">{value}{suffix}</span>
-    </div>
-  );
-  /* ---------------------------------------------------- */
+  const handleDismissGuide = (e) => {
+    e.stopPropagation();
+    setShowGuideBanner(false);
+    try {
+      localStorage.setItem('hooplogs_guide_dismissed', 'true');
+    } catch (err) {
+      console.warn('Could not store guide dismissal:', err);
+    }
+  };
 
-  /* auth listener */
-  useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
+  const handleCreatePost = (e) => {
+    e.preventDefault();
+    if (!newPostText.trim()) return;
 
-      if (firebaseUser) {
-        const snap = await getDoc(doc(db, "users", firebaseUser.uid));
-        if (snap.exists()) {
-          setNickname(
-            snap.data().nickname || snap.data().name || "Hoop Logger"
-          );
-        } else {
-          setNickname("Hoop Logger");
-        }
-        setTimeout(() => {
-          setNicknameLoading(false);
-          setShowSplash(false);
-        }, 800);
+    setPostingAnnouncement(true);
+    setTimeout(() => {
+      const newPost = {
+        id: `post-${Date.now()}`,
+        authorName: profile?.full_name || user?.user_metadata?.full_name || 'Coach AK',
+        team: newPostTeam,
+        text: newPostText.trim(),
+        time: 'Just now',
+        date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        attendance: {},
+        comments: []
+      };
 
-        /* subscribe to this user's shots */
-        const q = query(
-          collection(db, "shots"),
-          where("userId", "==", firebaseUser.uid)
-        );
-        const unsubShots = onSnapshot(q, (snap) => {
-          const docs = snap.docs
-            .map(d => ({ id: d.id, ...d.data() }))
-            .filter(s => s.attempted > 0);
-
-            if (!docs.length) {
-              setLatest(null); setBest(null); setWorst(null); setFav(null);
-              return;
-            }
-
-            setLatest(
-              [...docs].sort(
-                (a, b) =>
-                  (b.timestamp?.toMillis?.() || 0) -
-                  (a.timestamp?.toMillis?.() || 0)
-              )[0]
-            );
-            setBest(
-              [...docs].sort(
-                (a, b) => b.made / b.attempted - a.made / a.attempted
-              )[0]
-            );
-            setWorst(
-              [...docs].sort(
-                (a, b) => a.made / a.attempted - b.made / b.attempted
-              )[0]
-            );
-
-            const maxAttempt = Math.max(...docs.map(d => d.attempted));
-            const mostAttempted = docs.filter(d => d.attempted === maxAttempt);
-            if (mostAttempted.length === 1) {
-              setFav(mostAttempted[0]);
-            } else {
-              const bestSpot = mostAttempted.sort((a, b) => {
-                const aPct = a.attempted ? a.made / a.attempted : 0;
-                const bPct = b.attempted ? b.made / b.attempted : 0;
-                return bPct - aPct;
-              })[0];
-              setFav(bestSpot);
-            }
-        });
-
-        return () => unsubShots();
-      } else {
-        /* signed out */
-        setNickname("Hoop Logger");
-        setTimeout(() => {
-          setNicknameLoading(false);
-          setShowSplash(false);
-        }, 600);
-        setLatest(null); setBest(null); setWorst(null); setFav(null);
-        setPlanData(null);
-        setCompletedDates([]);
+      const updated = [newPost, ...announcements];
+      setAnnouncements(updated);
+      try {
+        localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(updated));
+      } catch (err) {
+        console.warn('Could not save announcement:', err);
       }
+
+      setNewPostText('');
+      setPostingAnnouncement(false);
+      setShowNewPostModal(false);
+      setAnnouncementMsg('Announcement posted to arena! 📢');
+      setTimeout(() => setAnnouncementMsg(''), 3500);
+    }, 400);
+  };
+
+  const handleToggleAttendance = (postId, status) => {
+    const userId = user?.id || 'guest-user';
+    const userName = profile?.full_name || user?.user_metadata?.full_name || 'Hooper';
+
+    setAnnouncements((prev) => {
+      const updated = prev.map((p) => {
+        if (p.id === postId) {
+          const attendance = { ...(p.attendance || {}) };
+          if (attendance[userId]?.status === status) {
+            delete attendance[userId];
+          } else {
+            attendance[userId] = {
+              status,
+              name: userName,
+              time: 'Just now'
+            };
+          }
+          return { ...p, attendance };
+        }
+        return p;
+      });
+      try {
+        localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  const handleAddComment = (postId) => {
+    if (!commentInput.trim()) return;
+    const userName = profile?.full_name || user?.user_metadata?.full_name || 'Hooper';
+
+    setAnnouncements((prev) => {
+      const updated = prev.map((p) => {
+        if (p.id === postId) {
+          const comments = [
+            ...(p.comments || []),
+            {
+              id: `c-${Date.now()}`,
+              author: userName,
+              text: commentInput.trim(),
+              time: 'Just now'
+            }
+          ];
+          return { ...p, comments };
+        }
+        return p;
+      });
+      try {
+        localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
     });
 
-    return () => unsubAuth();
-  }, []);
+    setCommentInput('');
+    setActiveCommentPostId(null);
+  };
 
-  /* rotate quotes */
   useEffect(() => {
-    const w = setInterval(
-      () => setWelcomeIdx(i => (i + 1) % welcomeQuotes.length),
-      4000
-    );
-    const l = setInterval(
-      () => setLegendIdx(i => (i + 1) % dashboardQuotes.length),
-      6000
-    );
-    return () => { clearInterval(w); clearInterval(l); };
-  }, []);
+    let isMounted = true;
 
-  /* load workout plan (user‑scoped) */
-  useEffect(() => {
-    if (user === null) {
-      setPlanData(null);
-      setCompletedDates([]);
-      setPlanLoading(false);
-      return;
-    }
-    if (!user) return;
-    setPlanLoading(true);
+    async function loadDashboardData() {
+      try {
+        setLoading(true);
 
-    try {
-      // migrate any legacy local keys to user‑scoped
-      const legacyPlan = localStorage.getItem(LS_PLAN_KEY_BASE);
-      const legacyDone = localStorage.getItem(LS_DONE_KEY_BASE);
-      if (legacyPlan && !localStorage.getItem(planKey)) {
-        localStorage.setItem(planKey, legacyPlan);
-      }
-      if (legacyDone && !localStorage.getItem(doneKey)) {
-        localStorage.setItem(doneKey, legacyDone);
-      }
+        // 1. Fetch user cumulative career shooting stats
+        if (user) {
+          const { data: userLogs, error: logsErr } = await supabase
+            .from('shot_zone_logs')
+            .select('attempted, made')
+            .eq('user_id', user.id);
 
-      // seed with any local copy immediately (prevents flash)
-      const rawPlan = localStorage.getItem(planKey);
-      const rawDone = localStorage.getItem(doneKey);
-      if (rawPlan) {
-        try {
-          const parsed = JSON.parse(rawPlan);
-          if (parsed && parsed.plan) {
-            setPlanData(parsed);
+          if (!logsErr && userLogs && isMounted) {
+            let totalAtt = 0;
+            let totalMade = 0;
+            userLogs.forEach((row) => {
+              totalAtt += Number(row.attempted) || 0;
+              totalMade += Number(row.made) || 0;
+            });
+            const acc = totalAtt > 0 ? Math.round((totalMade / totalAtt) * 100) : 0;
+            setCareerStats((prev) => ({
+              ...prev,
+              attempted: totalAtt,
+              made: totalMade,
+              accuracy: acc,
+            }));
           }
-        } catch {}
-      }
-      if (rawDone) {
-        try { setCompletedDates(JSON.parse(rawDone)); } catch {}
-      }
-    } catch {
-      // ignore
-    }
-  }, [user, planKey, doneKey]);
-  /* live Firestore subscription for workout plan (keeps dashboard in sync with WorkoutTracker) */
-  useEffect(() => {
-    if (!user) return;
 
-    const planRef = doc(db, "workoutPlans", user.uid);
-    const unsubPlan = onSnapshot(
-      planRef,
-      (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-            // shape: { focusKey, startDate, days, plan, completedDates, drillProgress,... }
-            if (data.plan) {
-              const remotePlan = {
-                focusKey: data.focusKey,
-                startDate: data.startDate,
-                days: data.days,
-                plan: data.plan
-              };
-              setPlanData(remotePlan);
-              setCompletedDates(Array.isArray(data.completedDates) ? data.completedDates : []);
-              // persist lightweight cache locally (optional)
-              try {
-                localStorage.setItem(planKey, JSON.stringify(remotePlan));
-                localStorage.setItem(doneKey, JSON.stringify(data.completedDates || []));
-              } catch {}
-            } else {
-              setPlanData(null);
-              setCompletedDates([]);
-            }
-        } else {
-          setPlanData(null);
-          setCompletedDates([]);
+          // Count completed sessions
+          const { count, error: countErr } = await supabase
+            .from('shooting_sessions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id);
+
+          if (!countErr && isMounted) {
+            setCareerStats((prev) => ({
+              ...prev,
+              sessionsCount: count || 0,
+            }));
+          }
         }
-        setPlanLoading(false);
-      },
-      () => {
-        // on error just stop loading to allow UI to show start card
-        setPlanLoading(false);
+
+        // 2. Fetch top 3 shooters for leaderboard spotlight
+        const { data: topData, error: topErr } = await supabase
+          .from('leaderboard_global')
+          .select('*')
+          .order('accuracy_percentage', { ascending: false })
+          .limit(3);
+
+        if (!topErr && topData && isMounted) {
+          setTopShooters(topData);
+        }
+      } catch (err) {
+        console.error('Dashboard load catch:', err);
+      } finally {
+        if (isMounted) setLoading(false);
       }
-    );
-    return () => unsubPlan();
-  }, [user, planKey, doneKey]);
-
-  /* helpers */
-  const pct = s => (s ? Math.round((s.made / s.attempted) * 100) : 0);
-  const sub = s =>
-    s ? `${s.zoneLabel} • ${s.timestamp?.toDate?.().toLocaleString()}` : "—";
-
-  const todayISO = () => new Date().toISOString().slice(0, 10);
-  const todayWorkout = planData?.plan?.[todayISO()] || null;
-  const isTodayComplete = completedDates.includes(todayISO());
-  const planProgressPct = planData
-    ? Math.round(
-        (completedDates.filter(d => planData.plan[d]).length / planData.days) * 100
-      )
-    : 0;
-
-  const handleTrackShotsClick = () => {
-    if (!user) {
-      sessionStorage.setItem("redirectMsg","You must be logged in to track your shots.");
-      navigate("/login");
-    } else {
-      navigate("/shottracker");
     }
-  };
 
-  const handleOpenWorkout = () => {
-    if (!user) {
-      sessionStorage.setItem("redirectMsg","Log in to access your workout plan.");
-      navigate("/login");
-      return;
-    }
-    navigate("/workouttracker");
-  };
+    loadDashboardData();
 
-  /* early splash */
-  if (nicknameLoading || showSplash) {
-    return <SplashScreen fadeOut={!nicknameLoading} />;
-  }
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  const athleteName = profile?.full_name || user?.user_metadata?.full_name || 'Hooper';
+  const athleteHandle = profile?.nickname ? `@${profile.nickname}` : '@hooper';
+  const position = profile?.position || 'GUARD';
+  const expLevel = profile?.experience || 'ATHLETE';
+  const gender = profile?.gender || 'ATHLETE';
+  const cleanWhatsapp = profile?.whatsapp ? profile.whatsapp.replace(/\D/g, '') : null;
 
   return (
-    <>
+    <div className="home-arena-page">
       <SiteHeader />
-      <main className="dashboard-content">
-         {/* Profile completeness notice */}
-         {user && profile && isProfileIncomplete && (
-          <div className="profile-incomplete-banner">
-            <span>
-              Please complete your profile to unlock all features.
-            </span>
-            <Link to="/profile" className="profile-complete-btn">
-              Go to Profile
-            </Link>
-          </div>
-        )}
-        <div className="welcome-box">
-          <h1 className="fade-in-text">Welcome {nickname}!</h1>
-          <p className="motivation-text fade-in-text delayed">
-            {welcomeQuotes[welcomeIdx]}
-          </p>
-        </div>
 
-        <section style={{ marginTop: "3rem" }}>
-          <h2 style={{ textAlign: "center", color: "#384959", marginBottom: "1.5rem", textDecoration: "underline" }}>
-            Your Shot Performance
-          </h2>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:"28px", justifyContent:"center" }}>
-            <ShotProgressRing title="🕒 Latest Shot" pct={pct(latest)} subtitle={sub(latest)} />
-            <ShotProgressRing title="🏆 Best Shot"   pct={pct(best)}   subtitle={sub(best)}   />
-            <ShotProgressRing title="⚠️ Area to Improve" pct={pct(worst)} subtitle={sub(worst)} />
-            <ShotProgressRing title="⭐ Favourite Spot"  pct={pct(fav)}  subtitle={sub(fav)}   />
-          </div>
-        </section>
-
-        <section style={{ textAlign:"center", marginTop:"2rem" }}>
-          <p style={{ fontStyle:"italic", color:"#6A89A7", maxWidth:600, margin:"0 auto 1.5rem" }}>
-            {dashboardQuotes[legendIdx]}
-          </p>
-          <button
-            onClick={handleTrackShotsClick}
-            style={{
-              display:"inline-flex", alignItems:"center", gap:"8px",
-              background:"#6A89A7", color:"#fff", padding:"12px 24px",
-              borderRadius:"30px", fontWeight:600, textDecoration:"none",
-              boxShadow:"0 4px 10px rgba(0,0,0,0.1)", border:"none", cursor:"pointer"
-            }}
-          >
-            Track your shots <span style={{ fontSize:"1.2rem" }}>➜</span>
-          </button>
-        </section>
-
-  {/* ----------- WORKOUT + STATS (SIDE BY SIDE) ----------- */}
-  <section className="ws-section">
-          <div className="ws-two-col">
-            {/* LEFT PANEL: DAILY WORKOUT SNAPSHOT */}
-            <div className="ws-panel">
-              <header className="ws-header">
-                <div>
-                  <h2 id="ws-heading" className="ws-title">Daily Workout Snapshot</h2>
-                  <p className="ws-sub">Track today’s focus, progress, and momentum.</p>
-                </div>
-                {planData && planData.focusKey && (
-                  <div className="ws-meta">
-                    <span className="ws-meta-chip">
-                      {planProgressPct}% Complete
-                    </span>
-                  </div>
+      <main className="home-arena-container">
+        {/* ATHLETE GREETING CARD */}
+        <section className="athlete-greeting-card">
+          <div className="athlete-profile-row">
+            <div className="athlete-avatar-wrap">
+              <div className="athlete-avatar">
+                {profile?.photo_url || profile?.photoURL ? (
+                  <img
+                    src={profile.photo_url || profile.photoURL}
+                    alt={athleteName}
+                    style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  athleteName.charAt(0).toUpperCase()
                 )}
-              </header>
+              </div>
+              <span className="online-indicator-dot" title="Active on Court" />
+            </div>
 
-              <div className="ws-grid">
-                {/* LOADING (suppress start card while checking Firestore) */}
-                {user && planLoading && (
-                  <div className="ws-card ws-card-placeholder">
-                    <div className="ws-card-body ws-placeholder-body">
-                      <h3 className="ws-placeholder-title">Loading Plan...</h3>
-                      <p className="ws-placeholder-text">
-                        Fetching your current 30‑day session.
-                      </p>
-                    </div>
-                  </div>
-                )}
+            <div className="athlete-meta-col">
+              <span className="athlete-greeting-sub">Welcome back</span>
+              <h1 className="athlete-display-name">{athleteName}</h1>
+              <div className="athlete-chips-row">
+                {position && <span className="athlete-chip pos">{position}</span>}
+                {isCoach && <span className="athlete-chip coach">COACH / ADMIN</span>}
+                {athleteHandle && <span className="athlete-chip handle">{athleteHandle}</span>}
+                {profile?.experience && <span className="athlete-chip">{profile.experience}</span>}
 
-                {/* NO PLAN (only when confirmed not loading & no focus plan) */}
-                {user && !planLoading && (!planData || !planData.focusKey) && (
-                  <div className="ws-card ws-card-accent">
-                    <div className="ws-card-body">
-                      <h3 className="ws-card-title gradient">Start A Session Now</h3>
-                      <p className="ws-text">
-                        Kick off a focused 30‑day progression: structured daily drills, repeatable focus cycles, visible momentum.
-                      </p>
-                      <ul className="ws-list">
-                        <li>Auto‑scheduled categories</li>
-                        <li>Primary focus surfaces more</li>
-                        <li>Daily completion tracking</li>
-                        <li>Momentum & consistency builder</li>
-                      </ul>
-                    </div>
-                    <div className="ws-actions">
-                      <button className="ws-btn ws-btn-primary" onClick={handleOpenWorkout}>
-                        Start 30‑Day Plan
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* NOT LOGGED IN */}
-                {!user && !planLoading && (
-                  <div className="ws-card ws-card-accent">
-                    <div className="ws-card-body">
-                      <h3 className="ws-card-title gradient">Start A Session</h3>
-                      <p className="ws-text">
-                        Log in to launch a personalized 30‑day workout rotation and stack consistent daily reps.
-                      </p>
-                    </div>
-                    <div className="ws-actions">
-                      <button className="ws-btn ws-btn-primary" onClick={handleOpenWorkout}>
-                        Log In To Begin
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* REST DAY (plan exists, no drills today) */}
-                {user && !planLoading && planData?.focusKey && planData && !todayWorkout && (
-                  <div className="ws-card">
-                    <div className="ws-card-body">
-                      <div className="ws-row">
-                        <h3 className="ws-card-title">Rest / Recovery Day</h3>
-                        <span className="ws-badge ws-badge-rest">Rest</span>
-                      </div>
-                      <p className="ws-text">No drills scheduled today. Stay loose or review earlier sessions.</p>
-                    </div>
-                    <div className="ws-actions">
-                      <button className="ws-btn ws-btn-outline" onClick={handleOpenWorkout}>
-                        View Plan
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* ACTIVE DAY (current day's drills) */}
-                {user && !planLoading && planData?.focusKey && todayWorkout && (
-                  <div className={`ws-card ${isTodayComplete ? "is-complete" : ""}`}>
-                    <div className="ws-card-body">
-                      <div className="ws-row">
-                        <h3 className="ws-card-title">
-                          Day {todayWorkout.day} • {todayWorkout.categoryTitle}
-                        </h3>
-                        <span
-                          className={`ws-badge ${isTodayComplete ? "ws-badge-complete" : "ws-badge-progress"}`}
-                        >
-                          {isTodayComplete ? "Completed" : "In Progress"}
-                        </span>
-                      </div>
-
-                      <ul className="ws-drill-tags">
-                        {todayWorkout.drills.slice(0, 6).map((d, i) => {
-                          const name = typeof d === "string" ? d : d.name;
-                          return <li key={i}>{name}</li>;
-                        })}
-                      </ul>
-
-                      <div className="ws-progress">
-                        <div className="ws-progress-bar">
-                          <div className="ws-progress-fill" style={{ width: `${planProgressPct}%` }} />
-                        </div>
-                        <span className="ws-progress-label">
-                          {planProgressPct}% plan progress
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="ws-actions">
-                      <button className="ws-btn ws-btn-primary" onClick={handleOpenWorkout}>
-                        {isTodayComplete ? "View Session" : "Go To Workout"}
-                      </button>
-                    </div>
-                  </div>
+                {cleanWhatsapp && (
+                  <a
+                    href={`https://wa.me/${cleanWhatsapp}?text=${encodeURIComponent("Hey! Saw you on HoopLogs, let's connect on the court!")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="athlete-chip whatsapp"
+                    title="Connect on WhatsApp"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <IoLogoWhatsapp size={11} color="#22c55e" />
+                    <span>WhatsApp</span>
+                  </a>
                 )}
               </div>
             </div>
-
-            {/* RIGHT PANEL: SEASON STATS SNAPSHOT */}
-            <div className="ws-panel">
-              <header className="ws-header ws-header-min">
-              <div>
-                  <h2 id="ws-heading" className="ws-title">Stats Tracker</h2>
-                  <p className="ws-sub">Note down your ppg, apg, blocks, steals and others <br /></p>
-                </div>
-              </header>
-
-              {!user && (
-                <div className="ws-card ws-card-placeholder">
-                  <div className="ws-card-body ws-placeholder-body">
-                    <h3 className="ws-placeholder-title">Log In To View</h3>
-                    <p className="ws-placeholder-text">
-                      Sign in to see your per–game averages and shooting percentages here.
-                    </p>
-                    <div className="ws-actions">
-                      <button className="ws-btn ws-btn-primary" onClick={()=>navigate("/login")}>
-                        Log In
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {user && miniGames.length === 0 && (
-                <div className="ws-card ws-card-placeholder">
-                  <div className="ws-card-body ws-placeholder-body">
-                    <h3 className="ws-placeholder-title">No Games Logged</h3>
-                    <p className="ws-placeholder-text">
-                      Start building your performance record. Add a game in the Stats Tracker page.
-                    </p>
-                    <div className="ws-actions">
-                      <button className="ws-btn ws-btn-primary" onClick={()=>navigate("/statstracker")}>
-                        Open Stats Tracker
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {user && miniGames.length > 0 && (
-                <div className="ws-card ws-card-accent">
-                  <div className="ws-card-body">
-                    <h3 className="ws-card-title gradient">Season Snapshot</h3>
-                    <div className="mini-stats-grid">
-                      <MiniStat label="GP"  value={miniStats.gp} />
-                      <MiniStat label="PPG" value={miniStats.avg.ppg} />
-                      <MiniStat label="RPG" value={miniStats.avg.rpg} />
-                      <MiniStat label="APG" value={miniStats.avg.apg} />
-                      <MiniStat label="SPG" value={miniStats.avg.spg} />
-                      <MiniStat label="BPG" value={miniStats.avg.bpg} />
-                      <MiniStat label="T/O" value={miniStats.avg.topg} />
-                      <MiniStat label="FG%" value={miniStats.pct.fg} suffix="%" />
-                      <MiniStat label="3P%" value={miniStats.pct.three} suffix="%" />
-                      <MiniStat label="FT%" value={miniStats.pct.ft} suffix="%" />
-                    </div>
-                  </div>
-                  <div className="ws-actions">
-                    <button className="ws-btn ws-btn-outline" onClick={()=>navigate("/statstracker")}>
-                      View / Log Games
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </section>
-        {/* ----------- END WORKOUT + STATS WRAPPER ----------- */}
+
+        {/* GUIDED APP TOUR PROMPT (Only appears on first login until dismissed) */}
+        {showGuideBanner && (
+          <div className="guided-tour-strip" onClick={() => setShowTour(true)}>
+            <div className="tour-strip-left">
+              <LuCompass size={15} color="#ff7a2e" />
+              <span>New here? Tap to view the App Guide & Tour</span>
+            </div>
+            <div className="tour-strip-right">
+              <span className="tour-strip-btn">View Guide</span>
+              <button
+                type="button"
+                className="tour-strip-close"
+                onClick={handleDismissGuide}
+                title="Dismiss Guide"
+                aria-label="Dismiss Guide"
+              >
+                <LuX size={14} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {announcementMsg && (
+          <div className="dashboard-toast-alert">
+            {announcementMsg}
+          </div>
+        )}
+
+        {/* ARENA ANNOUNCEMENTS / TEAM NOTICE BOARD */}
+        <section className="arena-announcements-card">
+          <div className="announcements-card-header">
+            <div className="announcements-header-title">
+              <LuMegaphone size={16} color="#ff5500" />
+              <h2>Arena Notice Board</h2>
+            </div>
+            {isCoach && (
+              <button
+                type="button"
+                className="btn-create-post"
+                onClick={() => setShowNewPostModal(true)}
+              >
+                <LuPlus size={13} /> Post Update
+              </button>
+            )}
+          </div>
+
+          <div className="announcements-stream">
+            {announcements.length === 0 ? (
+              <div className="empty-announcements-state">
+                <LuMegaphone size={28} color="#64748b" />
+                <p>No squad announcements posted yet.</p>
+                {isCoach && (
+                  <button
+                    type="button"
+                    className="btn-create-post-empty"
+                    onClick={() => setShowNewPostModal(true)}
+                  >
+                    + Publish First Announcement
+                  </button>
+                )}
+              </div>
+            ) : (
+              announcements.map((post) => {
+                const attendance = post.attendance || {};
+                const attendees = Object.values(attendance);
+                const attending = attendees.filter((a) => a.status === 'available');
+                const absent = attendees.filter((a) => a.status === 'unavailable');
+                const myStatus = attendance[user?.id || 'guest-user']?.status;
+                const comments = post.comments || [];
+
+                return (
+                  <div key={post.id} className="announcement-item">
+                    <div className="announcement-top-bar">
+                      <div className="announcement-author-info">
+                        <span className="announcement-author">
+                          <LuShieldCheck size={12} color="#10b981" /> {post.authorName}
+                        </span>
+                        {post.team && (
+                          <span className="announcement-team-tag">{post.team}</span>
+                        )}
+                      </div>
+                      <span className="announcement-time-stamp">
+                        <LuClock size={11} /> {post.time}
+                      </span>
+                    </div>
+
+                    <p className="announcement-body-text">{post.text}</p>
+
+                    {/* Attendance Reactions Row */}
+                    <div className="announcement-reactions-row">
+                      <button
+                        type="button"
+                        className={`reaction-pill-btn available ${myStatus === 'available' ? 'active' : ''}`}
+                        onClick={() => handleToggleAttendance(post.id, 'available')}
+                        title="Confirm you will attend"
+                      >
+                        🏀 I'll be available ({attending.length})
+                      </button>
+                      <button
+                        type="button"
+                        className={`reaction-pill-btn unavailable ${myStatus === 'unavailable' ? 'active' : ''}`}
+                        onClick={() => handleToggleAttendance(post.id, 'unavailable')}
+                        title="Mark yourself not available"
+                      >
+                        ❌ Not available ({absent.length})
+                      </button>
+                      <button
+                        type="button"
+                        className="comment-toggle-btn"
+                        onClick={() => setActiveCommentPostId(activeCommentPostId === post.id ? null : post.id)}
+                      >
+                        💬 Comments ({comments.length})
+                      </button>
+                    </div>
+
+                    {/* Attendance Summary */}
+                    {attendees.length > 0 && (
+                      <div className="attendance-attendees-strip">
+                        {attending.length > 0 && (
+                          <span className="attending-names">
+                            ✅ Available: {attending.map((a) => a.name).join(', ')}
+                          </span>
+                        )}
+                        {absent.length > 0 && (
+                          <span className="absent-names">
+                            ❌ Absent: {absent.map((a) => a.name).join(', ')}
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Comments Dropdown */}
+                    {activeCommentPostId === post.id && (
+                      <div className="post-comments-tray">
+                        {comments.length > 0 && (
+                          <div className="comments-list">
+                            {comments.map((c) => (
+                              <div key={c.id} className="comment-bubble">
+                                <span className="comment-author">{c.author}:</span>
+                                <span className="comment-text">{c.text}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <div className="comment-input-row">
+                          <input
+                            type="text"
+                            placeholder="Add your note or comment..."
+                            value={commentInput}
+                            onChange={(e) => setCommentInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddComment(post.id)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleAddComment(post.id)}
+                            className="btn-send-comment"
+                          >
+                            Post
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </section>
+
+        {/* CONTINUE ACTIVE WORKOUT CARD */}
+        {activeWorkout && (
+          <div className="continue-workout-card">
+            <div className="continue-workout-top">
+              <div className="continue-workout-title-col">
+                <div className="continue-badge-row">
+                  <span className="workout-pulse-dot" />
+                  <span className="continue-workout-label">CONTINUE YOUR WORKOUT</span>
+                </div>
+                <h3 className="continue-workout-headline">
+                  {activeWorkout.name} — <span className="legs-loading-highlight">Legs Loading...</span>
+                </h3>
+                <p className="continue-workout-focus">
+                  Focus: {activeWorkout.focus || 'Elastic Jump & Ankle Stiffness'}
+                </p>
+              </div>
+
+              <Link to="/shottracker" className="btn-resume-cta" title="Continue Workout">
+                <IoBasketball size={18} />
+              </Link>
+            </div>
+
+            <div className="continue-workout-meter-wrap">
+              <div
+                className="continue-workout-meter-fill"
+                style={{ width: `${activeWorkout.percentDone || 65}%` }}
+              />
+            </div>
+            <div className="continue-workout-meta-row">
+              <span>Day {activeWorkout.dayNumber || 3} Prescription</span>
+              <span>{activeWorkout.percentDone || 65}% Completed</span>
+            </div>
+          </div>
+        )}
+
+        {/* PRIMARY WORKOUT LAUNCH BANNER */}
+        <Link to="/shottracker" className="workout-launch-banner">
+          <div className="launch-banner-left">
+            <div className="launch-icon-badge">
+              <IoBasketball size={22} color="#ffffff" />
+            </div>
+            <div className="launch-text-col">
+              <div className="launch-main-title">Start 5-Zone Workout</div>
+              <div className="launch-sub-label">
+                Tap court zones • Log makes & misses • Track trend
+              </div>
+            </div>
+          </div>
+          <div className="launch-chevron-wrap">
+            <LuChevronRight size={18} />
+          </div>
+        </Link>
+
+        {/* METRICS QUICK STRIP */}
+        <section className="stats-metric-strip">
+          <div className="stat-metric-card">
+            <span className="stat-card-label">Shots Made</span>
+            <div className="stat-card-value highlight">
+              {careerStats.made}
+              <span className="stat-card-unit">/{careerStats.attempted}</span>
+            </div>
+            <span className="stat-card-foot">Total Volume</span>
+          </div>
+
+          <div className="stat-metric-card">
+            <span className="stat-card-label">Accuracy</span>
+            <div className="stat-card-value">
+              {careerStats.accuracy}
+              <span className="stat-card-unit">%</span>
+            </div>
+            <span className="stat-card-foot">Career Avg</span>
+          </div>
+
+          <div className="stat-metric-card">
+            <span className="stat-card-label">Workouts</span>
+            <div className="stat-card-value">
+              {careerStats.sessionsCount}
+            </div>
+            <span className="stat-card-foot">Completed</span>
+          </div>
+        </section>
+
+        {/* PRIMARY MODULES LIST */}
+        <div className="section-title-bar">
+          <div className="section-title-wrap">
+            <LuZap size={14} color="#ff5500" />
+            <h2>Training Modules</h2>
+          </div>
+        </div>
+
+        <section className="modules-stack">
+          {/* Module 1: 5-Zone Shot Tracker */}
+          <Link to="/shottracker" className="module-item-card">
+            <div className="module-item-left">
+              <div className="module-icon-box orange">
+                <LuCrosshair size={18} />
+              </div>
+              <div className="module-text-wrap">
+                <div className="module-name">5-Zone Shot Tracker</div>
+                <div className="module-desc">
+                  Interactive court: Log sets with automatic improvement tracking.
+                </div>
+              </div>
+            </div>
+            <LuChevronRight size={16} className="module-chevron" />
+          </Link>
+
+          {/* Module 2: Team Rosters */}
+          <Link to="/rosters" className="module-item-card">
+            <div className="module-item-left">
+              <div className="module-icon-box blue">
+                <LuUsers size={18} />
+              </div>
+              <div className="module-text-wrap">
+                <div className="module-name">Team Roster & Coaching</div>
+                <div className="module-desc">
+                  Assemble rosters, review athlete profiles, and export CSV/PDF.
+                </div>
+              </div>
+            </div>
+            <LuChevronRight size={16} className="module-chevron" />
+          </Link>
+
+          {/* Module 3: Shooting Leaderboards */}
+          <Link to="/leaderboards" className="module-item-card">
+            <div className="module-item-left">
+              <div className="module-icon-box yellow">
+                <LuTrophy size={18} />
+              </div>
+              <div className="module-text-wrap">
+                <div className="module-name">Shooting Leaderboards</div>
+                <div className="module-desc">
+                  Global and team sharpshooters ranked with direct WhatsApp connect.
+                </div>
+              </div>
+            </div>
+            <LuChevronRight size={16} className="module-chevron" />
+          </Link>
+
+          {/* Module 4: Athletic Conditioning & Verticals */}
+          <Link to="/shottracker" className="module-item-card">
+            <div className="module-item-left">
+              <div className="module-icon-box green">
+                <LuActivity size={18} />
+              </div>
+              <div className="module-text-wrap">
+                <div className="module-name">Athletic Conditioning & Verticals</div>
+                <div className="module-desc">
+                  Prescribed gym & bodyweight workouts for speed, jumping & strength.
+                </div>
+              </div>
+            </div>
+            <LuChevronRight size={16} className="module-chevron" />
+          </Link>
+        </section>
+
+        {/* LEADERBOARD SPOTLIGHT */}
+        {topShooters.length > 0 && (
+          <>
+            <div className="section-title-bar" style={{ marginTop: '1.25rem' }}>
+              <div className="section-title-wrap">
+                <LuTrendingUp size={14} color="#f59e0b" />
+                <h2>Top Sharpshooters</h2>
+              </div>
+              <Link to="/leaderboards" className="section-title-link">
+                View All <LuChevronRight size={13} />
+              </Link>
+            </div>
+
+            <section className="spotlight-card">
+              {topShooters.map((shooter, idx) => (
+                <div key={shooter.user_id} className="spotlight-player-row">
+                  <div className="spotlight-left">
+                    <span className={`spotlight-rank-badge rank-${idx + 1}`}>
+                      {idx + 1}
+                    </span>
+                    <div className="spotlight-info">
+                      <div className="spotlight-name">{shooter.full_name}</div>
+                      <div className="spotlight-sub">@{shooter.nickname || 'hooper'}</div>
+                    </div>
+                  </div>
+
+                  <div className="spotlight-stat-box">
+                    <div className="spotlight-accuracy">{shooter.accuracy_percentage}%</div>
+                    <div className="spotlight-shots">
+                      {shooter.total_made}/{shooter.total_attempted} made
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </section>
+          </>
+        )}
       </main>
-      <SiteFooter />
-    </>
+
+      {/* NEW ANNOUNCEMENT MODAL (Coach / Admin Only) */}
+      {showNewPostModal && (
+        <div className="announcement-modal-backdrop" onClick={() => setShowNewPostModal(false)}>
+          <div className="announcement-modal-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="announcement-modal-header">
+              <div className="announcement-modal-title">
+                <LuMegaphone size={18} color="#ff5500" />
+                <h3>Post Arena Announcement</h3>
+              </div>
+              <button
+                type="button"
+                className="modal-close-icon-btn"
+                onClick={() => setShowNewPostModal(false)}
+              >
+                <LuX size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreatePost} className="new-post-form">
+              <div className="post-input-group">
+                <label>Target Squad / Team</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Amazon Girls or All Players"
+                  value={newPostTeam}
+                  onChange={(e) => setNewPostTeam(e.target.value)}
+                />
+              </div>
+
+              <div className="post-input-group">
+                <label>Announcement Details</label>
+                <textarea
+                  rows={4}
+                  placeholder="e.g. Training for Amazon Girls by 6:00 PM today at Court 2. Focus on fastbreak drills."
+                  value={newPostText}
+                  onChange={(e) => setNewPostText(e.target.value)}
+                  required
+                />
+              </div>
+
+              <button type="submit" className="btn-publish-post">
+                Publish Announcement
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Guided Tour Modal */}
+      <AppGuideModal isOpen={showTour} onClose={() => setShowTour(false)} />
+
+      <MobileBottomNav />
+    </div>
   );
 };
 
 export default Dashboard;
-

@@ -1,154 +1,1227 @@
-/* MyProfile.css */
-
-.profile-container {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background-color: #ffffff;
-    border-radius: 1rem;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
-  }
-  
-  .profile-header {
-    text-align: center;
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
-  }
-  
-  .profile-photo {
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
-  
-  .profile-image {
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin: 0 auto;
-    border: 3px solid #ccc;
-  }
-  
-  .photo-note {
-    font-size: 0.85rem;
-    color: #777;
-    margin-top: 0.5rem;
-  }
-  
-  .profile-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.2rem;
-  }
-  
-  .grid-span {
-    grid-column: span 2;
-  }
-  
-  .field-label {
-    font-weight: 600;
-    margin-bottom: 0.4rem;
-    display: block;
-  }
-  
-  .field-input {
-    width: 100%;
-    padding: 0.6rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-  
-  .field-display {
-    background-color: #f1f1f1;
-    padding: 0.6rem;
-    border-radius: 6px;
-    min-height: 42px;
-  }
-  
-  .checkbox {
-    width: 18px;
-    height: 18px;
-    vertical-align: middle;
-  }
-  
-  .public-toggle {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1.5rem;
-  }
-  
-  .toggle-label {
-    font-weight: 600;
-  }
-  
-  .public-note {
-    font-size: 0.85rem;
-    color: #666;
-    margin-top: 0.3rem;
-  }
-  
-  .button-group {
-    text-align: center;
-    margin-top: 2rem;
-  }
-  
-  .edit-btn,
-  .save-btn {
-    background-color: #2563eb;
-    color: white;
-    padding: 0.6rem 1.5rem;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  
-  .save-btn {
-    background-color: #16a34a;
-  }
-  
-  .loading-text {
-    text-align: center;
-    margin-top: 3rem;
-    font-size: 1.2rem;
-  }
-  
-  @media (max-width: 640px) {
-    .profile-grid {
-      grid-template-columns: 1fr;
-    }
-  
-    .grid-span {
-      grid-column: span 1;
-    }
-  }
-  
-
-  /* MyProfile.css */
-
-/* Make the container wider on large screens while staying responsive */
-.profile-container {
-  /* was: max-width: 1200px; */
-  max-width: clamp(1200px, 95vw, 1600px);
-  margin: 2rem auto;
-  padding: 2rem;
-  background-color: #ffffff;
-  border-radius: 1rem;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.08);
+/* src/pages/MyProfile.css */
+.profile-page-wrapper {
+  min-height: 100vh;
+  background-color: var(--bg-primary, #060810);
+  color: var(--text-primary, #ffffff);
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  padding-bottom: calc(var(--nav-h, 56px) + 24px);
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* Optional: add a 3-column layout on very large screens for better use of space */
-@media (min-width: 1280px) {
-  .profile-grid {
+.profile-main-content {
+  max-width: var(--max-w, 480px);
+  margin: 0 auto;
+  padding: 12px 14px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* COACH ALERT BANNER */
+.profile-coach-alert-banner {
+  background: rgba(255, 85, 0, 0.12);
+  border: 1px solid rgba(255, 85, 0, 0.4);
+  border-radius: 10px;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(255, 85, 0, 0.2);
+}
+
+.coach-alert-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--t-primary, #ffffff);
+}
+
+.pulse-alert-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff5500;
+  box-shadow: 0 0 10px #ff5500;
+  flex-shrink: 0;
+  animation: pulseDot 1.4s infinite;
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.8; }
+}
+
+.btn-jump-coach-notes {
+  background: var(--brand-primary, #ff5500);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ATHLETE HERO CARD */
+.athlete-hero-card {
+  background: linear-gradient(145deg, rgba(17, 24, 39, 0.85) 0%, rgba(9, 13, 22, 0.95) 100%);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-lg, 14px);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.athlete-avatar-wrap {
+  position: relative;
+  width: 66px;
+  height: 66px;
+  flex-shrink: 0;
+}
+
+.athlete-avatar-circle {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff7722, #b33800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 85, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(255, 85, 0, 0.3);
+  overflow: hidden;
+  position: relative;
+}
+
+.athlete-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.athlete-avatar-icon {
+  font-size: 2rem;
+  color: #ffffff;
+}
+
+.avatar-camera-btn {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  background: var(--brand-primary, #ff5500);
+  color: #ffffff;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #060810;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  transition: transform 0.15s ease, background 0.15s ease;
+  z-index: 5;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.avatar-camera-btn:hover {
+  transform: scale(1.12);
+}
+
+.athlete-jersey-badge {
+  position: absolute;
+  bottom: -2px;
+  left: -2px;
+  background: #182132;
+  color: #ffffff;
+  font-family: var(--font-display, 'Bebas Neue', sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 5px;
+  border: 1.5px solid var(--bg-0, #060810);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.athlete-hero-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.athlete-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.athlete-fullname {
+  font-family: var(--font-display, 'Bebas Neue', sans-serif);
+  font-size: 1.45rem;
+  letter-spacing: 0.04em;
+  margin: 0;
+  color: #ffffff;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.role-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.role-pill.player-pill {
+  background: rgba(255, 85, 0, 0.15);
+  color: #ff8533;
+  border: 1px solid rgba(255, 85, 0, 0.3);
+}
+
+.role-pill.coach-pill {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.athlete-meta-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.meta-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+.position-tag {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.gender-tag.men-tag {
+  background: rgba(99, 102, 241, 0.18);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.gender-tag.women-tag {
+  background: rgba(236, 72, 153, 0.18);
+  color: #f472b6;
+  border: 1px solid rgba(236, 72, 153, 0.3);
+}
+
+.email-tag {
+  background: rgba(14, 165, 233, 0.16);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exp-tag {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.athlete-nickname {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+.profile-wa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(37, 211, 102, 0.18);
+  color: #25d366;
+  border: 1px solid rgba(37, 211, 102, 0.4);
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  width: fit-content;
+  margin-top: 4px;
+  transition: all 0.2s ease;
+}
+
+.profile-wa-btn:hover {
+  background: rgba(37, 211, 102, 0.3);
+}
+
+.no-wa-hint {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* SECTION CARD */
+.profile-section-card {
+  background: var(--bg-card, #0d121f);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-lg, 14px);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 10px;
+}
+
+.section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-icon {
+  font-size: 1.15rem;
+  color: var(--accent-orange, #ff5500);
+}
+
+.section-card-header h2 {
+  font-family: var(--font-display, 'Bebas Neue', sans-serif);
+  font-size: 1.15rem;
+  letter-spacing: 0.05em;
+  margin: 0;
+  color: #ffffff;
+}
+
+.edit-toggle-btn,
+.cancel-toggle-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.edit-toggle-btn:hover {
+  background: rgba(255, 85, 0, 0.2);
+  border-color: #ff5500;
+  color: #ff8533;
+}
+
+.cancel-toggle-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.badge-count {
+  background: rgba(255, 85, 0, 0.2);
+  color: #ff5500;
+  font-weight: 700;
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 85, 0, 0.35);
+}
+
+/* FORM FIELDS */
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .form-grid-2,
+  .form-grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.coach-note-composer-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.composer-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #34d399;
+}
+
+.coach-note-textarea {
+  width: 100%;
+  background: var(--bg-1, #0a0d16);
+  border: 1px solid var(--border-1, rgba(255, 255, 255, 0.1));
+  color: var(--t-primary, #ffffff);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.btn-submit-coach-note {
+  align-self: flex-start;
+  background: #10b981;
+  color: #064e3b;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-submit-coach-note:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-submit-coach-note:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Profile Theme Picker ─────────────────────────── */
+.profile-theme-desc {
+  font-size: 0.78rem;
+  color: var(--t-secondary, #94a3b8);
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+
+.theme-mode-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--t-primary, #ffffff);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.theme-mode-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.profile-theme-swatches-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+@media (min-width: 480px) {
+  .profile-theme-swatches-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* Keep single column on small screens */
-@media (max-width: 640px) {
-  .profile-grid {
-    grid-template-columns: 1fr;
+.profile-theme-swatch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--t-secondary, #cbd5e1);
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.profile-theme-swatch:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.profile-theme-swatch.active {
+  background: rgba(255, 85, 0, 0.12);
+  border-color: var(--brand-primary, #ff5500);
+  color: #ffffff;
+}
+
+.swatch-color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.swatch-color-name {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.swatch-check-icon {
+  color: var(--brand-primary, #ff5500);
+  flex-shrink: 0;
+}
+
+/* ── Coach Athlete Selector & Feedback Search ─────── */
+.coach-athlete-selector-box {
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.athlete-search-bar-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-icon-inside {
+  position: absolute;
+  left: 10px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.athlete-feedback-search-input {
+  width: 100%;
+  background: var(--bg-1, #0a0d16);
+  border: 1px solid var(--border-1, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+  padding: 7px 10px 7px 32px;
+  font-size: 0.78rem;
+  color: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.searching-spinner-text {
+  position: absolute;
+  right: 10px;
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.athlete-search-dropdown {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 20;
+}
+
+.athlete-search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.15s ease;
+}
+
+.athlete-search-result-item:hover {
+  background: rgba(255, 85, 0, 0.12);
+}
+
+.search-res-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1e293b;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.search-res-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.search-res-info strong {
+  font-size: 0.8rem;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-res-info span {
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.btn-select-athlete-chip {
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 5px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.target-athlete-active-banner {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 8px;
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.target-athlete-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+}
+
+.target-athlete-left strong {
+  color: #34d399;
+}
+
+.btn-clear-target-athlete {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-clear-target-athlete:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.btn-submit-coach-note:hover {
+  background: #34d399;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.label-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.label-with-icon .wa-icon {
+  color: #25d366;
+  font-size: 0.95rem;
+}
+
+.field-group input,
+.field-group select,
+.field-group textarea {
+  background: rgba(6, 8, 16, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: #ffffff;
+  padding: 9px 11px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.field-group input:disabled,
+.field-group select:disabled,
+.field-group textarea:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.field-group input:focus,
+.field-group select:focus,
+.field-group textarea:focus {
+  outline: none;
+  border-color: var(--accent-orange, #ff5500);
+  box-shadow: 0 0 0 2px rgba(255, 85, 0, 0.2);
+}
+
+.field-hint {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.3;
+}
+
+/* GENDER CHIPS */
+.gender-chips-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.gender-chip-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 9px 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.gender-chip-btn.active-male {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+.gender-chip-btn.active-female {
+  background: rgba(236, 72, 153, 0.18);
+  border-color: #ec4899;
+  color: #f472b6;
+}
+
+.save-profile-btn {
+  background: linear-gradient(135deg, #ff5500, #d94400);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 11px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  margin-top: 6px;
+  box-shadow: 0 4px 14px rgba(255, 85, 0, 0.3);
+  transition: transform 0.15s ease;
+}
+
+.save-profile-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* COACH REVIEWS STREAM */
+.empty-reviews-state {
+  padding: 24px 16px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.empty-reviews-icon {
+  font-size: 2.2rem;
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.empty-reviews-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.empty-reviews-desc {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+.profile-reviews-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile-review-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.review-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.review-coach-name {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #34d399;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.review-date-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.review-text-content {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+/* ADMIN UPGRADE SECTION */
+.admin-upgrade-section {
+  border-color: rgba(255, 170, 0, 0.25);
+  background: linear-gradient(180deg, rgba(26, 20, 10, 0.8) 0%, rgba(13, 18, 31, 0.95) 100%);
+}
+
+.admin-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-accordion-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lock-icon {
+  font-size: 1.3rem;
+  color: #f59e0b;
+}
+
+.admin-accordion-title h3 {
+  font-family: var(--font-display, 'Bebas Neue', sans-serif);
+  font-size: 1.15rem;
+  margin: 0;
+  letter-spacing: 0.04em;
+  color: #fbbf24;
+}
+
+.admin-accordion-title p {
+  font-size: 0.73rem;
+  margin: 2px 0 0;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.unlock-toggle-btn {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.admin-elevation-form {
+  border-top: 1px solid rgba(255, 170, 0, 0.15);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-instructions {
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.passcode-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.passcode-input-row input {
+  flex: 1;
+  background: rgba(6, 8, 16, 0.9);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #ffffff;
+  font-size: 0.85rem;
+}
+
+.passcode-input-row input:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.verify-passcode-btn {
+  background: #f59e0b;
+  color: #060810;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.admin-status-msg {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin: 2px 0 0;
+}
+
+.admin-status-msg.error {
+  color: #ef4444;
+}
+
+.admin-status-msg.success {
+  color: #10b981;
+}
+
+.admin-verified-section {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.admin-verified-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.verified-shield {
+  font-size: 2rem;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.admin-verified-wrap h3 {
+  font-family: var(--font-display, 'Bebas Neue', sans-serif);
+  font-size: 1.15rem;
+  margin: 0;
+  color: #34d399;
+}
+
+.admin-verified-wrap p {
+  font-size: 0.75rem;
+  margin: 2px 0 0;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ALERTS */
+.profile-alert {
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-alert.success-alert {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+.profile-alert.error-alert {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+/* LIGHT MODE OVERRIDES */
+[data-theme="light"] .profile-page-wrapper {
+  background-color: var(--bg-0, #f1f5f9);
+  color: var(--t-primary, #0f172a);
+}
+
+[data-theme="light"] .athlete-hero-card,
+[data-theme="light"] .profile-section-card {
+  background: var(--bg-1, #ffffff);
+  border-color: var(--border-subtle, #e2e8f0);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .athlete-fullname,
+[data-theme="light"] .section-title-wrap h2,
+[data-theme="light"] .field-group label {
+  color: var(--t-primary, #0f172a);
+}
+
+[data-theme="light"] .field-group input,
+[data-theme="light"] .field-group select,
+[data-theme="light"] .field-group textarea {
+  background: var(--bg-2, #f8fafc);
+  border-color: var(--border-subtle, #cbd5e1);
+  color: var(--t-primary, #0f172a);
+}
+
+[data-theme="light"] .field-group input:disabled,
+[data-theme="light"] .field-group select:disabled,
+[data-theme="light"] .field-group textarea:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+[data-theme="light"] .gender-chip-btn {
+  background: var(--bg-2, #f8fafc);
+  border-color: #cbd5e1;
+  color: var(--t-secondary, #475569);
+}
+
+[data-theme="light"] .edit-toggle-btn {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: var(--t-primary, #0f172a);
+}
+
+/* SEASON GAME AVERAGES CARD */
+.season-averages-card {
+  background: linear-gradient(135deg, rgba(20, 26, 40, 0.9) 0%, rgba(12, 17, 29, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.season-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+}
+
+.season-team-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-emblem-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 85, 0, 0.12);
+  border: 1px solid rgba(255, 85, 0, 0.3);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.season-card-sub {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  color: var(--brand-primary, #ff5500);
+  text-transform: uppercase;
+  display: block;
+}
+
+.season-team-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.season-gp-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 4px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gp-number {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+
+.gp-label {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.season-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.season-stat-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 8px 4px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.season-stat-box.highlight {
+  background: rgba(255, 85, 0, 0.1);
+  border-color: rgba(255, 85, 0, 0.3);
+}
+
+.season-stat-box.highlight .stat-metric-val {
+  color: var(--brand-primary, #ff5500);
+}
+
+.stat-metric-val {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.stat-metric-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.season-stat-footnote {
+  font-size: 0.7rem;
+  color: #64748b;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .season-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
 }

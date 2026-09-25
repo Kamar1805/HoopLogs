@@ -1,361 +1,384 @@
-import React, { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import "./LandingPage.css";
+import React, { useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  LuCrosshair, LuTrophy, LuUsers, LuMessageSquare,
+  LuActivity, LuClipboardList, LuArrowRight, LuZap,
+  LuChartBar, LuShield
+} from 'react-icons/lu';
+import { IoBasketball } from 'react-icons/io5';
+import './LandingPage.css';
 
-/*
-  Replace these public image paths with your own files if needed:
-    /logo.png
-    /hero.jpg
-    /about.jpg
-    /coachgpt.jpg
-
-  Request: remove any borders / background colors from image areas.
-  -> All image containers now have no inline background, no borders.
-  -> Images themselves only keep size & object-fit (no borders/background).
-*/
-
-const IMG = {
-  logo: "/logo.png",
-  hero: "/hero.png",
-  about: "/about.jpg",
-  coachgpt: "/coachgpt.jpg",
-};
+const FEATURES = [
+  {
+    icon: LuCrosshair,
+    colorClass: 'orange',
+    title: '5-Zone Shot Tracker',
+    desc: 'Log makes & attempts in Corner 3, Wing 3, Top Key, Elbow, and Paint. Auto-saves so you never lose a session.',
+  },
+  {
+    icon: LuShield,
+    colorClass: 'gold',
+    title: 'Arena Practice Notice Board',
+    desc: 'Receive coach updates, view real-time practice schedules, and RSVP your availability directly from your phone.',
+  },
+  {
+    icon: LuUsers,
+    colorClass: 'blue',
+    title: 'Roster Management',
+    desc: 'Admins and coaches can build full team rosters, search players globally, and export data to PDF or CSV.',
+  },
+  {
+    icon: LuMessageSquare,
+    colorClass: 'green',
+    title: 'CourtSide Chat',
+    desc: 'Real-time messaging with teammates and coaches. Stay connected before, during and after sessions.',
+  },
+  {
+    icon: LuActivity,
+    colorClass: 'orange',
+    title: 'Athletic Conditioning Tracker',
+    desc: 'Follow tailored Vertical Rim Elevation, First-Step Speed, and Contact Armor workouts with gym or home drills.',
+  },
+  {
+    icon: LuClipboardList,
+    colorClass: 'purple',
+    title: 'Coach Feedback & Reviews',
+    desc: 'Receive direct advice, custom shooting drills, and tactical skill evaluations from certified team staff.',
+  },
+];
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const heroRef = useRef(null);
 
   useEffect(() => {
-    const io = new IntersectionObserver(
-      entries =>
-        entries.forEach(e => {
-          if (e.isIntersecting) {
-            e.target.classList.add("in");
-            io.unobserve(e.target);
-          }
-        }),
-      { threshold: 0.16 }
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+        }
+      }),
+      { threshold: 0.12 }
     );
-    document
-      .querySelectorAll(
-        ".landing-page .reveal, .landing-page .f-card, .landing-page .comm-card, .landing-page .contact-form"
-      )
-      .forEach(el => io.observe(el));
-    return () => io.disconnect();
+    document.querySelectorAll('.lp-reveal').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
   }, []);
 
-  const scrollTo = id =>
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-
-  const fallbackImg = (src, alt, label, eager = false) => (
-    <img
-      src={src}
-      alt={alt}
-      loading={eager ? "eager" : "lazy"}
-      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-      onError={e => {
-        e.currentTarget.replaceWith(
-          Object.assign(document.createElement("div"), {
-            className: "img-placeholder",
-            textContent: label + " IMAGE",
-          })
-        );
-      }}
-    />
-  );
-
   return (
-    <div className="landing-page">
-      {/* NAVBAR */}
+    <div className="lp">
+
+      {/* ── HEADER ────────────────────────────────────── */}
       <header className="lp-header">
-        <div className="lp-brand" onClick={() => scrollTo("hero")}>
-          <img
-            src={IMG.logo}
-            alt="HoopLogs Logo"
-            style={{ height: 34, width: "auto", display: "block" }}
-            onError={e => (e.currentTarget.style.display = "none")}
-          />
-          <span>HoopLogs</span>
-        </div>
-        <nav className="lp-nav">
-          <button onClick={() => scrollTo("hero")}>Home</button>
-            <button onClick={() => scrollTo("about")}>About</button>
-          <button onClick={() => scrollTo("features")}>Features</button>
-          <button onClick={() => scrollTo("coachgpt")}>CoachGPT</button>
-          <button onClick={() => scrollTo("coachgpt")}>DASHBOARD</button>
-          <button onClick={() => scrollTo("community")}>Community</button>
-          <button onClick={() => scrollTo("contact")}>Contact</button>
-          
+        <Link to="/" className="lp-logo">
+          <img src="/hooplogs-logo.png" alt="HoopLogs Logo" className="lp-logo-img" style={{ width: '30px', height: '30px', borderRadius: '7px', objectFit: 'cover' }} />
+          <span className="lp-logo-text" style={{ fontSize: '1.18rem' }}>HOOP<span>LOGS</span></span>
+        </Link>
+
+        <nav className="lp-nav-desktop">
+          <a href="#install">How to Download</a>
+          <a href="#showcase">Arena App</a>
+          <a href="#features">Features</a>
+          <a href="#about">About</a>
         </nav>
-        <button
-          className="lp-burger"
-          aria-label="Menu"
-          onClick={() =>
-            document.querySelector(".lp-header")?.classList.toggle("nav-open")
-          }
-        >
-          <span />
-        </button>
+
+        <div className="lp-header-cta">
+          <Link to="/login" className="lp-btn-login">Log In</Link>
+          <Link to="/signup" className="lp-btn-signup">Get Started</Link>
+        </div>
       </header>
 
-      {/* HERO */}
-      <section
-        id="hero"
-        className="lp-hero"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(320px,1fr) minmax(300px,540px)",
-          gap: "3.2rem",
-          alignItems: "center",
-          paddingBottom: "3rem",
-        }}
-      >
+      {/* ── HERO ──────────────────────────────────────── */}
+      <section className="lp-hero" ref={heroRef}>
         <div className="lp-hero-bg" />
-        <div className="lp-hero-inner reveal" style={{ textAlign: "left", maxWidth: 760 }}>
-          <h1 style={{ lineHeight: 1.05 }}>
-            Your <span className="accent">Progress</span> Starts Now
+        <div className="lp-hero-content">
+          <h1 className="lp-hero-h1">
+            Track Your <span className="accent">Grind.</span><br />
+            Level Up Your <span className="accent">Game.</span>
           </h1>
-          <p className="lead" style={{ marginBottom: "1.8rem" }}>
-            Build consistent basketball growth: structure smarter sessions, log shots fast,
-            follow guided skill tracks and tap into CoachGPT—your always‑on basketball
-            Q&A for drills, strategy, mindset, conditioning, recovery and more.
+          <p className="lp-hero-sub">
+            HoopLogs is the ultimate mobile-first basketball training operating system. Log set-based shots,
+            receive coach feedback notes, RSVP to team practice, and follow explosive athletic programs.
           </p>
-          <div className="hero-actions" style={{ justifyContent: "flex-start" }}>
-            <button className="btn solid large" onClick={() => navigate("/dashboard")}>
-              Launch Dashboard
-            </button>
-            <button className="btn outline large" onClick={() => scrollTo("about")}>
-              How It Works
-            </button>
-            <button className="btn ghost large" onClick={() => scrollTo("coachgpt")}>
-              Ask CoachGPT
-            </button>
+          <div className="lp-hero-actions">
+            <Link to="/signup" className="lp-cta-primary">
+              <LuZap size={18} />
+              Start For Free
+            </Link>
+            <Link to="/login" className="lp-cta-secondary">
+              Sign In
+              <LuArrowRight size={14} />
+            </Link>
           </div>
-          <div className="hero-stats" style={{ justifyContent: "flex-start", marginTop: "1.3rem" }}>
-            {[
-              ["Instant", "Shot Logging"],
-              ["CoachGPT", "24/7 Q&A"],
-              ["Skill", "Pathways"],
-              ["Community", "Accountability"],
-            ].map(([a, b]) => (
-              <div key={a}>
-                <strong>{a}</strong>
-                <span>{b}</span>
+        </div>
+      </section>
+
+      {/* ── MOBILE APP PREVIEW SHOWCASE ────────────────── */}
+      <section id="showcase" className="lp-mobile-showcase-section">
+        <div className="lp-showcase-inner">
+          <div className="lp-showcase-header lp-reveal">
+            <h2 className="lp-section-title">
+              Designed For The <span className="accent">Court.</span><br />
+              Everything In One Streamlined Hub.
+            </h2>
+            <p className="lp-section-sub">
+              Check out how HoopLogs organizes your entire basketball career on any smartphone screen.
+            </p>
+          </div>
+
+          <div className="lp-showcase-grid lp-reveal">
+            {/* Phone Bezel Displaying the Real App Preview */}
+            <div className="lp-phone-mockup-wrapper">
+              <div className="lp-phone-frame">
+                <div className="lp-phone-notch" />
+                <img
+                  src="/hooplogs-mobile-preview.png"
+                  alt="HoopLogs Mobile Arena Dashboard Interface"
+                  className="lp-phone-screen-img"
+                />
               </div>
-            ))}
+              <div className="lp-phone-glow" />
+            </div>
+
+            {/* Feature Breakdown Explaining the Image */}
+            <div className="lp-showcase-breakdown">
+              <div className="lp-breakdown-card">
+                <div className="lp-breakdown-icon orange">
+                  <LuClipboardList size={22} />
+                </div>
+                <div className="lp-breakdown-content">
+                  <h4>Arena Notice Board & Practice RSVP</h4>
+                  <p>
+                    Coaches broadcast real-time practice schedules (e.g. <em>"Training for Amazon girls by 6pm today"</em>). Players instantly react with 🏀 Available or ❌ Not Available and post comments so coaches know who is showing up.
+                  </p>
+                </div>
+              </div>
+
+              <div className="lp-breakdown-card">
+                <div className="lp-breakdown-icon green">
+                  <LuActivity size={22} />
+                </div>
+                <div className="lp-breakdown-content">
+                  <h4>Active Athletic Workout Conditioning</h4>
+                  <p>
+                    Targeted programs for Vertical Rim Elevation, First-Step Quickness, Contact Strength, and 4th-Quarter Endurance with custom gym equipment or bodyweight court drills.
+                  </p>
+                </div>
+              </div>
+
+              <div className="lp-breakdown-card">
+                <div className="lp-breakdown-icon blue">
+                  <LuCrosshair size={22} />
+                </div>
+                <div className="lp-breakdown-content">
+                  <h4>Interactive 5-Zone Shot Tracker</h4>
+                  <p>
+                    Log makes and attempts zone-by-zone (Corner 3, Wing 3, Top Key, Mid-Range, Paint). Real-time accuracy percentages with upward (↑) and downward (↓) efficiency trends.
+                  </p>
+                </div>
+              </div>
+
+              <div className="lp-breakdown-card">
+                <div className="lp-breakdown-icon gold">
+                  <LuShield size={22} />
+                </div>
+                <div className="lp-breakdown-content">
+                  <h4>Coach Improvement Scouting Badges</h4>
+                  <p>
+                    Staff coaches can deliver tactical improvement notes directly to athlete profiles, complete with notification badges so players never miss coaching feedback.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div
-          className="reveal hero-image-slot"
-          style={{
-            position: "relative",
-            borderRadius: 22,
-            overflow: "hidden"
-          }}
-        >
-          {fallbackImg(IMG.hero, "Focused player training", "HERO", true)}
         </div>
       </section>
 
-      {/* ABOUT */}
-      <section id="about" className="lp-section lp-about" style={{ paddingTop: "2.2rem" }}>
-        <div className="about-grid">
-          <div className="about-text reveal">
-            <h2>
-              What Is <span className="accent">HoopLogs</span>?
+      {/* ── HOW TO DOWNLOAD / INSTALL AS MOBILE APP ─────── */}
+      <section id="install" className="lp-section lp-install-guide-section">
+        <div className="lp-section-header lp-reveal">
+          <p className="lp-section-eyebrow">Instant Mobile Web App (PWA)</p>
+          <h2 className="lp-section-title">
+            How to Install <span className="accent">HoopLogs</span> on Your Phone
+          </h2>
+          <p className="lp-section-sub">
+            No bulky app store downloads required. Add HoopLogs directly to your home screen in 10 seconds for a full-screen, native mobile experience.
+          </p>
+        </div>
+
+        <div className="lp-install-cards-grid lp-reveal">
+          {/* iOS Card */}
+          <div className="lp-install-card ios-card">
+            <div className="lp-install-card-head">
+              <div className="install-os-icon apple"></div>
+              <div>
+                <h3>Apple iOS (Safari)</h3>
+                <span>iPhone & iPad</span>
+              </div>
+            </div>
+            <ol className="lp-install-steps">
+              <li>
+                <span className="step-num">1</span>
+                <div>Open <strong>Safari</strong> on your iPhone and visit <strong>hooplogs.vercel.app</strong>.</div>
+              </li>
+              <li>
+                <span className="step-num">2</span>
+                <div>Tap the <strong>Share</strong> button (the square with an arrow pointing up at the bottom bar).</div>
+              </li>
+              <li>
+                <span className="step-num">3</span>
+                <div>Scroll down the share options and tap <strong>"Add to Home Screen"</strong>.</div>
+              </li>
+              <li>
+                <span className="step-num">4</span>
+                <div>Tap <strong>"Add"</strong> in the top right. HoopLogs is now installed on your home screen!</div>
+              </li>
+            </ol>
+          </div>
+
+          {/* Android Card */}
+          <div className="lp-install-card android-card">
+            <div className="lp-install-card-head">
+              <div className="install-os-icon android">🤖</div>
+              <div>
+                <h3>Android (Google Chrome)</h3>
+                <span>Samsung, Pixel & All Androids</span>
+              </div>
+            </div>
+            <ol className="lp-install-steps">
+              <li>
+                <span className="step-num">1</span>
+                <div>Open <strong>Google Chrome</strong> on your device and navigate to <strong>hooplogs.vercel.app</strong>.</div>
+              </li>
+              <li>
+                <span className="step-num">2</span>
+                <div>Tap the <strong>three vertical dots menu (⋮)</strong> in the top right corner.</div>
+              </li>
+              <li>
+                <span className="step-num">3</span>
+                <div>Select <strong>"Install app"</strong> (or <strong>"Add to Home screen"</strong>).</div>
+              </li>
+              <li>
+                <span className="step-num">4</span>
+                <div>Tap <strong>"Install"</strong> to confirm. HoopLogs launches instantly from your app drawer!</div>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FEATURES ──────────────────────────────────── */}
+      <section id="features" className="lp-section">
+        <div className="lp-section-header lp-reveal">
+          <p className="lp-section-eyebrow">What You Get</p>
+          <h2 className="lp-section-title">
+            Built For <span className="accent">Hoopers</span>
+          </h2>
+          <p className="lp-section-sub">
+            Every tool you need to train smarter, compete harder, and grow consistently.
+          </p>
+        </div>
+
+        <div className="lp-features-grid">
+          {FEATURES.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <div
+                key={f.title}
+                className="lp-feature-card lp-reveal"
+                style={{ animationDelay: `${i * 0.07}s` }}
+              >
+                <div className={`lp-feature-icon ${f.colorClass}`}>
+                  <Icon size={22} />
+                </div>
+                <h3 className="lp-feature-title">{f.title}</h3>
+                <p className="lp-feature-desc">{f.desc}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── VISUAL / ABOUT ────────────────────────────── */}
+      <section id="about" className="lp-visual-section">
+        <div className="lp-visual-inner">
+          <div className="lp-visual-text lp-reveal">
+            <p className="lp-section-eyebrow">Why HoopLogs</p>
+            <h2 className="lp-section-title">
+              Stop Guessing.<br />
+              Start <span className="accent">Measuring.</span>
             </h2>
-            <p>
-              A focused basketball improvement workspace. Replace guesswork:
-              structure sessions, log every rep, follow guided skill pathways,
-              measure trends and ask an always‑on basketball knowledge coach
-              whenever you need ideas or clarity.
+            <p className="lp-section-sub" style={{ textAlign: 'left', marginLeft: 0 }}>
+              Most players train hard but track nothing. HoopLogs gives you
+              the data to see what's actually improving and what needs work.
             </p>
-            <ul className="bullet-list">
-              <li>Fast shot logging & efficiency awareness</li>
-              <li>Handles, shooting, vertical & conditioning tracks</li>
-              <li>CoachGPT answers: drills, tactics, mindset, recovery</li>
-              <li>Progress & consistency insights (streaks / volume)</li>
-              <li>Community accountability & coach discovery</li>
+            <ul className="lp-bullet-list">
+              <li>Interactive 5-zone court with real-time makes/attempts logging</li>
+              <li>Auto-save sessions — pause and resume any time</li>
+              <li>Admin roster builder with global player search</li>
+              <li>Export full stats to PDF or CSV in one click</li>
+              <li>Team and global leaderboards ranked by accuracy</li>
+              <li>Coach scouting reviews and custom shooting workouts</li>
             </ul>
-            <div className="mini-actions" style={{ display: "flex", gap: ".6rem" }}>
-              <button className="btn ghost tiny" onClick={() => scrollTo("features")}>
-                View Features
-              </button>
-              <button className="btn tiny" onClick={() => navigate("/dashboard")}>
-                Get Started
-              </button>
-            </div>
+            <Link to="/signup" className="lp-cta-primary" style={{ maxWidth: 280 }}>
+              <LuZap size={18} />
+              Join HoopLogs Free
+            </Link>
           </div>
-          <div
-            className="media-slot about-image-slot reveal"
-            style={{
-              position: "relative",
-              borderRadius: 24,
-              overflow: "hidden",
-              /* No background / border */
-            }}
-          >
-            {fallbackImg(IMG.about, "HoopLogs feature preview", "ABOUT")}
+          <div className="lp-visual-image lp-reveal">
+            <img src="/court.jpg" alt="HoopLogs Court Tracker" />
           </div>
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section id="features" className="lp-section lp-features" style={{ paddingTop: "3rem" }}>
-        <h2 className="section-title reveal">
-          Core <span className="accent">Features</span>
+      {/* ── CTA BANNER ────────────────────────────────── */}
+      <div className="lp-cta-banner lp-reveal">
+        <h2 className="lp-cta-banner-title">
+          Ready to Elevate Your <span className="accent">Game?</span>
         </h2>
-        <div className="feature-grid fixed-3">
-          {[
-            { t: "Shot Tracking", d: "Rapid makes / attempts entry with percentage & volume awareness.", i: "🎯" },
-            { t: "CoachGPT", d: "Ask anything: drills, tactics, recovery, mindset, conditioning & more.", i: "🤖" },
-            { t: "Skill Tracks", d: "Structured pathways: shooting, handles, vertical & conditioning.", i: "🛠️" },
-            { t: "Progress Insights", d: "See streaks, workload distribution & improvement momentum.", i: "📊" },
-            { t: "Coach Access", d: "Find or request coaching support for deeper feedback.", i: "🧑‍🏫" },
-            { t: "Community", d: "Share milestones & stay accountable with focused hoopers.", i: "💬" },
-          ].map(f => (
-            <div key={f.t} className="f-card reveal">
-              <div className="f-ico">{f.i}</div>
-              <h3>{f.t}</h3>
-              <p>{f.d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* COACHGPT */}
-      <section id="coachgpt" className="lp-section lp-coachgpt" style={{ paddingTop: "3rem" }}>
-        <div className="coach-grid">
-          <div className="coach-left reveal">
-            <h2>
-              Meet <span className="accent">CoachGPT</span>
-            </h2>
-            <p>
-              Your always‑on basketball Q&A. Ask for drill progressions, strategic concepts,
-              defensive footwork cues, conditioning ideas, mental reset tips, recovery guidance
-              or seasonal planning suggestions—instant, actionable responses anytime.
-            </p>
-            <ul className="bullet-list small">
-              <li>Drill ideas & progressions</li>
-              <li>Strategy / spacing / decision concepts</li>
-              <li>Mindset, confidence & focus routines</li>
-              <li>Recovery, mobility & workload guidance</li>
-              <li>Conditioning & seasonal planning</li>
-            </ul>
-            <div style={{ display: "flex", gap: ".6rem", flexWrap: "wrap" }}>
-              <button className="btn solid small" onClick={() => navigate("/dashboard")}>
-                Try CoachGPT
-              </button>
-              <button className="btn ghost small" onClick={() => scrollTo("contact")}>
-                Ask a Question
-              </button>
-            </div>
-          </div>
-          <div
-            className="media-slot coach-image-slot reveal"
-            style={{
-              position: "relative",
-              borderRadius: 24,
-              overflow: "hidden",
-              /* No background / border */
-            }}
-          >
-            {fallbackImg(
-              IMG.coachgpt,
-              "CoachGPT answering a basketball question",
-              "COACHGPT"
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* COMMUNITY */}
-      <section id="community" className="lp-section lp-community" style={{ paddingTop: "3rem" }}>
-        <h2 className="section-title reveal">
-          Community & <span className="accent">Support</span>
-        </h2>
-        <p className="center-blurb reveal">
-          Progress sticks when you stay visible & accountable. Share wins, compare streaks,
-          request feedback and keep your competitive edge sharp together.
+        <p className="lp-cta-banner-sub">
+          Join players who are tracking their shots, climbing leaderboards,
+          and building real, measurable skills.
         </p>
-        <div className="community-grid">
-          {[
-            { t: "Focused Channels", d: "Spaces for shooting form, mindset, recovery, conditioning & more." },
-            { t: "Coach Requests", d: "Reach out for personal feedback when you need a sharper lens." },
-            { t: "Milestone Posts", d: "Document efficiency jumps, vertical gains & consistency streaks." },
-            { t: "Leaderboards", d: "Friendly weekly shot volume & accuracy comparisons." },
-          ].map(c => (
-            <div key={c.t} className="comm-card reveal">
-              <h4>{c.t}</h4>
-              <p>{c.d}</p>
-            </div>
-          ))}
+        <div className="lp-cta-banner-actions">
+          <Link to="/signup" className="lp-cta-primary">
+            <LuZap size={18} />
+            Create Free Account
+          </Link>
+          <Link to="/dashboard" className="lp-cta-secondary">
+            <LuChartBar size={16} />
+            Enter Arena
+          </Link>
         </div>
-      </section>
+      </div>
 
-      {/* CONTACT */}
-      <section id="contact" className="lp-section lp-contact" style={{ paddingTop: "3rem" }}>
-        <h2 className="section-title reveal">
-          Stay <span className="accent">Connected</span>
-        </h2>
-        <p className="center-blurb reveal">
-          Feature ideas, partnership opportunities or feedback—drop a quick note and we&apos;ll get back to you.
-        </p>
-        <form
-          className="contact-form reveal"
-          onSubmit={e => {
-            e.preventDefault();
-            alert("Submitted (stub)");
-          }}
-        >
-          <div className="row">
-            <input placeholder="Name" required />
-            <input type="email" placeholder="Email" required />
-          </div>
-          <textarea rows={4} placeholder="Message" required />
-          <button className="btn solid wide" type="submit">
-            Send Message
-          </button>
-        </form>
-      </section>
-
-      {/* FOOTER */}
+      {/* ── FOOTER ────────────────────────────────────── */}
       <footer className="lp-footer">
-        <div className="footer-grid">
-          <div>
-            <div className="lp-brand small" style={{ cursor: "default" }}>
-              <div className="lp-logo-dot" />
-              HoopLogs
+        <div className="lp-footer-inner">
+          <div className="lp-footer-brand">
+            <div className="lp-logo" style={{ marginBottom: 10 }}>
+              <img src="/hooplogs-logo.png" alt="HoopLogs" style={{ width: '36px', height: '36px', borderRadius: '8px', objectFit: 'cover' }} />
+              <span className="lp-logo-text" style={{ fontSize: '1.35rem' }}>HOOP<span>LOGS</span></span>
             </div>
-            <p className="f-desc">
-              Intentional basketball development—structure, tracking & an always‑on knowledge coach.
+            <p className="lp-footer-desc">
+              Intentional basketball development — structure smarter sessions,
+              track every rep, and grow consistently.
             </p>
           </div>
-          <div>
-            <h5>Explore</h5>
-            <a onClick={() => scrollTo("about")}>About</a>
-            <a onClick={() => scrollTo("features")}>Our Features</a>
-            <a onClick={() => scrollTo("coachgpt")}>Chat with CoachGPT</a>
-            <a onClick={() => scrollTo("community")}>Our Community</a>
-          </div>
-          <div>
+          <div className="lp-footer-col">
             <h5>App</h5>
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/workouttracker">Workouts</Link>
+            <Link to="/">Dashboard</Link>
+            <Link to="/shottracker">Shot Tracker</Link>
+            <Link to="/rosters">Rosters</Link>
           </div>
-          <div>
-            <h5>Contact</h5>
-            <a href="mailto:team@hooplogs.app">Email</a>
-            <a href="#" onClick={e => e.preventDefault()}>
-              Twitter
-            </a>
-            <a href="#" onClick={e => e.preventDefault()}>
-              Instagram
-            </a>
+          <div className="lp-footer-col">
+            <h5>Account</h5>
+            <Link to="/login">Log In</Link>
+            <Link to="/signup">Sign Up</Link>
           </div>
         </div>
-        <div className="f-bottom">
-          <span>© {new Date().getFullYear()} HoopLogs</span>
-          <span>Focused Player Progress</span>
+        <div className="lp-footer-bottom">
+          <span>© 2026 Sozidara. All rights reserved.</span>
+          <span>Powered by Sozidara • Built for hoopers</span>
         </div>
       </footer>
     </div>

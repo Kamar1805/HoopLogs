@@ -1,0 +1,289 @@
+/* src/components/SiteHeader.css */
+.arena-top-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  background: rgba(6, 8, 16, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+}
+
+.arena-top-header-inner {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.arena-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+}
+
+.arena-logo-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: rgba(255, 85, 0, 0.12);
+  border: 1px solid rgba(255, 85, 0, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 12px rgba(255, 85, 0, 0.25);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.arena-brand-text {
+  font-family: var(--f-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.brand-hoop {
+  color: #ffffff;
+}
+
+.brand-logs {
+  color: #ff5500;
+  margin-left: 1px;
+}
+
+.top-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.auth-profile-pill-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arena-role-pill {
+  font-family: var(--f-ui);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  line-height: 1;
+  border: none;
+}
+
+.arena-role-pill.admin {
+  background: rgba(255, 85, 0, 0.14);
+  color: #ff7a2e;
+  border: 1px solid rgba(255, 85, 0, 0.35);
+}
+
+.arena-role-pill.player {
+  background: rgba(59, 130, 246, 0.14);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.arena-role-pill:active {
+  transform: scale(0.96);
+}
+
+.arena-avatar-pill {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.arena-avatar-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #182234 0%, #25334c 100%);
+  border: 1.5px solid #ff5500;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--f-ui);
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.arena-theme-toggle-btn {
+  background: var(--bg-3, rgba(255, 255, 255, 0.06));
+  color: var(--t-primary, #ffffff);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border-1, rgba(255, 255, 255, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 4px;
+}
+
+.arena-theme-toggle-btn:hover {
+  background: var(--bg-4, rgba(255, 255, 255, 0.15));
+  border-color: var(--orange, #ff5500);
+  color: var(--orange, #ff5500);
+}
+
+.arena-logout-icon-btn {
+  background: transparent;
+  color: var(--t-muted, #64748b);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: color 0.15s;
+}
+
+.arena-logout-icon-btn:hover {
+  color: #f87171;
+}
+
+.auth-guest-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.arena-login-btn {
+  font-family: var(--f-ui);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--t-secondary, #cbd5e1);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-1, rgba(255,255,255,0.1));
+  text-decoration: none;
+}
+
+.arena-signup-btn {
+  font-family: var(--f-ui);
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: #ff5500;
+  color: #ffffff;
+  padding: 4px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  box-shadow: 0 0 10px rgba(255, 85, 0, 0.3);
+}
+
+/* Centered Sign-Out Modal (rendered in body via React Portal) */
+.arena-modal-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  background: rgba(0, 0, 0, 0.78) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 999999 !important;
+  padding: 16px !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.arena-modal-sheet {
+  background: var(--bg-2, #0f1522);
+  border: 1px solid var(--border-2, rgba(255, 255, 255, 0.15));
+  border-radius: 20px;
+  padding: 1.75rem 1.4rem;
+  text-align: center;
+  max-width: 330px;
+  width: 100%;
+  margin: auto !important;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.75);
+  animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-basketball-icon {
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.arena-modal-sheet h3 {
+  font-size: 1.15rem;
+  margin-bottom: 0.35rem;
+  color: #f8fafc;
+}
+
+.arena-modal-sheet p {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 1.25rem;
+}
+
+.arena-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-btn-confirm {
+  background: #ef4444;
+  color: #fff;
+  padding: 11px;
+  border-radius: 10px;
+  font-family: var(--f-ui);
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+}
+
+.modal-btn-cancel {
+  background: rgba(255,255,255,0.06);
+  color: #cbd5e1;
+  padding: 11px;
+  border-radius: 10px;
+  font-family: var(--f-ui);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+}

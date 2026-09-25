@@ -1,9 +1,10 @@
 // src/pages/Login.jsx
 import React, { useState, useEffect } from 'react';
-import './Signup.css'; // reuse the same styles
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../Firebase';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { LuLogIn, LuCircleAlert, LuCircleCheck } from 'react-icons/lu';
+import { IoBasketball } from 'react-icons/io5';
+import './Signup.css';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -12,29 +13,26 @@ const Login = () => {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const redirectMsg = sessionStorage.getItem("redirectMsg");
-  if (redirectMsg) {
-    setError(redirectMsg);
-    sessionStorage.removeItem("redirectMsg");
-    setTimeout(() => setError(''), 5000);
-  }
+    const redirectMsg = sessionStorage.getItem('redirectMsg');
+    if (redirectMsg) {
+      setError(redirectMsg);
+      sessionStorage.removeItem('redirectMsg');
+      setTimeout(() => setError(''), 5000);
+    }
 
     if (location.state?.signupSuccess) {
-      setSuccessMessage('Account created successfully. Please login.');
+      setSuccessMessage('Account created successfully! Welcome to the court.');
       setTimeout(() => setSuccessMessage(''), 5000);
     }
     if (location.state?.redirected) {
-      setError('You have to be logged in to track your shots.');
+      setError('You must be signed in to access this feature.');
       setTimeout(() => setError(''), 5000);
     }
-    if (location.state?.errorMessage) {
-      setError(location.state.errorMessage);
-    }
-    
   }, [location.state]);
 
   const handleSubmit = async (e) => {
@@ -44,74 +42,99 @@ const Login = () => {
     setSuccessMessage('');
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email.trim(),
-        password
-      );
-      console.log('Logged in:', userCredential.user.uid);
+      await signIn(email, password);
       navigate('/');
     } catch (err) {
-      console.error('Firebase login error:', err.code, err.message);
-      switch (err.code) {
-        case 'auth/user-not-found':
-          setError('No user found with that email.');
-          break;
-        case 'auth/wrong-password':
-          setError('Incorrect password. Please try again.');
-          break;
-        case 'auth/invalid-email':
-          setError('Email badly formatted.');
-          break;
-        default:
-          setError('Login failed. Please check your details.');
+      console.error('Supabase login error:', err);
+      if (err.message?.includes('Invalid login credentials')) {
+        setError('Invalid email or password. Please verify your credentials.');
+      } else if (err.message?.includes('Email not confirmed')) {
+        setError('Email not confirmed yet. Check your inbox or disable "Confirm email" in Supabase Auth settings.');
+      } else {
+        setError(err.message || 'Login failed. Please check your credentials.');
       }
-      setTimeout(() => setError(''), 5000);
+      setTimeout(() => setError(''), 6000);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
-    <div className="signup-page"> {/* same wrapper/video styles */}
-      <form onSubmit={handleSubmit} className="form-box">
-        <img src="/hooplogs.png" alt="Hoop Logs Logo" className="logo" />
-        <h2>Log In to Hoop Logs</h2>
-
-        {successMessage && <p className="success-text">{successMessage}</p>}
-        {error && <p className="error-text">{error}</p>}
-
-        <div className="form-group">
-          <label>Email Address</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="Enter your email"
-          />
-
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Enter your password"
-          />
+    <div className="auth-page">
+      <div className="auth-card">
+        {/* Brand Header */}
+        <div className="auth-brand">
+          <div className="auth-brand-logo">
+            <img src="/hooplogs-logo.png" alt="HoopLogs" style={{ width: '36px', height: '36px', borderRadius: '9px', objectFit: 'cover' }} />
+          </div>
+          <h1 className="auth-brand-title">ENTER THE ARENA</h1>
+          <p className="auth-brand-sub">SIGN IN TO TRACK YOUR GRIND</p>
         </div>
 
-        <button type="submit" className="submit-btn" disabled={loading}>
-          {loading ? 'Logging in…' : 'Log In'}
-        </button>
+        {/* Notifications */}
+        {successMessage && (
+          <div className="auth-alert success">
+            <LuCircleCheck size={16} />
+            <span>{successMessage}</span>
+          </div>
+        )}
+        {error && (
+          <div className="auth-alert error">
+            <LuCircleAlert size={16} />
+            <span>{error}</span>
+          </div>
+        )}
 
-        <div className="form-footer">
-          <p>
-            Don’t have an account?{' '}
-            <Link to="/signup" className="login-link">Sign up</Link>
-          </p>
+        <form onSubmit={handleSubmit}>
+          <div className="auth-fields">
+            <div className="auth-field-group">
+              <label className="auth-label">Email Address</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="hooper@hooplogs.com"
+                className="auth-input"
+                autoComplete="email"
+              />
+            </div>
+
+            <div className="auth-field-group">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label className="auth-label">Password</label>
+                <Link to="/forgot-password" style={{ fontSize: '0.72rem', color: '#ff5500', textDecoration: 'none', fontWeight: 700 }}>
+                  Forgot password?
+                </Link>
+              </div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Enter password"
+                className="auth-input"
+                autoComplete="current-password"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="auth-btn-primary"
+            disabled={loading}
+            style={{ width: '100%', marginTop: '6px' }}
+          >
+            <LuLogIn size={18} />
+            <span>{loading ? 'SIGNING IN…' : 'SIGN IN TO HOOPLOGS'}</span>
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          <span>NEW TO HOOPLOGS?</span>
+          <Link to="/signup">CREATE ACCOUNT</Link>
         </div>
-      </form>
+      </div>
     </div>
   );
 };

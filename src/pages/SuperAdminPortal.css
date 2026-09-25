@@ -1,0 +1,567 @@
+/* src/pages/SuperAdminPortal.css */
+.superadmin-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 20%, rgba(255, 85, 0, 0.1) 0%, rgba(6, 8, 16, 1) 70%);
+  padding: 1.5rem;
+}
+
+.superadmin-login-box {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(14, 18, 30, 0.95);
+  border: 1px solid rgba(255, 85, 0, 0.35);
+  border-radius: 16px;
+  padding: 2.2rem 1.8rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 85, 0, 0.2);
+  text-align: center;
+}
+
+.superadmin-lock-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 85, 0, 0.12);
+  border: 1px solid rgba(255, 85, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.2rem;
+  box-shadow: 0 0 16px rgba(255, 85, 0, 0.25);
+}
+
+.superadmin-login-title {
+  font-family: var(--f-athletic, 'Bebas Neue', sans-serif);
+  font-size: 1.8rem;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+  margin: 0 0 4px;
+}
+
+.superadmin-login-sub {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: #94a3b8;
+  margin: 0 0 1.8rem;
+  text-transform: uppercase;
+}
+
+.superadmin-alert-error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  font-size: 0.78rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 1.2rem;
+  text-align: left;
+}
+
+.superadmin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  text-align: left;
+}
+
+.superadmin-field label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #cbd5e1;
+  margin-bottom: 6px;
+}
+
+.superadmin-field input {
+  width: 100%;
+  background: rgba(6, 8, 16, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #ffffff;
+  font-size: 0.88rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.superadmin-field input:focus {
+  border-color: #ff5500;
+}
+
+.superadmin-btn-auth {
+  width: 100%;
+  background: linear-gradient(135deg, #ff5500 0%, #d94100 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 20px rgba(255, 85, 0, 0.35);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.superadmin-btn-auth:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+}
+
+/* ── Dashboard Layout ─────────────────────────────── */
+.superadmin-portal-page {
+  min-height: 100vh;
+  background: #060810;
+  color: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+}
+
+.superadmin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: rgba(14, 18, 30, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.superadmin-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.superadmin-logo-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.superadmin-brand {
+  font-family: var(--f-athletic, 'Bebas Neue', sans-serif);
+  font-size: 1.25rem;
+  margin: 0;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+}
+
+.superadmin-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #ff5500;
+  letter-spacing: 0.06em;
+}
+
+.superadmin-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-superadmin-refresh,
+.btn-superadmin-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  transition: all 0.15s ease;
+}
+
+.btn-superadmin-refresh:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.btn-superadmin-logout {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+.btn-superadmin-logout:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+.superadmin-main {
+  flex: 1;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.superadmin-toast-banner {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+/* KPI Cards */
+.superadmin-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.kpi-card {
+  background: rgba(14, 18, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.kpi-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpi-icon-wrap.orange { background: rgba(255, 85, 0, 0.15); color: #ff5500; }
+.kpi-icon-wrap.blue { background: rgba(14, 165, 233, 0.15); color: #0ea5e9; }
+.kpi-icon-wrap.green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.kpi-icon-wrap.gold { background: rgba(234, 179, 8, 0.15); color: #eab308; }
+
+.kpi-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+
+.kpi-num {
+  font-family: var(--f-athletic, 'Bebas Neue', sans-serif);
+  font-size: 1.8rem;
+  margin: 2px 0;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.kpi-subtext {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+/* Sections */
+.superadmin-card {
+  background: rgba(14, 18, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.4rem;
+}
+
+.superadmin-card-header h3 {
+  font-family: var(--f-athletic, 'Bebas Neue', sans-serif);
+  font-size: 1.25rem;
+  margin: 0 0 2px;
+  color: #ffffff;
+}
+
+.superadmin-card-header p {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 0 0 1.2rem;
+}
+
+/* Feature Utilization Bars */
+.feature-bars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.2rem;
+}
+
+.feature-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.feature-stat-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+.feature-bar-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.feature-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.feature-bar-fill.orange { background: #ff5500; }
+.feature-bar-fill.blue { background: #0ea5e9; }
+.feature-bar-fill.green { background: #10b981; }
+.feature-bar-fill.gold { background: #eab308; }
+
+/* Table Controls */
+.superadmin-table-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 1.2rem;
+}
+
+.table-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 240px;
+}
+
+.table-search-box input {
+  width: 100%;
+  background: rgba(6, 8, 16, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px 8px 34px;
+  font-size: 0.8rem;
+  color: #ffffff;
+  outline: none;
+}
+
+.table-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.role-filter-pills {
+  display: flex;
+  background: rgba(6, 8, 16, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.role-filter-btn {
+  padding: 5px 10px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.role-filter-btn.active {
+  background: rgba(255, 85, 0, 0.15);
+  color: #ff5500;
+}
+
+.btn-export-csv {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-export-csv:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* User Table */
+.superadmin-table-wrapper {
+  overflow-x: auto;
+}
+
+.superadmin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.82rem;
+}
+
+.superadmin-table th {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.superadmin-table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+}
+
+.user-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.user-id-sub {
+  display: block;
+  font-size: 0.65rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.user-nickname-tag {
+  color: #38bdf8;
+  font-size: 0.75rem;
+}
+
+.user-pos-pill {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.user-role-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+.user-role-badge.admin {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.user-role-badge.athlete {
+  background: rgba(255, 85, 0, 0.12);
+  color: #ff8533;
+  border: 1px solid rgba(255, 85, 0, 0.25);
+}
+
+.online-green-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.user-online-pill {
+  font-size: 0.72rem;
+  color: #10b981;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.user-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.btn-toggle-role {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-toggle-role:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.btn-delete-user {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  padding: 4px 7px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-delete-user:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.superadmin-footer {
+  text-align: center;
+  padding: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.75rem;
+  color: #64748b;
+}

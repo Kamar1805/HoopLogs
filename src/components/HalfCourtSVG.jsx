@@ -1,5 +1,5 @@
-// src/components/HalfCourtSVG.jsx
 import React from "react";
+import { IoBasketball } from "react-icons/io5";
 import "./HalfCourtSVG.css";
 
 const zones = [
@@ -18,8 +18,9 @@ const zones = [
 const HalfCourtSVG = ({ onZoneClick }) => {
   return (
     <div className="court-wrapper">
-      <p className="court-instruction">
-        🏀 Click on any spot from the court to record your shots.
+      <p className="court-instruction" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+        <IoBasketball size={16} color="#ff5500" />
+        <span>Click on any spot from the court to record your shots.</span>
       </p>
       <svg
         viewBox="0 0 500 300"
