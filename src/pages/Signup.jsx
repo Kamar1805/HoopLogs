@@ -88,9 +88,7 @@ const Signup = () => {
         whatsapp:  form.whatsapp || '',
       };
 
-      const res = await signUp(form.email, form.password, userMeta);
-      const user = res?.user;
-      const session = res?.session;
+      const { user } = await signUp(form.email, form.password, userMeta);
 
       if (user) {
         // Try to upsert profile with gender and whatsapp
@@ -123,28 +121,15 @@ const Signup = () => {
         }
       }
 
-      // If Supabase returned an active session (e.g. Confirm email is turned off), verify immediately!
-      if (session) {
-        setVerified(true);
-        sendWelcomeEmail({ email: form.email, name: form.name }).catch((e) => {
-          console.warn('Post-signup welcome email note:', e);
-        });
-      } else {
-        setSignupSuccess(true);
-      }
+      setSignupSuccess(true);
     } catch (err) {
       console.error(err);
-      const msg = err.message || '';
-      if (msg.includes('already registered') || msg.includes('User already registered')) {
+      if (err.message?.includes('already registered')) {
+        setError('An account with this email already exists.');
+      } else if (err.message?.includes('User already registered')) {
         setError('This email is already registered. Try logging in.');
-      } else if (
-        msg.toLowerCase().includes('confirmation mail') ||
-        msg.toLowerCase().includes('confirmation email') ||
-        msg.toLowerCase().includes('rate limit')
-      ) {
-        setError('Supabase email limit exceeded ("Error sending confirmation email"). In Supabase Dashboard → Authentication → Providers → Email, turn OFF "Confirm email" to enable instant registration.');
       } else {
-        setError(msg || 'Something went wrong. Please try again.');
+        setError(err.message || 'Something went wrong. Please try again.');
       }
     } finally {
       setLoading(false);
