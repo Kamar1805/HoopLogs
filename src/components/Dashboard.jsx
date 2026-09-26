@@ -36,24 +36,6 @@ import {
 import { db } from '../firebase';
 import './Dashboard.css';
 
-const DEFAULT_POSTS = [
-  {
-    id: 'post-1',
-    authorName: 'Coach Kamar (AK)',
-    team: 'Amazon Girls',
-    text: 'Training for Amazon Girls by 6:00 PM today at Court 2. Focus is fastbreak transition and defensive rotations. Don’t be late!',
-    time: 'Today • 2:30 PM',
-    date: 'Sep 25',
-  },
-  {
-    id: 'post-2',
-    authorName: 'Coach Marcus',
-    team: 'All Hoopers',
-    text: 'Weekend 3-Point Shootout qualifier opens Saturday morning. Get your 5-Zone reps logged to lock in your tournament seeding.',
-    time: 'Yesterday • 10:15 AM',
-    date: 'Sep 24',
-  }
-];
 
 const Dashboard = () => {
   const { user, profile } = useAuth();
@@ -106,11 +88,23 @@ const Dashboard = () => {
     }
   });
 
-  // Announcements state - Real-time from Firestore with localStorage fallback
+  // Announcements state - Real-time from Firestore with localStorage fallback (ZERO dummy posts)
   const [announcements, setAnnouncements] = useState(() => {
     try {
       const saved = localStorage.getItem('hooplogs_arena_announcements');
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        return parsed.filter(
+          (p) =>
+            p &&
+            !p.authorName?.includes('Coach AK') &&
+            !p.authorName?.includes('Test User') &&
+            !p.text?.includes('Practice scheduled at 5 PM') &&
+            !p.text?.includes('Shooting session tomorrow')
+        );
+      }
+      return [];
     } catch {
       return [];
     }
@@ -143,7 +137,7 @@ const Dashboard = () => {
     setActiveWorkout(loadUserWorkout());
   }, [user]);
 
-  // Real-time Announcements from Firebase Firestore with Local Fallback & Auto-Sync
+  // Real-time Announcements from Firebase Firestore with Local Fallback (ZERO dummy posts)
   useEffect(() => {
     let unsubscribe = () => {};
 
@@ -152,10 +146,19 @@ const Dashboard = () => {
 
       unsubscribe = onSnapshot(
         q,
-        async (snapshot) => {
+        (snapshot) => {
           const fetched = [];
           snapshot.forEach((docSnap) => {
-            fetched.push({ id: docSnap.id, ...docSnap.data() });
+            const data = docSnap.data();
+            // Discard any lingering dummy posts
+            if (
+              !data.authorName?.includes('Coach AK') &&
+              !data.authorName?.includes('Test User') &&
+              !data.text?.includes('Practice scheduled at 5 PM') &&
+              !data.text?.includes('Shooting session tomorrow')
+            ) {
+              fetched.push({ id: docSnap.id, ...data });
+            }
           });
 
           // Sort newest first
@@ -165,36 +168,19 @@ const Dashboard = () => {
             return timeB - timeA;
           });
 
-          // Check if any local announcement exists that wasn't uploaded yet (e.g. from coach earlier)
+          // Purge any stale dummy posts from localStorage
           try {
             const localRaw = localStorage.getItem('hooplogs_arena_announcements');
-            const localPosts = localRaw ? JSON.parse(localRaw) : [];
-            if (Array.isArray(localPosts) && localPosts.length > 0) {
-              for (const localP of localPosts) {
-                if (!localP.text) continue;
-                const alreadyInFetched = fetched.some(
-                  (f) => f.id === localP.id || (f.text === localP.text && f.authorName === localP.authorName)
-                );
-                if (!alreadyInFetched) {
-                  // Auto-upload local announcement to Firestore so all players see it
-                  const docRef = await addDoc(collection(db, 'arena_announcements'), {
-                    authorName: localP.authorName || profile?.full_name || 'Coach AK',
-                    authorId: user?.id || null,
-                    team: localP.team || 'All Teams',
-                    text: localP.text,
-                    createdAt: localP.createdAt || new Date().toISOString(),
-                    date: localP.date || new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-                    time: localP.time || 'Just now',
-                    attendance: localP.attendance || {},
-                    comments: localP.comments || []
-                  });
-                  fetched.unshift({ id: docRef.id, ...localP });
-                }
-              }
+            if (
+              localRaw &&
+              (localRaw.includes('Coach AK') ||
+                localRaw.includes('Test User') ||
+                localRaw.includes('Shooting session tomorrow') ||
+                localRaw.includes('Practice scheduled at 5 PM'))
+            ) {
+              localStorage.removeItem('hooplogs_arena_announcements');
             }
-          } catch (syncErr) {
-            console.warn('Local announcement sync warning:', syncErr);
-          }
+          } catch (e) {}
 
           setAnnouncements(fetched);
           try {
@@ -205,7 +191,19 @@ const Dashboard = () => {
           console.warn('Firestore announcements listener error, falling back to local:', err);
           try {
             const saved = localStorage.getItem('hooplogs_arena_announcements');
-            if (saved) setAnnouncements(JSON.parse(saved));
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              setAnnouncements(
+                Array.isArray(parsed)
+                  ? parsed.filter(
+                      (p) =>
+                        p &&
+                        !p.authorName?.includes('Coach AK') &&
+                        !p.authorName?.includes('Test User')
+                    )
+                  : []
+              );
+            }
           } catch (e) {}
         }
       );
@@ -234,7 +232,7 @@ const Dashboard = () => {
 
     setPostingAnnouncement(true);
     const postData = {
-      authorName: profile?.full_name || user?.user_metadata?.full_name || 'Coach AK',
+      authorName: profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Coach',
       authorId: user?.id || null,
       team: newPostTeam.trim() || 'All Teams',
       text: newPostText.trim(),

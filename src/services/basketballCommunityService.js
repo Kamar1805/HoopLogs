@@ -67,7 +67,12 @@ export async function fetchUnifiedHoopers() {
       if (playersMap.has(d.id)) {
         const u = d.data();
         const existing = playersMap.get(d.id);
-        if (!existing.team_name && u.teamName && u.teamName !== 'No') {
+        if (
+          !existing.team_name &&
+          u.teamName &&
+          u.teamName !== 'No' &&
+          !u.teamName.toLowerCase().includes('varsity')
+        ) {
           existing.team_name = u.teamName;
         }
         if (!existing.whatsapp) {
@@ -96,7 +101,9 @@ export async function fetchUnifiedHoopers() {
         p.bpg = parseFloat(s.bpg || 0);
         p.topg = parseFloat(s.topg || 0);
         p.gp = parseInt(s.gp || 0, 10);
-        if (s.teamName) p.team_name = s.teamName;
+        if (s.teamName && !s.teamName.toLowerCase().includes('varsity')) {
+          p.team_name = s.teamName;
+        }
       }
     });
   } catch (statsErr) {
@@ -129,13 +136,54 @@ export async function fetchUnifiedHoopers() {
       .select('player_id, team_id, teams (name, emblem)');
     if (tm) {
       tm.forEach((item) => {
-        if (item.player_id && item.teams && playersMap.has(item.player_id)) {
+        if (
+          item.player_id &&
+          item.teams &&
+          !item.teams.name?.toLowerCase().includes('varsity') &&
+          playersMap.has(item.player_id)
+        ) {
           const p = playersMap.get(item.player_id);
           p.team_name = item.teams.name;
           p.team_emblem = item.teams.emblem || '🏀';
         }
       });
     }
+  } catch (_) {}
+
+  // F. Merge Firestore 'team_rosters' collection for real-time team assignments
+  try {
+    const rosterSnap = await getDocs(collection(db, 'team_rosters'));
+    rosterSnap.forEach((d) => {
+      const rData = d.data();
+      const pId = rData.playerId;
+      if (pId && playersMap.has(pId)) {
+        if (rData.teamName && !rData.teamName.toLowerCase().includes('varsity')) {
+          const p = playersMap.get(pId);
+          p.team_name = rData.teamName;
+        }
+      }
+    });
+  } catch (rosterErr) {
+    console.warn('Firestore team_rosters enrich notice:', rosterErr);
+  }
+
+  // G. Merge LocalStorage Custom Rosters fallback
+  try {
+    const customTeams = JSON.parse(localStorage.getItem('hooplogs_custom_teams') || '[]');
+    const customRosters = JSON.parse(localStorage.getItem('hooplogs_custom_rosters') || '{}');
+    customTeams.forEach((t) => {
+      if (t.name && !t.name.toLowerCase().includes('varsity')) {
+        const r = customRosters[t.id] || [];
+        r.forEach((m) => {
+          const pId = m.user_id || m.player_id || m.id;
+          if (pId && playersMap.has(pId)) {
+            const p = playersMap.get(pId);
+            p.team_name = t.name;
+            p.team_emblem = t.logo || t.emblem || '🏀';
+          }
+        });
+      }
+    });
   } catch (_) {}
 
   return Array.from(playersMap.values());
@@ -331,7 +379,7 @@ export async function createTeamWithLeague(teamData, leagueId = 'default_league'
     name: teamData.name.trim(),
     logo: teamData.logo || '🏀',
     emblem: teamData.logo || '🏀',
-    coach_name: teamData.coach_name || 'Coach AK',
+    coach_name: teamData.coach_name || 'Coach',
     coach_id: teamData.coach_id || null,
     league_id: leagueId,
     created_at: new Date().toISOString(),

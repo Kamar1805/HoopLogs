@@ -13,7 +13,7 @@ const coaches = [
   },
   {
     id: 2,
-    name: 'Coach AK',
+    name: 'Coach Abdul',
     description: 'Assistant Coach, River Hawks, expert in defensive strategies and team building.',
     fee: 10000,
     image: '/images/ak.JPG',

@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabase';
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
 import SiteHeader from '../components/SiteHeader';
 import MobileBottomNav from '../components/MobileBottomNav';
 import jsPDF from 'jspdf';
@@ -160,6 +162,7 @@ export default function RosterManagement() {
       setLoading(true);
       let loadedTeams = [];
 
+      // A. Supabase Live Teams
       try {
         const { data, error } = await supabase
           .from('teams')
@@ -173,20 +176,46 @@ export default function RosterManagement() {
         console.warn('Supabase fetch teams fallback:', sbErr);
       }
 
-      // Check localStorage for custom teams
-      const localCustom = JSON.parse(localStorage.getItem('hooplogs_custom_teams') || '[]');
-      const combinedMap = new Map();
+      // B. Firebase Firestore 'teams'
+      try {
+        const snap = await getDocs(collection(db, 'teams'));
+        snap.forEach((d) => {
+          const tData = { id: d.id, ...d.data() };
+          if (tData.name && !tData.name.toLowerCase().includes('varsity')) {
+            if (!loadedTeams.some((lt) => lt.id === tData.id || lt.name === tData.name)) {
+              loadedTeams.push(tData);
+            }
+          }
+        });
+      } catch (fbErr) {
+        console.warn('Firestore fetch teams fallback:', fbErr);
+      }
 
-      // Priority: local custom teams -> Supabase live teams (ZERO mock teams)
-      [...localCustom, ...loadedTeams].forEach((t) => {
-        if (!combinedMap.has(t.id)) combinedMap.set(t.id, t);
+      // C. Check localStorage for custom teams (purging Varsity Squad)
+      let localCustom = [];
+      try {
+        const raw = localStorage.getItem('hooplogs_custom_teams');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          localCustom = parsed.filter((t) => t && t.name && !t.name.toLowerCase().includes('varsity'));
+          localStorage.setItem('hooplogs_custom_teams', JSON.stringify(localCustom));
+        }
+      } catch (_) {}
+
+      const combinedMap = new Map();
+      [...loadedTeams, ...localCustom].forEach((t) => {
+        if (!combinedMap.has(t.id) && !t.name?.toLowerCase().includes('varsity')) {
+          combinedMap.set(t.id, t);
+        }
       });
 
       const finalTeams = Array.from(combinedMap.values());
       setTeams(finalTeams);
 
       if (finalTeams.length > 0) {
-        if (!selectedTeam) setSelectedTeam(finalTeams[0]);
+        if (!selectedTeam || selectedTeam.name?.toLowerCase().includes('varsity')) {
+          setSelectedTeam(finalTeams[0]);
+        }
         if (!teamAId) setTeamAId(finalTeams[0].id);
         if (!teamBId && finalTeams.length > 1) setTeamBId(finalTeams[1].id);
         if (!postGameTeamId) setPostGameTeamId(finalTeams[0].id);
@@ -234,7 +263,29 @@ export default function RosterManagement() {
         console.warn('Supabase fetch roster fallback:', sbErr);
       }
 
-      // C. Merge with custom local rosters & heal any missing profile data
+      // C. Fetch from Firestore team_rosters
+      try {
+        const rSnap = await getDocs(collection(db, 'team_rosters'));
+        rSnap.forEach((docSnap) => {
+          const rData = docSnap.data();
+          if (rData.teamId === teamId && rData.playerId) {
+            if (!members.some((m) => (m.user_id === rData.playerId || m.player_id === rData.playerId))) {
+              members.push({
+                id: docSnap.id,
+                team_id: teamId,
+                user_id: rData.playerId,
+                player_id: rData.playerId,
+                joined_at: rData.addedAt || new Date().toISOString(),
+                profiles: rData.profiles || null
+              });
+            }
+          }
+        });
+      } catch (rErr) {
+        console.warn('Firestore team_rosters fetch error:', rErr);
+      }
+
+      // D. Merge with custom local rosters & heal any missing profile data
       const localRosters = JSON.parse(localStorage.getItem('hooplogs_custom_rosters') || '{}');
       const teamCustom = localRosters[teamId] || [];
 
@@ -285,18 +336,39 @@ export default function RosterManagement() {
     }
   }, []);
 
-  // Load Leagues and Standings from localStorage
+  // Load Leagues and Standings from Firestore & localStorage
   useEffect(() => {
-    try {
-      const storedLeagues = localStorage.getItem('hooplogs_leagues_v1');
-      if (storedLeagues) setLeagues(JSON.parse(storedLeagues));
+    const loadStandingsData = async () => {
+      try {
+        const storedLeagues = localStorage.getItem('hooplogs_leagues_v1');
+        if (storedLeagues) setLeagues(JSON.parse(storedLeagues));
 
-      const storedStandings = localStorage.getItem('hooplogs_league_standings_v1');
-      if (storedStandings) setStandings(JSON.parse(storedStandings));
+        const standingsMap = JSON.parse(localStorage.getItem('hooplogs_league_standings_v1') || '{}');
+        delete standingsMap['team-1790431461390']; // Eradicate Varsity Squad
 
-      const storedReviews = localStorage.getItem('hooplogs_player_reviews');
-      if (storedReviews) setSavedReviews(JSON.parse(storedReviews));
-    } catch (e) {}
+        // Live Firestore league_standings
+        try {
+          const snap = await getDocs(collection(db, 'league_standings'));
+          snap.forEach((docSnap) => {
+            if (docSnap.id !== 'team-1790431461390') {
+              const data = docSnap.data();
+              if (!data.teamName?.toLowerCase().includes('varsity')) {
+                standingsMap[docSnap.id] = { ...data, id: docSnap.id };
+              }
+            }
+          });
+        } catch (e) {
+          console.warn('Firestore league_standings fetch error:', e);
+        }
+
+        setStandings(standingsMap);
+
+        const storedReviews = localStorage.getItem('hooplogs_player_reviews');
+        if (storedReviews) setSavedReviews(JSON.parse(storedReviews));
+      } catch (e) {}
+    };
+
+    loadStandingsData();
   }, []);
 
   useEffect(() => {
@@ -400,7 +472,7 @@ export default function RosterManagement() {
         name: newTeamName.trim(),
         logo: selectedBadge,
         emblem: selectedBadge,
-        coach_name: profile?.full_name || 'Coach AK',
+        coach_name: profile?.full_name || 'Coach',
         coach_id: user?.id || null
       }, selectedLeagueIdForNewTeam);
 
@@ -548,7 +620,7 @@ export default function RosterManagement() {
     e.preventDefault();
     if (!feedbackPlayer || !feedbackText.trim()) return;
 
-    const coachName = profile?.full_name || 'Coach Kamar (AK)';
+    const coachName = profile?.full_name || 'Coach';
     const newReview = {
       id: `rev-${Date.now()}`,
       coachName,

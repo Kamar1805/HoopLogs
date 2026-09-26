@@ -304,10 +304,15 @@
 .lb-player-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 4px;
+  gap: 12px;
+  padding: 12px 10px;
   border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.05));
-  transition: background 0.15s ease;
+  border-radius: 10px;
+  transition: all 0.15s ease;
+}
+
+.lb-player-row:hover {
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .lb-player-row:last-child {
@@ -319,33 +324,34 @@
   font-family: var(--font-display, 'Bebas Neue', monospace, sans-serif);
   font-size: 0.95rem;
   font-weight: 700;
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: var(--bg-2, #182132);
-  color: var(--t-secondary, #94a3b8);
+  background: transparent;
+  color: var(--t-muted, #64748b);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .lb-rank-badge.rank-1 {
-  background: #eab308;
-  color: #000;
-  font-weight: 900;
+  background: rgba(234, 179, 8, 0.15);
+  border-color: rgba(234, 179, 8, 0.5);
+  color: #fbbf24;
 }
 
 .lb-rank-badge.rank-2 {
-  background: #94a3b8;
-  color: #000;
-  font-weight: 900;
+  background: rgba(148, 163, 184, 0.15);
+  border-color: rgba(148, 163, 184, 0.5);
+  color: #cbd5e1;
 }
 
 .lb-rank-badge.rank-3 {
-  background: #b45309;
-  color: #fff;
-  font-weight: 900;
+  background: rgba(217, 119, 6, 0.15);
+  border-color: rgba(217, 119, 6, 0.5);
+  color: #f59e0b;
 }
 
 /* Avatar */
@@ -661,45 +667,71 @@
   transition: all 0.2s ease;
 }
 
-.hooper-stat-line-chips {
+/* Clean Modern Pro Stat Strip (NBA / SofaScore Style) */
+.hooper-stat-bar {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 5px;
-  margin-top: 6px;
+  justify-content: flex-start;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin-top: 5px;
+  width: fit-content;
+  max-width: 100%;
 }
 
-.hooper-stat-chip {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
-  padding: 3px 6px;
-  font-size: 0.72rem;
-  font-weight: 600;
+.stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 28px;
+}
+
+.stat-cell-num {
+  font-family: var(--font-display, 'Bebas Neue', monospace, sans-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1;
+}
+
+.stat-cell.highlight .stat-cell-num {
+  color: #ff5500;
+}
+
+.stat-cell-dim {
+  font-family: var(--font-heading, 'Barlow Condensed', sans-serif);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  margin-top: 1px;
+}
+
+.stat-cell-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.stat-cell.subtle .stat-cell-num {
   color: #94a3b8;
-  display: inline-flex;
+}
+
+/* Subtle unlinked WhatsApp indicator */
+.lb-wa-unlinked {
+  display: flex;
   align-items: center;
-  gap: 3px;
-  line-height: 1.1;
-}
-
-.hooper-stat-chip strong {
-  color: #ffffff;
-  font-weight: 800;
-}
-
-.hooper-stat-chip.highlight {
-  background: rgba(255, 85, 0, 0.16);
-  border-color: rgba(255, 85, 0, 0.45);
-  color: #ff5500;
-}
-
-.hooper-stat-chip.highlight strong {
-  color: #ff5500;
-}
-
-.hooper-stat-chip.subtle {
-  opacity: 0.75;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #475569;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0.6;
 }
 
 /* Light Mode Overrides for High Contrast & Readability */
@@ -712,24 +744,31 @@
   color: #0f172a;
 }
 
-[data-theme="light"] .hooper-stat-chip {
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  color: #334155;
+[data-theme="light"] .hooper-stat-bar {
+  background: #f8fafc;
+  border-color: #e2e8f0;
 }
 
-[data-theme="light"] .hooper-stat-chip strong {
+[data-theme="light"] .stat-cell-num {
   color: #0f172a;
 }
 
-[data-theme="light"] .hooper-stat-chip.highlight {
-  background: rgba(234, 88, 12, 0.12);
-  border-color: rgba(234, 88, 12, 0.35);
+[data-theme="light"] .stat-cell.highlight .stat-cell-num {
   color: #c2410c;
 }
 
-[data-theme="light"] .hooper-stat-chip.highlight strong {
-  color: #c2410c;
+[data-theme="light"] .stat-cell-dim {
+  color: #64748b;
+}
+
+[data-theme="light"] .stat-cell-divider {
+  background: #e2e8f0;
+}
+
+[data-theme="light"] .lb-wa-unlinked {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #94a3b8;
 }
 
 [data-theme="light"] .lb-card-top-title {

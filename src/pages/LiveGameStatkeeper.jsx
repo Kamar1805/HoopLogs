@@ -108,18 +108,11 @@ export default function LiveGameStatkeeper() {
         setTeamRoster(data);
         initPlayerStats(data);
       } else {
-        const dummyPlayers = [
-          { id: 'p1', full_name: 'Player 1', nickname: 'Shooter', position: 'PG' },
-          { id: 'p2', full_name: 'Player 2', nickname: 'Wing', position: 'SG' },
-          { id: 'p3', full_name: 'Player 3', nickname: 'Forward', position: 'SF' },
-          { id: 'p4', full_name: 'Player 4', nickname: 'Big', position: 'PF' },
-          { id: 'p5', full_name: 'Player 5', nickname: 'Center', position: 'C' },
-        ];
-        setTeamRoster(dummyPlayers);
-        initPlayerStats(dummyPlayers);
+        setTeamRoster([]);
+        initPlayerStats([]);
       }
     } catch {
-      // fallback
+      setTeamRoster([]);
     }
   };
 

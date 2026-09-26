@@ -1,6 +1,7 @@
-// src/pages/Leaderboards.jsx (Hoopers Directory & Stats)
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabase';
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
 import SiteHeader from '../components/SiteHeader';
 import MobileBottomNav from '../components/MobileBottomNav';
 import {
@@ -42,7 +43,7 @@ export default function Leaderboards() {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load custom teams and Supabase teams
+  // Load custom teams from Supabase, Firestore & localStorage (zero mock teams)
   useEffect(() => {
     const loadTeams = async () => {
       let loadedTeams = [];
@@ -50,18 +51,35 @@ export default function Leaderboards() {
       try {
         const { data } = await supabase.from('teams').select('id, name, emblem').order('name');
         if (data && data.length > 0) {
-          loadedTeams = [...data];
+          loadedTeams = data.filter((t) => t && t.name && !t.name.toLowerCase().includes('varsity'));
         }
       } catch (err) {
         console.warn('Supabase teams fetch warn:', err);
       }
 
-      // Check local storage custom teams
+      // Fetch from Firestore 'teams'
+      try {
+        const snap = await getDocs(collection(db, 'teams'));
+        snap.forEach((d) => {
+          const t = { id: d.id, ...d.data() };
+          if (t.name && !t.name.toLowerCase().includes('varsity')) {
+            if (!loadedTeams.some((lt) => lt.id === t.id || lt.name === t.name)) {
+              loadedTeams.push(t);
+            }
+          }
+        });
+      } catch (e) {
+        console.warn('Firestore teams read warn:', e);
+      }
+
+      // Check local storage custom teams (purging Varsity Squad)
       try {
         const stored = localStorage.getItem('hooplogs_custom_teams');
         if (stored) {
           const parsed = JSON.parse(stored);
-          parsed.forEach((pt) => {
+          const cleaned = parsed.filter((pt) => pt && pt.name && !pt.name.toLowerCase().includes('varsity'));
+          localStorage.setItem('hooplogs_custom_teams', JSON.stringify(cleaned));
+          cleaned.forEach((pt) => {
             if (!loadedTeams.some((t) => t.id === pt.id || t.name === pt.name)) {
               loadedTeams.push(pt);
             }
@@ -71,9 +89,7 @@ export default function Leaderboards() {
         console.warn('Local teams read warn:', e);
       }
 
-      if (loadedTeams.length > 0) {
-        setTeams(loadedTeams);
-      }
+      setTeams(loadedTeams);
     };
 
     loadTeams();
@@ -286,29 +302,37 @@ export default function Leaderboards() {
                         )}
                       </div>
 
-                      {/* Season Box Score Row (Zero Default) */}
-                      <div className="hooper-stat-line-chips">
-                        <span className="hooper-stat-chip highlight">
-                          <strong>{player.ppg.toFixed(1)}</strong> PPG
-                        </span>
-                        <span className="hooper-stat-chip">
-                          <strong>{player.apg.toFixed(1)}</strong> APG
-                        </span>
-                        <span className="hooper-stat-chip">
-                          <strong>{player.rpg.toFixed(1)}</strong> RPG
-                        </span>
-                        <span className="hooper-stat-chip">
-                          <strong>{player.spg.toFixed(1)}</strong> SPG
-                        </span>
-                        <span className="hooper-stat-chip">
-                          <strong>{player.bpg.toFixed(1)}</strong> BPG
-                        </span>
-                        <span className="hooper-stat-chip">
-                          <strong>{player.topg.toFixed(1)}</strong> TO
-                        </span>
-                        <span className="hooper-stat-chip subtle">
-                          {player.gp} GP
-                        </span>
+                      {/* Clean Pro Stat Strip (NBA / SofaScore Style) */}
+                      <div className="hooper-stat-bar">
+                        <div className="stat-cell highlight">
+                          <span className="stat-cell-num">{player.ppg.toFixed(1)}</span>
+                          <span className="stat-cell-dim">PPG</span>
+                        </div>
+                        <div className="stat-cell-divider" />
+                        <div className="stat-cell">
+                          <span className="stat-cell-num">{player.rpg.toFixed(1)}</span>
+                          <span className="stat-cell-dim">RPG</span>
+                        </div>
+                        <div className="stat-cell-divider" />
+                        <div className="stat-cell">
+                          <span className="stat-cell-num">{player.apg.toFixed(1)}</span>
+                          <span className="stat-cell-dim">APG</span>
+                        </div>
+                        <div className="stat-cell-divider" />
+                        <div className="stat-cell">
+                          <span className="stat-cell-num">{player.spg.toFixed(1)}</span>
+                          <span className="stat-cell-dim">SPG</span>
+                        </div>
+                        <div className="stat-cell-divider" />
+                        <div className="stat-cell">
+                          <span className="stat-cell-num">{player.bpg.toFixed(1)}</span>
+                          <span className="stat-cell-dim">BPG</span>
+                        </div>
+                        <div className="stat-cell-divider" />
+                        <div className="stat-cell subtle">
+                          <span className="stat-cell-num">{player.gp}</span>
+                          <span className="stat-cell-dim">GP</span>
+                        </div>
                       </div>
                     </div>
 
@@ -324,17 +348,15 @@ export default function Leaderboards() {
                           className="lb-wa-btn active"
                           title={`Chat with ${player.full_name} on WhatsApp`}
                         >
-                          <IoLogoWhatsapp size={15} /> CHAT
+                          <IoLogoWhatsapp size={14} /> CHAT
                         </a>
                       ) : (
-                        <button
-                          type="button"
-                          className="lb-wa-btn disabled"
-                          disabled
-                          title="This player hasn't added their WhatsApp number yet"
+                        <div
+                          className="lb-wa-unlinked"
+                          title="WhatsApp not linked"
                         >
-                          <IoLogoWhatsapp size={15} /> NO WA
-                        </button>
+                          <IoLogoWhatsapp size={15} />
+                        </div>
                       )}
                     </div>
                   </div>
