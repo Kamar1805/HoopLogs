@@ -28,41 +28,42 @@ export const ThemeProvider = ({ children }) => {
     }
   });
 
-  const [accentColor, setAccentColor] = useState(() => {
+  const [accentColor, setAccentColor] = useState('orange');
+
+  useEffect(() => {
     try {
-      return localStorage.getItem('hooplogs_accent') || 'orange';
-    } catch {
-      return 'orange';
-    }
-  });
+      localStorage.setItem('hooplogs_accent', 'orange');
+    } catch {}
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    document.documentElement.setAttribute('data-accent', accentColor);
+    document.documentElement.setAttribute('data-accent', 'orange');
 
-    const active = ACCENT_COLORS.find((a) => a.id === accentColor) || ACCENT_COLORS[0];
     const root = document.documentElement;
+    const orangeHex = '#ff5500';
+    const orangeHot = '#ff7a2e';
+    const orangeGlow = 'rgba(255, 85, 0, 0.25)';
 
-    root.style.setProperty('--orange', active.hex);
-    root.style.setProperty('--orange-hot', active.hex);
-    root.style.setProperty('--orange-blaze', active.hex);
-    root.style.setProperty('--orange-light', active.hex);
-    root.style.setProperty('--brand-primary', active.hex);
-    root.style.setProperty('--brand-hover', active.hex);
-    root.style.setProperty('--accent-orange', active.hex);
-    root.style.setProperty('--t-orange', active.hex);
-    root.style.setProperty('--orange-glow', active.glow);
-    root.style.setProperty('--brand-glow', active.glow);
-    root.style.setProperty('--shadow-orange', `0 0 20px ${active.glow}`);
-    root.style.setProperty('--border-accent', active.glow);
+    root.style.setProperty('--orange', orangeHex);
+    root.style.setProperty('--orange-hot', orangeHot);
+    root.style.setProperty('--orange-blaze', orangeHex);
+    root.style.setProperty('--orange-light', orangeHot);
+    root.style.setProperty('--brand-primary', orangeHex);
+    root.style.setProperty('--brand-hover', orangeHot);
+    root.style.setProperty('--accent-orange', orangeHex);
+    root.style.setProperty('--t-orange', orangeHex);
+    root.style.setProperty('--orange-glow', orangeGlow);
+    root.style.setProperty('--brand-glow', orangeGlow);
+    root.style.setProperty('--shadow-orange', `0 0 16px ${orangeGlow}`);
+    root.style.setProperty('--border-accent', 'rgba(255, 85, 0, 0.35)');
 
     try {
       localStorage.setItem('hooplogs_theme', theme);
-      localStorage.setItem('hooplogs_accent', accentColor);
     } catch (e) {
       console.warn('Could not save theme preference:', e);
     }
-  }, [theme, accentColor]);
+  }, [theme]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));

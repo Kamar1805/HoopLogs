@@ -32,6 +32,12 @@ import {
   LuSmartphone
 } from 'react-icons/lu';
 import { IoBasketball, IoLogoWhatsapp } from 'react-icons/io5';
+import {
+  fetchUnifiedHoopers,
+  assignPlayerToTeam,
+  createTeamWithLeague,
+  saveGameBoxScores
+} from '../services/basketballCommunityService';
 import './RosterManagement.css';
 
 const TEAM_BADGES = ['👑', '🦅', '⚡', '🔥', '🏀', '🦁', '🐺', '🦈', '🚀', '⭐'];
@@ -51,6 +57,7 @@ export default function RosterManagement() {
   const [rosterMembers, setRosterMembers] = useState([]);
   const [newTeamName, setNewTeamName] = useState('');
   const [selectedBadge, setSelectedBadge] = useState('👑');
+  const [selectedLeagueIdForNewTeam, setSelectedLeagueIdForNewTeam] = useState('main-league');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [genderFilter, setGenderFilter] = useState('ALL');
   const [loading, setLoading] = useState(true);
@@ -60,6 +67,9 @@ export default function RosterManagement() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchPosFilter, setSearchPosFilter] = useState('ALL');
+  const [searchGenderFilter, setSearchGenderFilter] = useState('ALL'); // 'ALL' | 'Male' | 'Female'
+  const [addingPlayerId, setAddingPlayerId] = useState(null);
+  const [addedSuccessId, setAddedSuccessId] = useState(null);
 
   // Coach Feedback / Review Modal State
   const [feedbackPlayer, setFeedbackPlayer] = useState(null);
@@ -196,53 +206,76 @@ export default function RosterManagement() {
       setLoading(true);
       let members = [];
 
+      // A. Fetch Supabase profiles map (Source of truth for hooper names)
+      const profileMap = new Map();
+      try {
+        const { data: profs } = await supabase.from('profiles').select('*');
+        if (profs) {
+          profs.forEach((p) => profileMap.set(p.id, p));
+        }
+      } catch (pErr) {
+        console.warn('Profiles map error:', pErr);
+      }
+
+      // B. Fetch from Supabase team_members
       try {
         const { data, error } = await supabase
           .from('team_members')
-          .select(`
-            id,
-            team_id,
-            user_id,
-            joined_at,
-            profiles (
-              id,
-              full_name,
-              nickname,
-              position,
-              height,
-              gender,
-              whatsapp,
-              experience
-            )
-          `)
+          .select('id, team_id, player_id, joined_at')
           .eq('team_id', teamId);
 
         if (!error && data && data.length > 0) {
-          members = data;
+          members = data.map((m) => ({
+            ...m,
+            user_id: m.player_id || m.user_id
+          }));
         }
       } catch (sbErr) {
         console.warn('Supabase fetch roster fallback:', sbErr);
       }
 
-      // Merge with custom local rosters
+      // C. Merge with custom local rosters & heal any missing profile data
       const localRosters = JSON.parse(localStorage.getItem('hooplogs_custom_rosters') || '{}');
       const teamCustom = localRosters[teamId] || [];
 
       const memberMap = new Map();
       [...members, ...teamCustom].forEach((m) => {
-        if (m && m.user_id && !memberMap.has(m.user_id)) {
-          memberMap.set(m.user_id, m);
+        const uId = m.player_id || m.user_id || m.id;
+        if (uId && !memberMap.has(uId)) {
+          const prof = profileMap.get(uId) || m.profiles || m || {};
+          const cleanProfile = {
+            id: uId,
+            full_name: prof.full_name || prof.name || m.full_name || m.name || 'Hooper',
+            nickname: prof.nickname || m.nickname || '',
+            position: prof.position || m.position || 'GUARD',
+            gender: prof.gender || m.gender || 'Male',
+            height: prof.height || m.height || '—',
+            whatsapp: prof.whatsapp || m.whatsapp || '',
+            avatar_url: prof.avatar_url || m.avatar_url || null
+          };
+
+          memberMap.set(uId, {
+            id: m.id || `mem-${uId}`,
+            team_id: teamId,
+            user_id: uId,
+            player_id: uId,
+            joined_at: m.joined_at || new Date().toISOString(),
+            profiles: cleanProfile,
+            stats: m.stats || {
+              total_made: 0,
+              total_attempted: 0,
+              accuracy_percentage: 0,
+            },
+          });
         }
       });
 
-      const enriched = Array.from(memberMap.values()).map((m) => ({
-        ...m,
-        stats: m.stats || {
-          total_made: 0,
-          total_attempted: 0,
-          accuracy_percentage: 0,
-        },
-      }));
+      const enriched = Array.from(memberMap.values());
+      // Self-heal localStorage so unnamed athlete never persists
+      try {
+        localRosters[teamId] = enriched;
+        localStorage.setItem('hooplogs_custom_rosters', JSON.stringify(localRosters));
+      } catch (_) {}
 
       setRosterMembers(enriched);
     } catch (err) {
@@ -276,9 +309,9 @@ export default function RosterManagement() {
     }
   }, [selectedTeam, fetchRosterMembers]);
 
-  // 3. Search Users to Add (Coach Feature)
+  // 3. Search Users to Add (Coach Feature) - Unified across Firebase & Supabase with Gender and Position filters
   useEffect(() => {
-    if (!searchQuery.trim() || !isCoach) {
+    if (!isCoach) {
       setSearchResults([]);
       return;
     }
@@ -286,32 +319,52 @@ export default function RosterManagement() {
     const timer = setTimeout(async () => {
       try {
         setIsSearching(true);
-        let found = [];
+        const allHoopers = await fetchUnifiedHoopers();
+        const currentMemberIds = new Set(rosterMembers.map((m) => m.user_id || m.id));
+        const q = searchQuery.toLowerCase().trim();
 
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .or(`full_name.ilike.%${searchQuery}%,nickname.ilike.%${searchQuery}%`)
-            .limit(10);
+        const filtered = allHoopers.filter((p) => {
+          const id = p.id || p.user_id;
+          if (currentMemberIds.has(id)) return false;
 
-          if (!error && data) {
-            found = data;
+          // Gender filter
+          if (searchGenderFilter === 'Male') {
+            const g = (p.gender || '').toLowerCase();
+            const isMale = g === 'male' || g === 'm' || g === 'men';
+            if (!isMale) return false;
+          } else if (searchGenderFilter === 'Female') {
+            const g = (p.gender || '').toLowerCase();
+            const isFemale = g === 'female' || g === 'f' || g === 'women';
+            if (!isFemale) return false;
           }
-        } catch (sbErr) {}
 
-        const currentMemberIds = new Set(rosterMembers.map((m) => m.user_id));
-        const filtered = found.filter((p) => !currentMemberIds.has(p.id));
-        setSearchResults(filtered);
+          // Position filter
+          if (searchPosFilter && searchPosFilter !== 'ALL') {
+            const pos = (p.position || '').toUpperCase();
+            if (!pos.includes(searchPosFilter.toUpperCase())) return false;
+          }
+
+          // Text query filter
+          if (q) {
+            const nameMatch = p.full_name && p.full_name.toLowerCase().includes(q);
+            const nickMatch = p.nickname && p.nickname.toLowerCase().includes(q);
+            const posMatch = p.position && p.position.toLowerCase().includes(q);
+            if (!nameMatch && !nickMatch && !posMatch) return false;
+          }
+
+          return true;
+        });
+
+        setSearchResults(filtered.slice(0, 15));
       } catch (err) {
         console.error('Player search error:', err);
       } finally {
         setIsSearching(false);
       }
-    }, 250);
+    }, 200);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, isCoach, rosterMembers]);
+  }, [searchQuery, searchGenderFilter, searchPosFilter, isCoach, rosterMembers]);
 
   // Load post-game roster when postGameTeamId changes
   useEffect(() => {
@@ -342,95 +395,152 @@ export default function RosterManagement() {
     e.preventDefault();
     if (!newTeamName.trim()) return;
 
-    const newTeamObj = {
-      id: `team-${Date.now()}`,
-      name: newTeamName.trim(),
-      logo: selectedBadge,
-      emblem: selectedBadge,
-      coach_name: profile?.full_name || 'Coach Kamar (AK)',
-      coach_id: user?.id || null,
-      created_at: new Date().toISOString(),
-      team_members: [{ count: 0 }]
-    };
-
     try {
-      const { data, error } = await supabase
-        .from('teams')
-        .insert({
-          name: newTeamName.trim(),
-          coach_id: user?.id || null,
-        })
-        .select()
-        .single();
+      const created = await createTeamWithLeague({
+        name: newTeamName.trim(),
+        logo: selectedBadge,
+        emblem: selectedBadge,
+        coach_name: profile?.full_name || 'Coach AK',
+        coach_id: user?.id || null
+      }, selectedLeagueIdForNewTeam);
 
-      if (!error && data) {
-        newTeamObj.id = data.id;
-      }
+      setTeams((prev) => [created, ...prev]);
+      setSelectedTeam(created);
+      setNewTeamName('');
+      setShowCreateForm(false);
     } catch (err) {
-      console.warn('Supabase team creation fallback:', err);
+      console.error('Error creating team with league:', err);
     }
-
-    const currentCustom = JSON.parse(localStorage.getItem('hooplogs_custom_teams') || '[]');
-    const updatedCustom = [newTeamObj, ...currentCustom];
-    localStorage.setItem('hooplogs_custom_teams', JSON.stringify(updatedCustom));
-
-    setTeams((prev) => [newTeamObj, ...prev]);
-    setSelectedTeam(newTeamObj);
-    setNewTeamName('');
-    setShowCreateForm(false);
   };
 
   const handleAddPlayer = async (playerProfile) => {
     if (!selectedTeam) return;
+    const pId = playerProfile.id || playerProfile.user_id;
+    if (!pId) return;
 
-    const newMember = {
-      id: `mem-${Date.now()}`,
-      team_id: selectedTeam.id,
-      user_id: playerProfile.id,
-      joined_at: new Date().toISOString(),
-      profiles: playerProfile,
-      stats: { total_made: 0, total_attempted: 0, accuracy_percentage: 0 }
-    };
+    if (addingPlayerId) return; // Prevent duplicate rapid clicks
+    setAddingPlayerId(pId);
 
     try {
-      await supabase.from('team_members').insert({
+      // 1. Check if athlete is ALREADY on this team
+      const alreadyOnTeam = rosterMembers.some((m) => (m.user_id === pId || m.player_id === pId || m.id === pId));
+      if (alreadyOnTeam) {
+        alert(`${playerProfile.full_name || 'This hooper'} is already rostered on ${selectedTeam.name}.`);
+        setAddingPlayerId(null);
+        return;
+      }
+
+      // 2. LEAGUE CONSTRAINT CHECK:
+      // "a player can belong to different teams but he cant belong to different team in a particular league.."
+      const targetLeagueId = selectedTeam.league_id || selectedTeam.leagueId || 'main-league';
+      const teamsInSameLeague = teams.filter(
+        (t) => t.id !== selectedTeam.id && (t.league_id || t.leagueId || 'main-league') === targetLeagueId
+      );
+
+      // Check localStorage custom rosters for conflicting team in same league
+      const customRosters = JSON.parse(localStorage.getItem('hooplogs_custom_rosters') || '{}');
+      let conflictingTeam = null;
+
+      for (const otherTeam of teamsInSameLeague) {
+        const otherRoster = customRosters[otherTeam.id] || [];
+        if (otherRoster.some((m) => (m.user_id === pId || m.player_id === pId || m.id === pId))) {
+          conflictingTeam = otherTeam;
+          break;
+        }
+      }
+
+      // Also check Supabase team_members for other teams in this league
+      if (!conflictingTeam && teamsInSameLeague.length > 0) {
+        try {
+          const otherIds = teamsInSameLeague.map((t) => t.id);
+          const { data: existingMemberships } = await supabase
+            .from('team_members')
+            .select('team_id')
+            .eq('player_id', pId)
+            .in('team_id', otherIds);
+
+          if (existingMemberships && existingMemberships.length > 0) {
+            const foundId = existingMemberships[0].team_id;
+            conflictingTeam = teamsInSameLeague.find((t) => t.id === foundId);
+          }
+        } catch (checkErr) {
+          console.warn('League membership check notice:', checkErr);
+        }
+      }
+
+      if (conflictingTeam) {
+        alert(
+          `Cannot add ${playerProfile.full_name || 'this hooper'}: They are already playing for "${conflictingTeam.name}" in this league.\n\nHoopLogs Rule: An athlete can play for teams in different leagues, but cannot belong to two different teams in the same league.`
+        );
+        setAddingPlayerId(null);
+        return;
+      }
+
+      // 3. Persist team assignment across Supabase, Firebase, and LocalStorage
+      await assignPlayerToTeam(pId, selectedTeam.id, selectedTeam.name, playerProfile);
+
+      // 4. Update UI with full profile metadata
+      const cleanProfile = {
+        id: pId,
+        full_name: playerProfile.full_name || 'Hooper',
+        nickname: playerProfile.nickname || '',
+        position: playerProfile.position || 'GUARD',
+        gender: playerProfile.gender || 'Male',
+        height: playerProfile.height || '—',
+        whatsapp: playerProfile.whatsapp || '',
+        avatar_url: playerProfile.avatar_url || null
+      };
+
+      const newMember = {
+        id: `mem-${Date.now()}-${pId}`,
         team_id: selectedTeam.id,
-        user_id: playerProfile.id,
-      });
+        user_id: pId,
+        player_id: pId,
+        joined_at: new Date().toISOString(),
+        profiles: cleanProfile,
+        stats: { total_made: 0, total_attempted: 0, accuracy_percentage: 0 }
+      };
+
+      setRosterMembers((prev) => [...prev, newMember]);
+      setAddedSuccessId(pId);
+
+      // Show success checkmark for 1 second, then clear and remove from search list
+      setTimeout(() => {
+        setAddedSuccessId(null);
+        setAddingPlayerId(null);
+        setSearchResults((prev) => prev.filter((p) => (p.id || p.user_id) !== pId));
+      }, 1000);
     } catch (err) {
-      console.warn('Supabase add player fallback:', err);
+      console.error('Error adding player:', err);
+      setAddingPlayerId(null);
     }
-
-    const customRosters = JSON.parse(localStorage.getItem('hooplogs_custom_rosters') || '{}');
-    const teamRoster = customRosters[selectedTeam.id] || [];
-    if (!teamRoster.some((m) => m.user_id === playerProfile.id)) {
-      customRosters[selectedTeam.id] = [...teamRoster, newMember];
-      localStorage.setItem('hooplogs_custom_rosters', JSON.stringify(customRosters));
-    }
-
-    setRosterMembers((prev) => [...prev, newMember]);
-    setSearchQuery('');
-    setSearchResults([]);
   };
 
-  const handleRemovePlayer = async (membershipId, playerName) => {
+  const handleRemovePlayer = async (membershipId, playerName, userId) => {
     if (!window.confirm(`Remove ${playerName || 'this player'} from ${selectedTeam.name}?`)) {
       return;
     }
 
     try {
-      await supabase.from('team_members').delete().eq('id', membershipId);
+      if (membershipId && !String(membershipId).startsWith('mem-')) {
+        await supabase.from('team_members').delete().eq('id', membershipId);
+      }
+      if (userId) {
+        await supabase.from('team_members').delete().match({ team_id: selectedTeam.id, player_id: userId });
+      }
     } catch (err) {
       console.warn('Supabase remove fallback:', err);
     }
 
     const customRosters = JSON.parse(localStorage.getItem('hooplogs_custom_rosters') || '{}');
     if (customRosters[selectedTeam.id]) {
-      customRosters[selectedTeam.id] = customRosters[selectedTeam.id].filter((m) => m.id !== membershipId);
+      customRosters[selectedTeam.id] = customRosters[selectedTeam.id].filter(
+        (m) => m.id !== membershipId && (m.user_id || m.player_id) !== userId
+      );
       localStorage.setItem('hooplogs_custom_rosters', JSON.stringify(customRosters));
     }
 
-    setRosterMembers((prev) => prev.filter((m) => m.id !== membershipId));
+    setRosterMembers((prev) => prev.filter((m) => m.id !== membershipId && (m.user_id || m.player_id) !== userId));
   };
 
   // Coach Feedback Submission
@@ -593,50 +703,21 @@ export default function RosterManagement() {
   // ----------------------------------------------------
   // POST-GAME MANUAL STATS SAVE HANDLER
   // ----------------------------------------------------
-  const handleSavePostGameStats = (e) => {
+  const handleSavePostGameStats = async (e) => {
     e.preventDefault();
     if (!postGameTeamId) return;
 
-    // Load current averages
-    const currentAverages = JSON.parse(localStorage.getItem('hooplogs_player_game_averages') || '{}');
+    const teamObj = teams.find((t) => t.id === postGameTeamId) || { name: 'Squad' };
 
-    // Update each player's season averages
-    Object.entries(postGameStats).forEach(([playerId, stats]) => {
-      const existing = currentAverages[playerId] || {
-        ppg: '0.0',
-        apg: '0.0',
-        rpg: '0.0',
-        spg: '0.0',
-        bpg: '0.0',
-        topg: '0.0',
-        gp: 0
-      };
-
-      const oldGP = existing.gp || 0;
-      const newGP = oldGP + 1;
-
-      const newPPG = ((parseFloat(existing.ppg) * oldGP + (stats.pts || 0)) / newGP).toFixed(1);
-      const newAPG = ((parseFloat(existing.apg) * oldGP + (stats.ast || 0)) / newGP).toFixed(1);
-      const newRPG = ((parseFloat(existing.rpg) * oldGP + (stats.reb || 0)) / newGP).toFixed(1);
-      const newSPG = ((parseFloat(existing.spg) * oldGP + (stats.stl || 0)) / newGP).toFixed(1);
-      const newBPG = ((parseFloat(existing.bpg) * oldGP + (stats.blk || 0)) / newGP).toFixed(1);
-      const newTOPG = ((parseFloat(existing.topg) * oldGP + (stats.to || 0)) / newGP).toFixed(1);
-
-      currentAverages[playerId] = {
-        ppg: newPPG,
-        apg: newAPG,
-        rpg: newRPG,
-        spg: newSPG,
-        bpg: newBPG,
-        topg: newTOPG,
-        gp: newGP
-      };
-    });
-
-    localStorage.setItem('hooplogs_player_game_averages', JSON.stringify(currentAverages));
-
-    setPostGameSaveSuccess('✅ Player stats successfully updated and reflected on player profiles!');
-    setTimeout(() => setPostGameSaveSuccess(''), 4500);
+    try {
+      await saveGameBoxScores(gameId || `game-${Date.now()}`, postGameTeamId, teamObj.name, postGameStats);
+      setPostGameSaveSuccess('✅ Player stats successfully updated and reflected on player profiles!');
+      setTimeout(() => setPostGameSaveSuccess(''), 4500);
+    } catch (err) {
+      console.error('Error saving post-game box scores:', err);
+      setPostGameSaveSuccess('⚠️ Stats saved locally.');
+      setTimeout(() => setPostGameSaveSuccess(''), 3500);
+    }
   };
 
   // Statkeeper URL & QR Code
@@ -810,6 +891,34 @@ export default function RosterManagement() {
                     </div>
                   </div>
 
+                  <div className="team-league-selector-row" style={{ marginTop: '8px', marginBottom: '8px' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#ff5500', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <LuTrophy size={13} /> ADD TO LEAGUE & STANDINGS:
+                    </label>
+                    <select
+                      value={selectedLeagueIdForNewTeam}
+                      onChange={(e) => setSelectedLeagueIdForNewTeam(e.target.value)}
+                      className="team-league-select"
+                      style={{
+                        width: '100%',
+                        background: 'rgba(0,0,0,0.35)',
+                        border: '1.5px solid rgba(255,255,255,0.15)',
+                        borderRadius: '8px',
+                        padding: '8px 10px',
+                        color: '#fff',
+                        fontSize: '0.82rem',
+                        fontWeight: '700',
+                        outline: 'none',
+                        marginTop: '4px'
+                      }}
+                    >
+                      <option value="main-league">🏆 Main Arena League (Active Standings)</option>
+                      {leagues.map((l) => (
+                        <option key={l.id} value={l.id}>🏆 {l.name} ({l.season || '2026'})</option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div className="team-input-row">
                     <input
                       type="text"
@@ -881,22 +990,56 @@ export default function RosterManagement() {
                       <span>ADD ATHLETE TO {selectedTeam.name.toUpperCase()}</span>
                     </div>
 
-                    <div className="search-pos-chips">
-                      {POSITIONS.map((pos) => (
-                        <button
-                          key={pos}
-                          type="button"
-                          className={`search-pos-chip ${searchPosFilter === pos ? 'active' : ''}`}
-                          onClick={() => setSearchPosFilter(pos)}
-                        >
-                          {pos}
-                        </button>
-                      ))}
+                    <div className="search-filter-controls">
+                      {/* Gender Selector: ALL / MALE / FEMALE */}
+                      <div className="search-filter-group">
+                        <span className="search-filter-label">GENDER:</span>
+                        <div className="search-filter-btn-group">
+                          <button
+                            type="button"
+                            className={`search-gender-pill ${searchGenderFilter === 'ALL' ? 'active' : ''}`}
+                            onClick={() => setSearchGenderFilter('ALL')}
+                          >
+                            ALL
+                          </button>
+                          <button
+                            type="button"
+                            className={`search-gender-pill male ${searchGenderFilter === 'Male' ? 'active' : ''}`}
+                            onClick={() => setSearchGenderFilter('Male')}
+                          >
+                            MALE (M)
+                          </button>
+                          <button
+                            type="button"
+                            className={`search-gender-pill female ${searchGenderFilter === 'Female' ? 'active' : ''}`}
+                            onClick={() => setSearchGenderFilter('Female')}
+                          >
+                            FEMALE (F)
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Position Filter */}
+                      <div className="search-filter-group">
+                        <span className="search-filter-label">POSITION:</span>
+                        <div className="search-pos-chips">
+                          {POSITIONS.map((pos) => (
+                            <button
+                              key={pos}
+                              type="button"
+                              className={`search-pos-chip ${searchPosFilter === pos ? 'active' : ''}`}
+                              onClick={() => setSearchPosFilter(pos)}
+                            >
+                              {pos}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
 
                     <input
                       type="text"
-                      placeholder="Search hooper by name or nickname..."
+                      placeholder="Search hooper by name or @nickname..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="admin-search-input"
@@ -910,25 +1053,38 @@ export default function RosterManagement() {
 
                     {searchResults.length > 0 && (
                       <div className="search-results-tray">
-                        {searchResults.map((p) => (
-                          <div key={p.id} className="search-result-row">
-                            <div>
-                              <div style={{ fontWeight: 700, color: '#fff', fontSize: '0.88rem' }}>
-                                {p.full_name} <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>({p.gender || 'M'})</span>
+                        {searchResults.map((p) => {
+                          const isFem = (p.gender || '').toLowerCase() === 'female' || (p.gender || '').toLowerCase() === 'women' || (p.gender || '').toLowerCase() === 'f';
+                          return (
+                            <div key={p.id} className="search-result-row">
+                              <div className="search-result-info">
+                                <div className="search-result-name-line">
+                                  <span className="search-player-name">{p.full_name}</span>
+                                  <span className={`search-gender-tag ${isFem ? 'female' : 'male'}`}>
+                                    {isFem ? 'FEMALE (F)' : 'MALE (M)'}
+                                  </span>
+                                </div>
+                                <div className="search-result-subinfo">
+                                  @{p.nickname || 'hooper'} • {p.position || 'G'} {p.height && p.height !== '—' ? `• ${p.height}` : ''}
+                                </div>
                               </div>
-                              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                                @{p.nickname || 'hooper'} • {p.position || 'G'}
-                              </div>
+                              <button
+                                type="button"
+                                className={`btn-assign-player ${addingPlayerId === (p.id || p.user_id) ? 'loading' : ''} ${addedSuccessId === (p.id || p.user_id) ? 'success' : ''}`}
+                                disabled={Boolean(addingPlayerId)}
+                                onClick={() => handleAddPlayer(p)}
+                              >
+                                {addingPlayerId === (p.id || p.user_id) ? (
+                                  <span className="btn-spinner" />
+                                ) : addedSuccessId === (p.id || p.user_id) ? (
+                                  <span>✓ ADDED</span>
+                                ) : (
+                                  <span>+ ADD</span>
+                                )}
+                              </button>
                             </div>
-                            <button
-                              type="button"
-                              className="btn-assign-player"
-                              onClick={() => handleAddPlayer(p)}
-                            >
-                              + ADD
-                            </button>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -948,27 +1104,34 @@ export default function RosterManagement() {
                 ) : (
                   <div className="roster-players-stack">
                     {rosterMembers.map((m) => {
-                      const player = m.profiles || {};
+                      const player = m.profiles || m || {};
+                      const athleteDisplayName = player.full_name || player.name || m.full_name || m.name || 'Hooper';
+                      const athletePos = player.position || m.position || 'GUARD';
+                      const athleteGender = player.gender || m.gender || 'Male';
+                      const athleteHandle = player.nickname || m.nickname || '';
+                      const athleteInitial = athleteDisplayName.charAt(0) || 'H';
                       const cleanWa = player.whatsapp ? player.whatsapp.replace(/\D/g, '') : null;
-                      const playerReviews = savedReviews[player.id] || [];
+                      const playerReviews = savedReviews[player.id || m.user_id || m.id] || [];
 
                       return (
                         <div key={m.id} className="roster-athlete-card">
                           <div className="athlete-card-left">
                             <div className="athlete-card-avatar">
-                              {player.full_name?.charAt(0) || 'H'}
+                              {athleteInitial}
                             </div>
                           </div>
 
                           <div className="athlete-card-body">
                             <div className="athlete-top-info">
                               <div>
-                                <h3 className="athlete-name">{player.full_name || 'Unnamed Athlete'}</h3>
+                                <h3 className="athlete-name">{athleteDisplayName}</h3>
                                 <div className="athlete-meta-chips">
-                                  <span className="athlete-tag-pos">{player.position || 'GUARD'}</span>
-                                  <span className="athlete-tag-gender">{player.gender || 'Male'}</span>
-                                  {player.height && <span className="athlete-tag-height">{player.height}</span>}
-                                  {player.nickname && <span className="athlete-tag-handle">@{player.nickname}</span>}
+                                  <span className="athlete-tag-pos">{athletePos}</span>
+                                  <span className="athlete-tag-gender">{athleteGender}</span>
+                                  {player.height && player.height !== '—' && (
+                                    <span className="athlete-tag-height">{player.height}</span>
+                                  )}
+                                  {athleteHandle && <span className="athlete-tag-handle">@{athleteHandle}</span>}
                                 </div>
                               </div>
                             </div>
@@ -976,7 +1139,7 @@ export default function RosterManagement() {
                             <div className="athlete-action-buttons">
                               {cleanWa ? (
                                 <a
-                                  href={`https://wa.me/${cleanWa}?text=${encodeURIComponent(`Hey ${player.full_name}, connecting with you via HoopLogs!`)}`}
+                                  href={`https://wa.me/${cleanWa}?text=${encodeURIComponent(`Hey ${athleteDisplayName}, connecting with you via HoopLogs!`)}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="roster-wa-btn"
@@ -1011,7 +1174,7 @@ export default function RosterManagement() {
                                 <button
                                   type="button"
                                   className="btn-remove-player"
-                                  onClick={() => handleRemovePlayer(m.id, player.full_name)}
+                                  onClick={() => handleRemovePlayer(m.id, athleteDisplayName, m.user_id || m.player_id)}
                                 >
                                   Remove
                                 </button>
@@ -1349,84 +1512,104 @@ export default function RosterManagement() {
                 </div>
               </div>
 
-              {/* Player Stat Rows */}
-              <div className="postgame-roster-table">
-                <div className="postgame-table-header">
-                  <span>PLAYER</span>
-                  <span>PTS</span>
-                  <span>AST</span>
-                  <span>REB</span>
-                  <span>STL</span>
-                  <span>BLK</span>
-                  <span>TO</span>
-                </div>
-
+              {/* Responsive Player Box Score Cards */}
+              <div className="postgame-roster-cards">
                 {postGameRoster.length === 0 ? (
                   <p className="no-players-postgame">No players in this roster. Add players in the Squads tab first.</p>
                 ) : (
                   postGameRoster.map((p) => {
                     const st = postGameStats[p.id] || { pts: 0, ast: 0, reb: 0, stl: 0, blk: 0, to: 0 };
                     return (
-                      <div key={p.id} className="postgame-player-row">
-                        <div className="postgame-player-meta">
-                          <strong>{p.name}</strong>
-                          <small>@{p.nickname || 'hooper'} • {p.position}</small>
+                      <div key={p.id} className="postgame-player-card">
+                        <div className="postgame-player-header">
+                          <div className="postgame-player-meta">
+                            <strong className="postgame-name">{p.name}</strong>
+                            <small className="postgame-sub">@{p.nickname || 'hooper'} • {p.position}</small>
+                          </div>
+                          <div className="postgame-pts-pill">
+                            <span>{st.pts} PTS</span>
+                          </div>
                         </div>
 
-                        <input
-                          type="number"
-                          min="0"
-                          value={st.pts}
-                          onChange={(e) => setPostGameStats({
-                            ...postGameStats,
-                            [p.id]: { ...st, pts: parseInt(e.target.value) || 0 }
-                          })}
-                        />
-                        <input
-                          type="number"
-                          min="0"
-                          value={st.ast}
-                          onChange={(e) => setPostGameStats({
-                            ...postGameStats,
-                            [p.id]: { ...st, ast: parseInt(e.target.value) || 0 }
-                          })}
-                        />
-                        <input
-                          type="number"
-                          min="0"
-                          value={st.reb}
-                          onChange={(e) => setPostGameStats({
-                            ...postGameStats,
-                            [p.id]: { ...st, reb: parseInt(e.target.value) || 0 }
-                          })}
-                        />
-                        <input
-                          type="number"
-                          min="0"
-                          value={st.stl}
-                          onChange={(e) => setPostGameStats({
-                            ...postGameStats,
-                            [p.id]: { ...st, stl: parseInt(e.target.value) || 0 }
-                          })}
-                        />
-                        <input
-                          type="number"
-                          min="0"
-                          value={st.blk}
-                          onChange={(e) => setPostGameStats({
-                            ...postGameStats,
-                            [p.id]: { ...st, blk: parseInt(e.target.value) || 0 }
-                          })}
-                        />
-                        <input
-                          type="number"
-                          min="0"
-                          value={st.to}
-                          onChange={(e) => setPostGameStats({
-                            ...postGameStats,
-                            [p.id]: { ...st, to: parseInt(e.target.value) || 0 }
-                          })}
-                        />
+                        <div className="postgame-stats-grid-6">
+                          <div className="postgame-stat-box pts">
+                            <label>PTS</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={st.pts}
+                              onChange={(e) => setPostGameStats({
+                                ...postGameStats,
+                                [p.id]: { ...st, pts: Math.max(0, parseInt(e.target.value) || 0) }
+                              })}
+                            />
+                          </div>
+
+                          <div className="postgame-stat-box ast">
+                            <label>AST</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={st.ast}
+                              onChange={(e) => setPostGameStats({
+                                ...postGameStats,
+                                [p.id]: { ...st, ast: Math.max(0, parseInt(e.target.value) || 0) }
+                              })}
+                            />
+                          </div>
+
+                          <div className="postgame-stat-box reb">
+                            <label>REB</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={st.reb}
+                              onChange={(e) => setPostGameStats({
+                                ...postGameStats,
+                                [p.id]: { ...st, reb: Math.max(0, parseInt(e.target.value) || 0) }
+                              })}
+                            />
+                          </div>
+
+                          <div className="postgame-stat-box stl">
+                            <label>STL</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={st.stl}
+                              onChange={(e) => setPostGameStats({
+                                ...postGameStats,
+                                [p.id]: { ...st, stl: Math.max(0, parseInt(e.target.value) || 0) }
+                              })}
+                            />
+                          </div>
+
+                          <div className="postgame-stat-box blk">
+                            <label>BLK</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={st.blk}
+                              onChange={(e) => setPostGameStats({
+                                ...postGameStats,
+                                [p.id]: { ...st, blk: Math.max(0, parseInt(e.target.value) || 0) }
+                              })}
+                            />
+                          </div>
+
+                          <div className="postgame-stat-box to">
+                            <label>TO</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={st.to}
+                              onChange={(e) => setPostGameStats({
+                                ...postGameStats,
+                                [p.id]: { ...st, to: Math.max(0, parseInt(e.target.value) || 0) }
+                              })}
+                            />
+                          </div>
+                        </div>
                       </div>
                     );
                   })

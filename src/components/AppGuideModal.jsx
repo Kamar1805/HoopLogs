@@ -34,14 +34,14 @@ const TOUR_STEPS = [
   {
     step: 2,
     id: 'theme-picker',
-    title: 'Choose Your Arena Theme',
-    badge: 'PERSONALIZED STYLE',
-    icon: LuPalette,
-    iconColor: '#ec4899',
-    headline: 'Pick Your Favorite Colors & Theme Mode',
+    title: 'Light & Dark Court Mode',
+    badge: 'DISPLAY MODE',
+    icon: LuSun,
+    iconColor: '#ff5500',
+    headline: 'Toggle Dark Arena or Light Mode',
     description:
-      'Personalize HoopLogs with your preferred athletic accent color and toggle between Light and Dark court mode.',
-    tip: 'Tap any swatch below to transform the look of the app in real time!',
+      'Easily switch between high-contrast Dark Arena Mode and clean Light Court Mode depending on your training environment.',
+    tip: 'Tap the button below to toggle theme mode, or use the sun/moon icon anytime in the top header.',
   },
   {
     step: 3,
@@ -143,37 +143,19 @@ const AppGuideModal = ({ isOpen, onClose }) => {
           <h2 className="tour-headline">{current.headline}</h2>
           <p className="tour-desc">{current.description}</p>
 
-          {/* DYNAMIC THEME PICKER STEP */}
+          {/* LIGHT / DARK MODE STEP */}
           {current.id === 'theme-picker' && (
             <div className="tour-theme-picker-card">
-              {/* Light / Dark Mode Toggle */}
-              <div className="theme-mode-row">
-                <span className="theme-mode-label">Mode:</span>
+              <div className="theme-mode-row" style={{ width: '100%', justifyContent: 'center' }}>
                 <button
                   type="button"
                   className={`theme-mode-toggle-btn ${theme === 'dark' ? 'active-dark' : 'active-light'}`}
                   onClick={toggleTheme}
+                  style={{ width: '100%', justifyContent: 'center', padding: '12px' }}
                 >
-                  {theme === 'dark' ? <LuMoon size={14} /> : <LuSun size={14} />}
-                  <span>{theme === 'dark' ? 'Dark Arena Mode' : 'Light Court Mode'}</span>
+                  {theme === 'dark' ? <LuMoon size={16} /> : <LuSun size={16} />}
+                  <span>{theme === 'dark' ? 'Dark Arena Mode (Active)' : 'Light Court Mode (Active)'}</span>
                 </button>
-              </div>
-
-              {/* 6 Color Swatches */}
-              <div className="theme-swatches-grid">
-                {accents.map((acc) => (
-                  <button
-                    key={acc.id}
-                    type="button"
-                    className={`theme-swatch-item ${accentColor === acc.id ? 'active' : ''}`}
-                    onClick={() => setAccentColor(acc.id)}
-                    title={acc.name}
-                  >
-                    <span className="swatch-circle" style={{ background: acc.hex }} />
-                    <span className="swatch-label">{acc.name}</span>
-                    {accentColor === acc.id && <LuCheck size={12} className="swatch-check" />}
-                  </button>
-                ))}
               </div>
             </div>
           )}

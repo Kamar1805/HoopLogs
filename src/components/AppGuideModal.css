@@ -205,7 +205,7 @@
 .tour-btn-primary {
   flex: 1.5;
   padding: 10px 14px;
-  background: linear-gradient(135deg, var(--brand-primary, #ff6b00) 0%, #e63d00 100%);
+  background: #ff5500;
   border: none;
   border-radius: var(--r-md);
   color: #ffffff;
@@ -217,7 +217,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  box-shadow: 0 4px 12px var(--brand-glow, rgba(255, 85, 0, 0.35));
+  box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3);
   transition: transform 0.15s ease;
 }
 

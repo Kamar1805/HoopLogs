@@ -22,8 +22,18 @@ import {
   LuShieldCheck,
   LuCalendar,
   LuClock,
-  LuPlay
+  LuPlay,
+  LuTrash2
 } from 'react-icons/lu';
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc
+} from 'firebase/firestore';
+import { db } from '../firebase';
 import './Dashboard.css';
 
 const DEFAULT_POSTS = [
@@ -96,7 +106,7 @@ const Dashboard = () => {
     }
   });
 
-  // Announcements state - ZERO MOCK DATA
+  // Announcements state - Real-time from Firestore with localStorage fallback
   const [announcements, setAnnouncements] = useState(() => {
     try {
       const saved = localStorage.getItem('hooplogs_arena_announcements');
@@ -133,6 +143,81 @@ const Dashboard = () => {
     setActiveWorkout(loadUserWorkout());
   }, [user]);
 
+  // Real-time Announcements from Firebase Firestore with Local Fallback & Auto-Sync
+  useEffect(() => {
+    let unsubscribe = () => {};
+
+    try {
+      const q = collection(db, 'arena_announcements');
+
+      unsubscribe = onSnapshot(
+        q,
+        async (snapshot) => {
+          const fetched = [];
+          snapshot.forEach((docSnap) => {
+            fetched.push({ id: docSnap.id, ...docSnap.data() });
+          });
+
+          // Sort newest first
+          fetched.sort((a, b) => {
+            const timeA = new Date(a.createdAt || a.timestamp || 0).getTime();
+            const timeB = new Date(b.createdAt || b.timestamp || 0).getTime();
+            return timeB - timeA;
+          });
+
+          // Check if any local announcement exists that wasn't uploaded yet (e.g. from coach earlier)
+          try {
+            const localRaw = localStorage.getItem('hooplogs_arena_announcements');
+            const localPosts = localRaw ? JSON.parse(localRaw) : [];
+            if (Array.isArray(localPosts) && localPosts.length > 0) {
+              for (const localP of localPosts) {
+                if (!localP.text) continue;
+                const alreadyInFetched = fetched.some(
+                  (f) => f.id === localP.id || (f.text === localP.text && f.authorName === localP.authorName)
+                );
+                if (!alreadyInFetched) {
+                  // Auto-upload local announcement to Firestore so all players see it
+                  const docRef = await addDoc(collection(db, 'arena_announcements'), {
+                    authorName: localP.authorName || profile?.full_name || 'Coach AK',
+                    authorId: user?.id || null,
+                    team: localP.team || 'All Teams',
+                    text: localP.text,
+                    createdAt: localP.createdAt || new Date().toISOString(),
+                    date: localP.date || new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                    time: localP.time || 'Just now',
+                    attendance: localP.attendance || {},
+                    comments: localP.comments || []
+                  });
+                  fetched.unshift({ id: docRef.id, ...localP });
+                }
+              }
+            }
+          } catch (syncErr) {
+            console.warn('Local announcement sync warning:', syncErr);
+          }
+
+          setAnnouncements(fetched);
+          try {
+            localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(fetched));
+          } catch (e) {}
+        },
+        (err) => {
+          console.warn('Firestore announcements listener error, falling back to local:', err);
+          try {
+            const saved = localStorage.getItem('hooplogs_arena_announcements');
+            if (saved) setAnnouncements(JSON.parse(saved));
+          } catch (e) {}
+        }
+      );
+    } catch (err) {
+      console.warn('Failed to initialize announcements onSnapshot:', err);
+    }
+
+    return () => {
+      unsubscribe();
+    };
+  }, [user, profile]);
+
   const handleDismissGuide = (e) => {
     e.stopPropagation();
     setShowGuideBanner(false);
@@ -143,42 +228,53 @@ const Dashboard = () => {
     }
   };
 
-  const handleCreatePost = (e) => {
+  const handleCreatePost = async (e) => {
     e.preventDefault();
     if (!newPostText.trim()) return;
 
     setPostingAnnouncement(true);
-    setTimeout(() => {
-      const newPost = {
-        id: `post-${Date.now()}`,
-        authorName: profile?.full_name || user?.user_metadata?.full_name || 'Coach AK',
-        team: newPostTeam,
-        text: newPostText.trim(),
-        time: 'Just now',
-        date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-        attendance: {},
-        comments: []
-      };
+    const postData = {
+      authorName: profile?.full_name || user?.user_metadata?.full_name || 'Coach AK',
+      authorId: user?.id || null,
+      team: newPostTeam.trim() || 'All Teams',
+      text: newPostText.trim(),
+      createdAt: new Date().toISOString(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      date: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      attendance: {},
+      comments: []
+    };
 
-      const updated = [newPost, ...announcements];
-      setAnnouncements(updated);
-      try {
-        localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(updated));
-      } catch (err) {
-        console.warn('Could not save announcement:', err);
-      }
+    // Optimistic local update
+    const tempId = `post-${Date.now()}`;
+    const tempPost = { id: tempId, ...postData };
+    const updated = [tempPost, ...announcements];
+    setAnnouncements(updated);
+    try {
+      localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(updated));
+    } catch (err) {
+      console.warn('Could not save announcement locally:', err);
+    }
 
+    // Persist to Firebase Firestore
+    try {
+      await addDoc(collection(db, 'arena_announcements'), postData);
+      setAnnouncementMsg('Update broadcasted to all players! 📢');
+    } catch (err) {
+      console.error('Error posting announcement to Firestore:', err);
+      setAnnouncementMsg('Announcement posted locally! 📢');
+    } finally {
       setNewPostText('');
       setPostingAnnouncement(false);
       setShowNewPostModal(false);
-      setAnnouncementMsg('Announcement posted to arena! 📢');
       setTimeout(() => setAnnouncementMsg(''), 3500);
-    }, 400);
+    }
   };
 
-  const handleToggleAttendance = (postId, status) => {
+  const handleToggleAttendance = async (postId, status) => {
     const userId = user?.id || 'guest-user';
     const userName = profile?.full_name || user?.user_metadata?.full_name || 'Hooper';
+    let targetAttendance = {};
 
     setAnnouncements((prev) => {
       const updated = prev.map((p) => {
@@ -193,6 +289,7 @@ const Dashboard = () => {
               time: 'Just now'
             };
           }
+          targetAttendance = attendance;
           return { ...p, attendance };
         }
         return p;
@@ -202,24 +299,33 @@ const Dashboard = () => {
       } catch (e) {}
       return updated;
     });
+
+    // Update in Firestore
+    try {
+      const postRef = doc(db, 'arena_announcements', postId);
+      await updateDoc(postRef, { attendance: targetAttendance });
+    } catch (err) {
+      console.warn('Could not sync attendance to Firestore:', err);
+    }
   };
 
-  const handleAddComment = (postId) => {
+  const handleAddComment = async (postId) => {
     if (!commentInput.trim()) return;
     const userName = profile?.full_name || user?.user_metadata?.full_name || 'Hooper';
+    const newComment = {
+      id: `c-${Date.now()}`,
+      author: userName,
+      text: commentInput.trim(),
+      time: 'Just now',
+      createdAt: new Date().toISOString()
+    };
 
+    let targetComments = [];
     setAnnouncements((prev) => {
       const updated = prev.map((p) => {
         if (p.id === postId) {
-          const comments = [
-            ...(p.comments || []),
-            {
-              id: `c-${Date.now()}`,
-              author: userName,
-              text: commentInput.trim(),
-              time: 'Just now'
-            }
-          ];
+          const comments = [...(p.comments || []), newComment];
+          targetComments = comments;
           return { ...p, comments };
         }
         return p;
@@ -232,6 +338,34 @@ const Dashboard = () => {
 
     setCommentInput('');
     setActiveCommentPostId(null);
+
+    // Update in Firestore
+    try {
+      const postRef = doc(db, 'arena_announcements', postId);
+      await updateDoc(postRef, { comments: targetComments });
+    } catch (err) {
+      console.warn('Could not sync comment to Firestore:', err);
+    }
+  };
+
+  const handleDeleteAnnouncement = async (postId) => {
+    if (!window.confirm('Delete this announcement from the arena board?')) return;
+
+    setAnnouncements((prev) => {
+      const updated = prev.filter((p) => p.id !== postId);
+      try {
+        localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    try {
+      await deleteDoc(doc(db, 'arena_announcements', postId));
+      setAnnouncementMsg('Announcement removed.');
+      setTimeout(() => setAnnouncementMsg(''), 3000);
+    } catch (err) {
+      console.warn('Error deleting announcement from Firestore:', err);
+    }
   };
 
   useEffect(() => {
@@ -305,8 +439,14 @@ const Dashboard = () => {
   const athleteName = profile?.full_name || user?.user_metadata?.full_name || 'Hooper';
   const athleteHandle = profile?.nickname ? `@${profile.nickname}` : '@hooper';
   const position = profile?.position || 'GUARD';
-  const expLevel = profile?.experience || 'ATHLETE';
   const cleanWhatsapp = profile?.whatsapp ? profile.whatsapp.replace(/\D/g, '') : null;
+  const athleteAvatar =
+    profile?.avatar_url ||
+    profile?.photo_url ||
+    profile?.photoURL ||
+    user?.user_metadata?.avatar_url ||
+    user?.photoURL ||
+    (user?.id ? localStorage.getItem(`hooplogs_avatar_${user.id}`) : null);
 
   if (loading || entranceLoading) {
     return <ArenaSplashLoader subtitle="ENTERING ARENA…" />;
@@ -322,18 +462,16 @@ const Dashboard = () => {
           <div className="athlete-profile-row">
             <div className="athlete-avatar-wrap">
               <div className="athlete-avatar">
-                {profile?.photo_url || profile?.photoURL ? (
+                {athleteAvatar ? (
                   <img
-                    src={profile.photo_url || profile.photoURL}
+                    src={athleteAvatar}
                     alt={athleteName}
                     style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
                   />
                 ) : (
-                  <img
-                    src="/hooplogs-logo.png"
-                    alt="HoopLogs"
-                    style={{ width: '28px', height: '28px', objectFit: 'contain' }}
-                  />
+                  <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#ff5500', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.1rem' }}>
+                    {athleteName?.charAt(0)?.toUpperCase() || 'H'}
+                  </div>
                 )}
               </div>
               <span className="online-indicator-dot" title="Active on Court" />
@@ -346,7 +484,6 @@ const Dashboard = () => {
                 {position && <span className="athlete-chip pos">{position}</span>}
                 {isCoach && <span className="athlete-chip coach">COACH / ADMIN</span>}
                 {athleteHandle && <span className="athlete-chip handle">{athleteHandle}</span>}
-                {profile?.experience && <span className="athlete-chip">{profile.experience}</span>}
 
                 {cleanWhatsapp && (
                   <a
@@ -446,9 +583,31 @@ const Dashboard = () => {
                           <span className="announcement-team-tag">{post.team}</span>
                         )}
                       </div>
-                      <span className="announcement-time-stamp">
-                        <LuClock size={11} /> {post.time}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span className="announcement-time-stamp">
+                          <LuClock size={11} /> {post.time || post.date || 'Today'}
+                        </span>
+                        {isCoach && (
+                          <button
+                            type="button"
+                            className="btn-delete-announcement"
+                            onClick={() => handleDeleteAnnouncement(post.id)}
+                            title="Delete announcement"
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#ef4444',
+                              cursor: 'pointer',
+                              padding: '2px 4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              opacity: 0.75
+                            }}
+                          >
+                            <LuTrash2 size={13} />
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     <p className="announcement-body-text">{post.text}</p>

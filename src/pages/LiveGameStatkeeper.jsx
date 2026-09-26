@@ -19,6 +19,7 @@ import {
   LuCircleAlert
 } from 'react-icons/lu';
 import { IoBasketball } from 'react-icons/io5';
+import { saveGameBoxScores } from '../services/basketballCommunityService';
 import './LiveGameStatkeeper.css';
 
 export default function LiveGameStatkeeper() {
@@ -206,7 +207,7 @@ export default function LiveGameStatkeeper() {
   };
 
   // 5. Finalize & Save Stats
-  const handleFinalizeStats = () => {
+  const handleFinalizeStats = async () => {
     const teamName = claimedTeam === 'A' ? game.teamAName : game.teamBName;
     const teamTotalPts = Object.values(playerStats).reduce((sum, p) => sum + (p.pts || 0), 0);
 
@@ -271,6 +272,14 @@ export default function LiveGameStatkeeper() {
       });
 
       localStorage.setItem('hooplogs_player_game_averages', JSON.stringify(storedAverages));
+
+      // Persist to unified real-time community database (Firestore + Supabase)
+      try {
+        const teamId = claimedTeam === 'A' ? game.teamAId : game.teamBId;
+        await saveGameBoxScores(gameId || `game-${Date.now()}`, teamId, teamName, playerStats);
+      } catch (syncErr) {
+        console.warn('Realtime box scores sync notice:', syncErr);
+      }
 
       setSavedSuccess(`Stats saved successfully for ${teamName}! Player profiles & league standings updated.`);
       setTimeout(() => setSavedSuccess(''), 4500);

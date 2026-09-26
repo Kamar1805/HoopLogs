@@ -32,6 +32,20 @@ export const ZONES_CONFIG = [
     color: '#34d399', // Emerald
   },
   {
+    id: 'left_short_corner',
+    label: 'Left Short Corner (Baseline Mid-Range)',
+    shortLabel: 'L Short Corner',
+    points: 2,
+    color: '#fbbf24', // Amber Gold
+  },
+  {
+    id: 'right_short_corner',
+    label: 'Right Short Corner (Baseline Mid-Range)',
+    shortLabel: 'R Short Corner',
+    points: 2,
+    color: '#f59e0b', // Amber Orange
+  },
+  {
     id: 'paint_2',
     label: 'Paint / Restricted Area',
     shortLabel: 'Paint',
@@ -48,11 +62,13 @@ const Court5ZonesSVG = ({ selectedZoneId, onSelectZone, zoneStats = {} }) => {
     return `${stat.made}/${stat.attempted} (${pct}%)`;
   };
 
+  const getZone = (id) => ZONES_CONFIG.find((z) => z.id === id) || ZONES_CONFIG[0];
+
   return (
     <div className="court-container">
       <div className="court-instruction-bar">
         <IoBasketball size={18} color="#ff5500" />
-        <span>Tap any of the 5 court zones below to log makes and attempts</span>
+        <span>Tap any court zone below to log makes and attempts</span>
       </div>
 
       <div className="court-svg-wrapper">
@@ -71,47 +87,63 @@ const Court5ZonesSVG = ({ selectedZoneId, onSelectZone, zoneStats = {} }) => {
           {/* ZONE 1: Left Corner 3 */}
           <polygon
             points="0,300 45,300 45,420 0,420"
-            fill={ZONES_CONFIG[0].color}
+            fill={getZone('corner_3').color}
             className={`zone-polygon ${selectedZoneId === 'corner_3' ? 'selected' : ''}`}
-            onClick={() => onSelectZone(ZONES_CONFIG[0])}
+            onClick={() => onSelectZone(getZone('corner_3'))}
           />
           {/* ZONE 1: Right Corner 3 */}
           <polygon
             points="455,300 500,300 500,420 455,420"
-            fill={ZONES_CONFIG[0].color}
+            fill={getZone('corner_3').color}
             className={`zone-polygon ${selectedZoneId === 'corner_3' ? 'selected' : ''}`}
-            onClick={() => onSelectZone(ZONES_CONFIG[0])}
+            onClick={() => onSelectZone(getZone('corner_3'))}
           />
 
           {/* ZONE 2: Left Wing 3 */}
           <path
             d="M 0,160 L 150,160 L 120,250 L 45,300 L 0,300 Z"
-            fill={ZONES_CONFIG[1].color}
+            fill={getZone('wing_3').color}
             className={`zone-polygon ${selectedZoneId === 'wing_3' ? 'selected' : ''}`}
-            onClick={() => onSelectZone(ZONES_CONFIG[1])}
+            onClick={() => onSelectZone(getZone('wing_3'))}
           />
           {/* ZONE 2: Right Wing 3 */}
           <path
             d="M 350,160 L 500,160 L 500,300 L 455,300 L 380,250 Z"
-            fill={ZONES_CONFIG[1].color}
+            fill={getZone('wing_3').color}
             className={`zone-polygon ${selectedZoneId === 'wing_3' ? 'selected' : ''}`}
-            onClick={() => onSelectZone(ZONES_CONFIG[1])}
+            onClick={() => onSelectZone(getZone('wing_3'))}
           />
 
           {/* ZONE 3: Center / Top of Key 3 */}
           <polygon
             points="0,0 500,0 500,160 350,160 250,110 150,160 0,160"
-            fill={ZONES_CONFIG[2].color}
+            fill={getZone('top_key_3').color}
             className={`zone-polygon ${selectedZoneId === 'top_key_3' ? 'selected' : ''}`}
-            onClick={() => onSelectZone(ZONES_CONFIG[2])}
+            onClick={() => onSelectZone(getZone('top_key_3'))}
           />
 
-          {/* ZONE 4: Elbow & Mid-Range / Free Throw line area */}
+          {/* ZONE 4: Elbow & Mid-Range / Free Throw Line Area */}
           <path
-            d="M 150,160 L 250,110 L 350,160 L 380,250 L 330,270 L 330,420 L 170,420 L 170,270 L 120,250 Z"
-            fill={ZONES_CONFIG[3].color}
+            d="M 120,250 L 150,160 L 250,110 L 350,160 L 380,250 L 330,260 L 170,260 Z"
+            fill={getZone('elbow_2').color}
             className={`zone-polygon ${selectedZoneId === 'elbow_2' ? 'selected' : ''}`}
-            onClick={() => onSelectZone(ZONES_CONFIG[3])}
+            onClick={() => onSelectZone(getZone('elbow_2'))}
+          />
+
+          {/* ZONE: Left Short Corner (Baseline Mid-Range) */}
+          <polygon
+            points="45,420 45,300 120,250 170,260 170,420"
+            fill={getZone('left_short_corner').color}
+            className={`zone-polygon ${selectedZoneId === 'left_short_corner' ? 'selected' : ''}`}
+            onClick={() => onSelectZone(getZone('left_short_corner'))}
+          />
+
+          {/* ZONE: Right Short Corner (Baseline Mid-Range) */}
+          <polygon
+            points="330,420 330,260 380,250 455,300 455,420"
+            fill={getZone('right_short_corner').color}
+            className={`zone-polygon ${selectedZoneId === 'right_short_corner' ? 'selected' : ''}`}
+            onClick={() => onSelectZone(getZone('right_short_corner'))}
           />
 
           {/* ZONE 5: Paint / Restricted Area (The Key & Rim) */}
@@ -120,9 +152,9 @@ const Court5ZonesSVG = ({ selectedZoneId, onSelectZone, zoneStats = {} }) => {
             y="260"
             width="160"
             height="160"
-            fill={ZONES_CONFIG[4].color}
+            fill={getZone('paint_2').color}
             className={`zone-polygon ${selectedZoneId === 'paint_2' ? 'selected' : ''}`}
-            onClick={() => onSelectZone(ZONES_CONFIG[4])}
+            onClick={() => onSelectZone(getZone('paint_2'))}
           />
 
           {/* Basketball Court Regulation Markings (Overlay) */}
@@ -175,49 +207,63 @@ const Court5ZonesSVG = ({ selectedZoneId, onSelectZone, zoneStats = {} }) => {
           {/* Top of Key 3 */}
           <g transform="translate(250, 75)" textAnchor="middle">
             <rect x="-80" y="-18" width="160" height="34" rx="6" fill="#0f172a" fillOpacity="0.85" stroke="#c084fc" strokeWidth="1.5" />
-            <text y="-2" className="zone-badge-label">3. Top of Key (3 PT)</text>
+            <text y="-2" className="zone-badge-label">Top of Key (3 PT)</text>
             <text y="11" className="zone-badge-stat">{getStatString('top_key_3')}</text>
           </g>
 
           {/* Wing 3 Left */}
           <g transform="translate(70, 220)" textAnchor="middle">
             <rect x="-55" y="-18" width="110" height="34" rx="6" fill="#0f172a" fillOpacity="0.85" stroke="#818cf8" strokeWidth="1.5" />
-            <text y="-2" className="zone-badge-label">2. Wing 3 (L)</text>
+            <text y="-2" className="zone-badge-label">Wing 3 (L)</text>
             <text y="11" className="zone-badge-stat">{getStatString('wing_3')}</text>
           </g>
 
           {/* Wing 3 Right */}
           <g transform="translate(430, 220)" textAnchor="middle">
             <rect x="-55" y="-18" width="110" height="34" rx="6" fill="#0f172a" fillOpacity="0.85" stroke="#818cf8" strokeWidth="1.5" />
-            <text y="-2" className="zone-badge-label">2. Wing 3 (R)</text>
+            <text y="-2" className="zone-badge-label">Wing 3 (R)</text>
             <text y="11" className="zone-badge-stat">{getStatString('wing_3')}</text>
           </g>
 
           {/* Elbow / Free Throw Area */}
           <g transform="translate(250, 205)" textAnchor="middle">
             <rect x="-75" y="-18" width="150" height="34" rx="6" fill="#0f172a" fillOpacity="0.85" stroke="#34d399" strokeWidth="1.5" />
-            <text y="-2" className="zone-badge-label">4. Elbow / FT (2 PT)</text>
+            <text y="-2" className="zone-badge-label">Elbow / FT (2 PT)</text>
             <text y="11" className="zone-badge-stat">{getStatString('elbow_2')}</text>
           </g>
 
           {/* Corner 3 Left */}
-          <g transform="translate(30, 360)" textAnchor="middle">
-            <rect x="-28" y="-18" width="56" height="34" rx="4" fill="#0f172a" fillOpacity="0.85" stroke="#38bdf8" strokeWidth="1.5" />
-            <text y="-2" className="zone-badge-label">1. C3</text>
+          <g transform="translate(24, 360)" textAnchor="middle">
+            <rect x="-20" y="-18" width="40" height="34" rx="4" fill="#0f172a" fillOpacity="0.85" stroke="#38bdf8" strokeWidth="1.5" />
+            <text y="-2" className="zone-badge-label">LC3</text>
             <text y="11" className="zone-badge-stat">{getStatString('corner_3')}</text>
           </g>
 
+          {/* Left Short Corner */}
+          <g transform="translate(108, 345)" textAnchor="middle">
+            <rect x="-48" y="-18" width="96" height="34" rx="4" fill="#0f172a" fillOpacity="0.85" stroke="#fbbf24" strokeWidth="1.5" />
+            <text y="-2" className="zone-badge-label">L Short Cor (2P)</text>
+            <text y="11" className="zone-badge-stat">{getStatString('left_short_corner')}</text>
+          </g>
+
+          {/* Right Short Corner */}
+          <g transform="translate(392, 345)" textAnchor="middle">
+            <rect x="-48" y="-18" width="96" height="34" rx="4" fill="#0f172a" fillOpacity="0.85" stroke="#f59e0b" strokeWidth="1.5" />
+            <text y="-2" className="zone-badge-label">R Short Cor (2P)</text>
+            <text y="11" className="zone-badge-stat">{getStatString('right_short_corner')}</text>
+          </g>
+
           {/* Corner 3 Right */}
-          <g transform="translate(470, 360)" textAnchor="middle">
-            <rect x="-28" y="-18" width="56" height="34" rx="4" fill="#0f172a" fillOpacity="0.85" stroke="#38bdf8" strokeWidth="1.5" />
-            <text y="-2" className="zone-badge-label">1. C3</text>
+          <g transform="translate(476, 360)" textAnchor="middle">
+            <rect x="-20" y="-18" width="40" height="34" rx="4" fill="#0f172a" fillOpacity="0.85" stroke="#38bdf8" strokeWidth="1.5" />
+            <text y="-2" className="zone-badge-label">RC3</text>
             <text y="11" className="zone-badge-stat">{getStatString('corner_3')}</text>
           </g>
 
           {/* Paint Area */}
           <g transform="translate(250, 335)" textAnchor="middle">
-            <rect x="-70" y="-18" width="140" height="34" rx="6" fill="#0f172a" fillOpacity="0.85" stroke="#f87171" strokeWidth="1.5" />
-            <text y="-2" className="zone-badge-label">5. Paint (2 PT)</text>
+            <rect x="-60" y="-18" width="120" height="34" rx="6" fill="#0f172a" fillOpacity="0.85" stroke="#f87171" strokeWidth="1.5" />
+            <text y="-2" className="zone-badge-label">Paint (2 PT)</text>
             <text y="11" className="zone-badge-stat">{getStatString('paint_2')}</text>
           </g>
         </svg>

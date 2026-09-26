@@ -6,6 +6,7 @@ import { supabase } from '../supabase';
 import SiteHeader from '../components/SiteHeader';
 import MobileBottomNav from '../components/MobileBottomNav';
 import { compressImage } from '../utils/imageCompressor';
+import { saveUserWhatsApp } from '../services/basketballCommunityService';
 import {
   LuUser,
   LuShield,
@@ -206,6 +207,11 @@ export default function MyProfile() {
     try {
       // Clean whatsapp
       const cleanWa = whatsapp.replace(/[^0-9]/g, '');
+
+      // Sync WhatsApp to both Firebase and Supabase immediately
+      if (user?.id) {
+        await saveUserWhatsApp(user.id, cleanWa);
+      }
 
       const updates = {
         full_name: fullName.trim(),
@@ -434,7 +440,6 @@ export default function MyProfile() {
             <div className="athlete-meta-tags">
               <span className="meta-tag position-tag">{position}</span>
               {user?.email && <span className="meta-tag email-tag">{user.email}</span>}
-              <span className="meta-tag exp-tag">{experience}</span>
             </div>
 
             {nickname && <p className="athlete-nickname">"{nickname}"</p>}

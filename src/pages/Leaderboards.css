@@ -656,43 +656,117 @@
 
 /* ELEVATED HOOPER STAT CARD ROW */
 .hooper-card-elevated {
-  padding: 10px 8px;
+  padding: 12px 10px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
 }
 
 .hooper-stat-line-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 5px;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
 }
 
 .hooper-stat-chip {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 5px;
-  padding: 2px 5px;
-  font-size: 0.68rem;
-  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
   display: inline-flex;
   align-items: center;
   gap: 3px;
+  line-height: 1.1;
 }
 
 .hooper-stat-chip strong {
-  color: #fff;
+  color: #ffffff;
   font-weight: 800;
 }
 
 .hooper-stat-chip.highlight {
-  background: rgba(255, 85, 0, 0.12);
-  border-color: rgba(255, 85, 0, 0.35);
-  color: var(--brand-primary, #ff5500);
+  background: rgba(255, 85, 0, 0.16);
+  border-color: rgba(255, 85, 0, 0.45);
+  color: #ff5500;
 }
 
 .hooper-stat-chip.highlight strong {
-  color: var(--brand-primary, #ff5500);
+  color: #ff5500;
 }
 
 .hooper-stat-chip.subtle {
-  opacity: 0.65;
+  opacity: 0.75;
 }
+
+/* Light Mode Overrides for High Contrast & Readability */
+[data-theme="light"] .hooper-card-elevated {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="light"] .lb-player-name {
+  color: #0f172a;
+}
+
+[data-theme="light"] .hooper-stat-chip {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+[data-theme="light"] .hooper-stat-chip strong {
+  color: #0f172a;
+}
+
+[data-theme="light"] .hooper-stat-chip.highlight {
+  background: rgba(234, 88, 12, 0.12);
+  border-color: rgba(234, 88, 12, 0.35);
+  color: #c2410c;
+}
+
+[data-theme="light"] .hooper-stat-chip.highlight strong {
+  color: #c2410c;
+}
+
+[data-theme="light"] .lb-card-top-title {
+  color: #0f172a;
+  border-bottom-color: #e2e8f0;
+}
+
+[data-theme="light"] .lb-card-top-title span:first-child {
+  color: #0f172a;
+}
+
+[data-theme="light"] .lb-arena-header h1 {
+  color: #0f172a;
+}
+
+[data-theme="light"] .lb-control-group {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .lb-select-input {
+  color: #0f172a;
+}
+
+[data-theme="light"] .lb-select-input option {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+[data-theme="light"] .lb-wa-btn.active {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+[data-theme="light"] .lb-wa-btn.disabled {
+  background: #e2e8f0;
+  color: #64748b;
+  border-color: #cbd5e1;
+}
+

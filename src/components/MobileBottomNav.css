@@ -84,7 +84,7 @@
 }
 
 .bottom-nav-item.primary-tracker .tracker-ball-badge {
-  background: linear-gradient(135deg, var(--orange, #ff5500) 0%, var(--orange-hot, #ff7a2e) 100%);
+  background: #ff5500;
   width: 38px;
   height: 38px;
   border-radius: 50%;

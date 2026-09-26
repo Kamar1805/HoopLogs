@@ -25,6 +25,8 @@ const DEFAULT_ZONE_STATS = {
   wing_3: { attempted: 0, made: 0 },
   top_key_3: { attempted: 0, made: 0 },
   elbow_2: { attempted: 0, made: 0 },
+  left_short_corner: { attempted: 0, made: 0 },
+  right_short_corner: { attempted: 0, made: 0 },
   paint_2: { attempted: 0, made: 0 },
 };
 
@@ -131,6 +133,8 @@ const ShotTracker = () => {
           wing_3: { attempted: 0, made: 0 },
           top_key_3: { attempted: 0, made: 0 },
           elbow_2: { attempted: 0, made: 0 },
+          left_short_corner: { attempted: 0, made: 0 },
+          right_short_corner: { attempted: 0, made: 0 },
           paint_2: { attempted: 0, made: 0 },
         };
 
@@ -349,14 +353,14 @@ const ShotTracker = () => {
       <SiteHeader />
 
       <main className="tracker-main-container">
-        {/* Court Section Tabs: 5-Zone Shot Tracker vs Athletic Workouts */}
+        {/* Court Section Tabs: Shot Tracker vs Athletic Workouts */}
         <div className="court-mode-switch-tabs">
           <button
             type="button"
             className={`court-mode-tab ${courtTab === 'shots' ? 'active' : ''}`}
             onClick={() => setCourtTab('shots')}
           >
-            <IoBasketball size={15} /> 5-Zone Shot Tracker
+            <IoBasketball size={15} /> Court Shot Tracker
           </button>
           <button
             type="button"
@@ -375,7 +379,7 @@ const ShotTracker = () => {
             <div className="arena-header-banner">
               <div className="arena-header-title">
                 <IoBasketball size={20} color="#ff5500" />
-                <h1>5-Zone Shot Tracker</h1>
+                <h1>Court Shot Tracker</h1>
               </div>
 
               <div className="persistence-status-pill">
@@ -476,11 +480,12 @@ const ShotTracker = () => {
           />
         </section>
 
-        {/* 5-ZONE CARDS WITH TREND COMPARISON */}
+        {/* ZONE CARDS WITH TREND COMPARISON */}
         <section className="zones-breakdown-section">
           <div className="breakdown-header">
             <div className="breakdown-title">
-              <span>5-Zone Performance (Tap to Log Set)</span>
+              <LuZap size={14} color="#ff5500" />
+              <span>Court Performance by Zone (Tap to Log Set)</span>
             </div>
           </div>
 

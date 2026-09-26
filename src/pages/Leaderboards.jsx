@@ -19,6 +19,8 @@ import {
 import { IoBasketball, IoLogoWhatsapp } from 'react-icons/io5';
 import './Leaderboards.css';
 
+import { fetchUnifiedHoopers } from '../services/basketballCommunityService';
+
 const POSITIONS = ['ALL', 'PG', 'SG', 'SF', 'PF', 'C'];
 
 const STAT_METRICS = [
@@ -77,144 +79,12 @@ export default function Leaderboards() {
     loadTeams();
   }, []);
 
-  // Fetch players, combine with shooting stats and team assignments
+  // Fetch unified hoopers across Firebase Firestore, Supabase, and live season stats
   const fetchRankings = useCallback(async () => {
     try {
       setLoading(true);
-
-      // 1. Fetch profiles safely with select('*')
-      let dbProfiles = [];
-      try {
-        const { data: profs, error: profErr } = await supabase
-          .from('profiles')
-          .select('*');
-        if (!profErr && profs) {
-          dbProfiles = [...profs];
-        } else if (profErr) {
-          console.warn('Profiles query error:', profErr);
-        }
-      } catch (e) {
-        console.warn('Profiles query warn:', e);
-      }
-
-      // 2. Fetch global leaderboard shooting stats
-      let dbStats = [];
-      try {
-        const { data: stats } = await supabase.from('leaderboard_global').select('*');
-        if (stats) dbStats = stats;
-      } catch (e) {
-        console.warn('Stats view query warn:', e);
-      }
-
-      // 3. Load recorded Season Game Averages from local storage (or Supabase)
-      let storedAverages = {};
-      try {
-        storedAverages = JSON.parse(localStorage.getItem('hooplogs_player_game_averages') || '{}');
-      } catch (e) {}
-
-      // 4. Fetch team members
-      let teamMap = {}; // player_id -> { team_name, team_emblem }
-      try {
-        const { data: tm } = await supabase
-          .from('team_members')
-          .select('player_id, team_id, teams (name, emblem)');
-        if (tm) {
-          tm.forEach((item) => {
-            if (item.player_id && item.teams) {
-              teamMap[item.player_id] = {
-                team_name: item.teams.name,
-                team_emblem: item.teams.emblem || '🏀'
-              };
-            }
-          });
-        }
-      } catch (e) {
-        console.warn('Team members query warn:', e);
-      }
-
-      // Merge players from custom team rosters if created
-      try {
-        const customRosters = localStorage.getItem('hooplogs_custom_rosters');
-        const customTeams = localStorage.getItem('hooplogs_custom_teams');
-        if (customRosters && customTeams) {
-          const rosters = JSON.parse(customRosters);
-          const teamsList = JSON.parse(customTeams);
-          const teamIdToMeta = {};
-          teamsList.forEach((t) => {
-            teamIdToMeta[t.id] = { name: t.name, emblem: t.logo || t.emblem || '🏀' };
-          });
-
-          Object.entries(rosters).forEach(([teamId, members]) => {
-            const tMeta = teamIdToMeta[teamId];
-            if (Array.isArray(members)) {
-              members.forEach((m) => {
-                const pid = typeof m === 'string' ? m : m.user_id || m.id;
-                if (pid) {
-                  if (tMeta) {
-                    teamMap[pid] = { team_name: tMeta.name, team_emblem: tMeta.emblem };
-                  }
-                  if (!dbProfiles.some((p) => p.id === pid)) {
-                    dbProfiles.push({
-                      id: pid,
-                      full_name: m.full_name || m.name || 'Hooper',
-                      nickname: m.nickname || '',
-                      position: m.position || 'G',
-                      role: 'player',
-                      avatar_url: m.avatar_url || null,
-                      created_at: new Date().toISOString()
-                    });
-                  }
-                }
-              });
-            }
-          });
-        }
-      } catch (e) {
-        console.warn('Local rosters parse error:', e);
-      }
-
-      // Map combined players (Zero mock data - default to 0 stats if admin hasn't added them yet)
-      const combined = dbProfiles.map((p) => {
-        const stat = dbStats.find((s) => s.user_id === p.id) || {};
-        const teamInfo = teamMap[p.id];
-        const avg = storedAverages[p.id] || {};
-
-        let lastActiveStr = 'Recent';
-        if (p.updated_at || p.created_at) {
-          try {
-            const date = new Date(p.updated_at || p.created_at);
-            lastActiveStr = date.toLocaleDateString(undefined, {
-              month: 'short',
-              day: 'numeric'
-            });
-          } catch (_) {}
-        }
-
-        return {
-          user_id: p.id,
-          full_name: p.full_name || p.nickname || 'Hooper',
-          nickname: p.nickname || 'hooper',
-          position: p.position || 'PG',
-          team_name: teamInfo?.team_name || null,
-          team_emblem: teamInfo?.team_emblem || null,
-          accuracy_percentage: stat.accuracy_percentage || 0,
-          total_made: stat.total_made || 0,
-          total_attempted: stat.total_attempted || 0,
-          // Season game averages (defaults to 0.0)
-          ppg: parseFloat(avg.ppg || 0),
-          apg: parseFloat(avg.apg || 0),
-          rpg: parseFloat(avg.rpg || 0),
-          spg: parseFloat(avg.spg || 0),
-          bpg: parseFloat(avg.bpg || 0),
-          topg: parseFloat(avg.topg || 0),
-          gp: parseInt(avg.gp || 0, 10),
-          whatsapp: p.whatsapp || '',
-          last_active: lastActiveStr,
-          avatar_url: p.avatar_url || null,
-        };
-      });
-
-      setPlayers(combined);
+      const unifiedList = await fetchUnifiedHoopers();
+      setPlayers(unifiedList);
     } catch (err) {
       console.error('Error fetching hoopers:', err);
       setPlayers([]);

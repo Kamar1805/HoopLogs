@@ -340,7 +340,7 @@
 .zone-btn-save {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #ff5500 0%, #d94100 100%);
+  background: #ff5500;
   border: none;
   border-radius: var(--r-md);
   color: #ffffff;

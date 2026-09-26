@@ -296,7 +296,7 @@
   background: var(--bg-2);
   border: 1px solid var(--border-1);
   border-radius: var(--r-md);
-  padding: 8px 10px;
+  padding: 10px 12px;
   margin-bottom: 0.75rem;
 }
 
@@ -304,11 +304,68 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: 0.68rem;
+  font-weight: 800;
   letter-spacing: 0.04em;
-  color: var(--orange-hot);
-  margin-bottom: 6px;
+  color: var(--orange, #ff5500);
+  margin-bottom: 8px;
+}
+
+.search-filter-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.search-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.search-filter-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--t-muted, #64748b);
+  min-width: 48px;
+}
+
+.search-filter-btn-group,
+.search-pos-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.search-gender-pill,
+.search-pos-chip {
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: var(--bg-1, #0a0d16);
+  border: 1px solid var(--border-1, rgba(255, 255, 255, 0.08));
+  color: var(--t-secondary, #94a3b8);
+  font-family: var(--f-ui);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.search-gender-pill:hover,
+.search-pos-chip:hover {
+  background: var(--bg-3, #141c2c);
+  color: #ffffff;
+}
+
+.search-gender-pill.active,
+.search-pos-chip.active {
+  background: var(--orange, #ff5500);
+  border-color: var(--orange, #ff5500);
+  color: #ffffff;
+  font-weight: 800;
 }
 
 .admin-search-input {
@@ -316,38 +373,135 @@
   background: var(--bg-0);
   border: 1px solid var(--border-2);
   border-radius: var(--r-sm);
-  padding: 7px 10px;
+  padding: 8px 10px;
   color: #fff;
   font-family: var(--f-ui);
   font-size: 0.85rem;
   outline: none;
+  box-sizing: border-box;
+}
+
+[data-theme='light'] .admin-search-input {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
 .search-results-tray {
-  margin-top: 6px;
+  margin-top: 8px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+  max-height: 280px;
+  overflow-y: auto;
 }
 
 .search-result-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 5px 8px;
-  background: var(--bg-3);
-  border-radius: 6px;
+  padding: 7px 10px;
+  background: var(--bg-3, #141c2c);
+  border-radius: 8px;
+  gap: 8px;
+}
+
+[data-theme='light'] .search-result-row {
+  background: #f1f5f9;
+}
+
+.search-result-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-result-name-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.search-player-name {
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 0.88rem;
+}
+
+[data-theme='light'] .search-player-name {
+  color: #0f172a;
+}
+
+.search-gender-tag {
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.search-gender-tag.male {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.search-gender-tag.female {
+  background: rgba(236, 72, 153, 0.15);
+  color: #f472b6;
+  border: 1px solid rgba(236, 72, 153, 0.35);
+}
+
+.search-result-subinfo {
+  font-size: 0.72rem;
+  color: var(--t-muted, #64748b);
+  margin-top: 2px;
 }
 
 .btn-assign-player {
-  background: var(--orange);
-  color: #fff;
+  background: var(--orange, #ff5500);
+  color: #ffffff;
   border: none;
-  border-radius: 5px;
-  padding: 4px 8px;
+  border-radius: 6px;
+  padding: 5px 12px;
+  min-width: 68px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.btn-assign-player:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.btn-assign-player:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.btn-assign-player.success {
+  background: #10b981 !important;
+  color: #ffffff;
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
 }
 
 /* Roster Players Stack */
@@ -801,7 +955,7 @@
 
 .feedback-submit-btn {
   padding: 9px;
-  background: linear-gradient(135deg, #ff5500 0%, #d94100 100%);
+  background: #ff5500;
   border: none;
   border-radius: var(--r-md);
   color: #fff;
@@ -1484,62 +1638,146 @@
   outline: none;
 }
 
-.postgame-roster-table {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  overflow: hidden;
+.postgame-roster-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 1.5rem;
 }
 
-.postgame-table-header {
-  display: grid;
-  grid-template-columns: 2fr repeat(6, 1fr);
-  background: rgba(30, 41, 59, 0.9);
-  padding: 8px 12px;
-  font-size: 0.7rem;
-  font-weight: 800;
-  color: #94a3b8;
-  text-align: center;
+.postgame-player-card {
+  background: var(--bg-1, #111622);
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: 14px;
+  padding: 14px 16px;
+  transition: all 0.2s ease;
 }
 
-.postgame-table-header span:first-child {
-  text-align: left;
+[data-theme="light"] .postgame-player-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.postgame-player-row {
-  display: grid;
-  grid-template-columns: 2fr repeat(6, 1fr);
-  align-items: center;
-  padding: 8px 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  gap: 6px;
-}
-
-.postgame-player-meta {
+.postgame-player-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.postgame-player-meta strong {
-  font-size: 0.85rem;
-  color: #fff;
+[data-theme="light"] .postgame-player-header {
+  border-bottom-color: #f1f5f9;
 }
 
-.postgame-player-meta small {
-  font-size: 0.7rem;
+.postgame-name {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+[data-theme="light"] .postgame-name {
+  color: #0f172a;
+}
+
+.postgame-sub {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  display: block;
+}
+
+[data-theme="light"] .postgame-sub {
   color: #64748b;
 }
 
-.postgame-player-row input {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #fff;
-  text-align: center;
-  padding: 5px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 700;
+.postgame-pts-pill {
+  background: rgba(255, 85, 0, 0.15);
+  border: 1px solid rgba(255, 85, 0, 0.4);
+  color: #ff5500;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 9999px;
 }
+
+[data-theme="light"] .postgame-pts-pill {
+  background: rgba(234, 88, 12, 0.12);
+  border-color: rgba(234, 88, 12, 0.35);
+  color: #c2410c;
+}
+
+.postgame-stats-grid-6 {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 520px) {
+  .postgame-stats-grid-6 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+}
+
+.postgame-stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 8px 6px;
+  transition: all 0.15s ease;
+}
+
+[data-theme="light"] .postgame-stat-box {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.postgame-stat-box label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+}
+
+[data-theme="light"] .postgame-stat-box label {
+  color: #475569;
+}
+
+.postgame-stat-box.pts label {
+  color: #ff5500;
+}
+
+.postgame-stat-box input {
+  width: 100%;
+  max-width: 60px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  text-align: center;
+  padding: 6px 4px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 800;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.postgame-stat-box input:focus {
+  border-color: #ff5500;
+}
+
+[data-theme="light"] .postgame-stat-box input {
+  background: #ffffff;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
 
 .btn-save-postgame {
   width: 100%;
