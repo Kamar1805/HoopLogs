@@ -103,10 +103,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    setUser(null);
-    setProfile(null);
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn('Supabase auth.signOut error (clearing local state anyway):', err);
+    } finally {
+      setUser(null);
+      setProfile(null);
+    }
   };
 
   const updateProfile = async (updates) => {

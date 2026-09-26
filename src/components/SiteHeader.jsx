@@ -15,7 +15,11 @@ const SiteHeader = () => {
   const navigate = useNavigate();
   const isCoach = isAdmin || (typeof window !== 'undefined' && localStorage.getItem('hooplogs_admin_elevated') === 'true');
 
-  const handleLogout = () => {
+  const handleLogout = (e) => {
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     setShowLogoutModal(true);
   };
 

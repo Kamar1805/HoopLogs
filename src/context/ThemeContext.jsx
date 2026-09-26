@@ -39,6 +39,23 @@ export const ThemeProvider = ({ children }) => {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     document.documentElement.setAttribute('data-accent', accentColor);
+
+    const active = ACCENT_COLORS.find((a) => a.id === accentColor) || ACCENT_COLORS[0];
+    const root = document.documentElement;
+
+    root.style.setProperty('--orange', active.hex);
+    root.style.setProperty('--orange-hot', active.hex);
+    root.style.setProperty('--orange-blaze', active.hex);
+    root.style.setProperty('--orange-light', active.hex);
+    root.style.setProperty('--brand-primary', active.hex);
+    root.style.setProperty('--brand-hover', active.hex);
+    root.style.setProperty('--accent-orange', active.hex);
+    root.style.setProperty('--t-orange', active.hex);
+    root.style.setProperty('--orange-glow', active.glow);
+    root.style.setProperty('--brand-glow', active.glow);
+    root.style.setProperty('--shadow-orange', `0 0 20px ${active.glow}`);
+    root.style.setProperty('--border-accent', active.glow);
+
     try {
       localStorage.setItem('hooplogs_theme', theme);
       localStorage.setItem('hooplogs_accent', accentColor);

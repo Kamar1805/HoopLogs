@@ -26,13 +26,14 @@ import {
   LuSun,
   LuMoon,
   LuSearch,
-  LuUserCheck
+  LuUserCheck,
+  LuLogOut
 } from 'react-icons/lu';
 import { IoBasketball, IoLogoWhatsapp } from 'react-icons/io5';
 import './MyProfile.css';
 
 export default function MyProfile() {
-  const { user, profile, isAdmin, updateProfile, upgradeToAdmin, refreshProfile } = useAuth();
+  const { user, profile, isAdmin, updateProfile, upgradeToAdmin, refreshProfile, signOut } = useAuth();
   const { theme, toggleTheme, accentColor, setAccentColor, accents } = useTheme();
   const navigate = useNavigate();
   const isCoach = isAdmin || (typeof window !== 'undefined' && localStorage.getItem('hooplogs_admin_elevated') === 'true');
@@ -309,7 +310,7 @@ export default function MyProfile() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('id, full_name, nickname, position, avatar_url, whatsapp')
+          .select('*')
           .or(`full_name.ilike.%${athleteQuery.trim()}%,nickname.ilike.%${athleteQuery.trim()}%`)
           .limit(6);
         if (!error && data) {
@@ -917,6 +918,39 @@ export default function MyProfile() {
             </div>
           </section>
         )}
+
+        {/* LOGOUT BUTTON */}
+        <section className="profile-section-card profile-logout-card" style={{ marginTop: '1.25rem', padding: '14px', textAlign: 'center' }}>
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                localStorage.removeItem('hooplogs_admin_elevated');
+                await signOut();
+                navigate('/login');
+              } catch (e) {
+                console.error('Logout error:', e);
+              }
+            }}
+            style={{
+              width: '100%',
+              padding: '13px',
+              borderRadius: '10px',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              color: '#ef4444',
+              fontWeight: 800,
+              fontSize: '0.88rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            <LuLogOut size={16} /> SIGN OUT OF HOOPLOGS
+          </button>
+        </section>
       </main>
 
       <MobileBottomNav activeTab="profile" />

@@ -473,8 +473,8 @@
 
 /* ── CONTINUE ACTIVE WORKOUT CARD ──────────────────── */
 .continue-workout-card {
-  background: linear-gradient(135deg, rgba(255, 85, 0, 0.1) 0%, rgba(15, 21, 34, 0.95) 100%);
-  border: 1px solid rgba(255, 85, 0, 0.35);
+  background: linear-gradient(135deg, var(--brand-subtle, rgba(255, 85, 0, 0.1)) 0%, rgba(15, 21, 34, 0.95) 100%);
+  border: 1px solid var(--border-accent, rgba(255, 85, 0, 0.35));
   border-radius: var(--r-md);
   padding: 12px 14px;
   margin-bottom: 0.75rem;
@@ -482,6 +482,18 @@
   flex-direction: column;
   gap: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.continue-workout-card:active {
+  transform: scale(0.98);
+}
+
+.continue-workout-card.start-plan-card {
+  border-style: dashed;
+  border-color: var(--border-accent, rgba(255, 85, 0, 0.5));
 }
 
 .continue-workout-top {
@@ -507,15 +519,15 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #ff5500;
-  box-shadow: 0 0 6px #ff5500;
+  background: var(--orange, #ff5500);
+  box-shadow: 0 0 6px var(--orange-glow, #ff5500);
 }
 
 .continue-workout-label {
   font-family: var(--f-athletic);
   font-size: 0.68rem;
   font-weight: 800;
-  color: #ff7a2e;
+  color: var(--orange-hot, #ff7a2e);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -529,7 +541,7 @@
 }
 
 .legs-loading-highlight {
-  color: #ff5500;
+  color: var(--orange, #ff5500);
 }
 
 .continue-workout-focus {
@@ -542,13 +554,13 @@
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  background: #ff5500;
+  background: var(--orange, #ff5500);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
-  box-shadow: 0 4px 12px rgba(255, 85, 0, 0.4);
+  box-shadow: 0 4px 12px var(--orange-glow, rgba(255, 85, 0, 0.4));
   transition: transform 0.15s ease;
   flex-shrink: 0;
 }
@@ -566,7 +578,7 @@
 
 .continue-workout-meter-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ff5500, #ff7a2e);
+  background: linear-gradient(90deg, var(--orange, #ff5500), var(--orange-hot, #ff7a2e));
   border-radius: 999px;
 }
 
@@ -689,7 +701,7 @@
 
 /* ── PRIMARY WORKOUT LAUNCH BANNER ─────────────────── */
 .workout-launch-banner {
-  background: linear-gradient(135deg, #ff5500 0%, #d94100 100%);
+  background: linear-gradient(135deg, var(--orange, #ff5500) 0%, var(--orange-hot, #ff7a2e) 100%);
   border-radius: var(--r-md);
   padding: 0.75rem 0.95rem;
   display: flex;
@@ -698,7 +710,7 @@
   gap: 10px;
   margin-bottom: 0.65rem;
   text-decoration: none;
-  box-shadow: 0 4px 16px rgba(255, 85, 0, 0.35);
+  box-shadow: 0 4px 16px var(--orange-glow, rgba(255, 85, 0, 0.35));
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 

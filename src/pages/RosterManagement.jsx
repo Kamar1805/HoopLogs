@@ -291,7 +291,7 @@ export default function RosterManagement() {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('id, full_name, nickname, position, gender, whatsapp')
+            .select('*')
             .or(`full_name.ilike.%${searchQuery}%,nickname.ilike.%${searchQuery}%`)
             .limit(10);
 

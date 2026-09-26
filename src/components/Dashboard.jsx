@@ -1,6 +1,5 @@
-// src/components/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabase';
 import SiteHeader from './SiteHeader';
@@ -22,7 +21,8 @@ import {
   LuX,
   LuShieldCheck,
   LuCalendar,
-  LuClock
+  LuClock,
+  LuPlay
 } from 'react-icons/lu';
 import './Dashboard.css';
 
@@ -48,6 +48,7 @@ const DEFAULT_POSTS = [
 const Dashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isCoach = profile?.role === 'admin' || (typeof window !== 'undefined' && localStorage.getItem('hooplogs_admin_elevated') === 'true');
 
@@ -67,9 +68,24 @@ const Dashboard = () => {
     }, 1200);
     return () => clearTimeout(timer);
   }, []);
-  const [showTour, setShowTour] = useState(false);
 
-  // Guide prompt visibility (only on first sign up / login until dismissed)
+  // Guide prompt & modal visibility (opens immediately on signup or first login)
+  const [showTour, setShowTour] = useState(() => {
+    try {
+      if (location.state?.openTour) return true;
+      const completed = localStorage.getItem('hooplogs_tour_completed');
+      return !completed;
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    if (location.state?.openTour) {
+      setShowTour(true);
+    }
+  }, [location.state]);
+
   const [showGuideBanner, setShowGuideBanner] = useState(() => {
     try {
       const dismissed = localStorage.getItem('hooplogs_guide_dismissed');
@@ -97,23 +113,25 @@ const Dashboard = () => {
   const [activeCommentPostId, setActiveCommentPostId] = useState(null);
   const [commentInput, setCommentInput] = useState('');
 
-  // Active workout program state
-  const [activeWorkout, setActiveWorkout] = useState(() => {
+  // Active workout program state - Unique per user (No fake 35% hardcode for first-timers)
+  const loadUserWorkout = () => {
     try {
-      const saved = localStorage.getItem('hooplogs_active_workout');
-      return saved ? JSON.parse(saved) : {
-        name: 'Vertical & Explosiveness',
-        tagline: 'Legs Loading • Kinetic Jump Springs',
-        dayNumber: 1,
-        focus: 'Elastic Jump & Ankle Stiffness',
-        percentDone: 35,
-        drillsCount: 4,
-        doneCount: 1
-      };
+      const uKey = user?.id ? `hooplogs_active_workout_${user.id}` : 'hooplogs_active_workout';
+      const saved = localStorage.getItem(uKey) || localStorage.getItem('hooplogs_active_workout');
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      if (!parsed || !parsed.name) return null;
+      return parsed;
     } catch {
       return null;
     }
-  });
+  };
+
+  const [activeWorkout, setActiveWorkout] = useState(loadUserWorkout);
+
+  useEffect(() => {
+    setActiveWorkout(loadUserWorkout());
+  }, [user]);
 
   const handleDismissGuide = (e) => {
     e.stopPropagation();
@@ -516,9 +534,9 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {/* CONTINUE ACTIVE WORKOUT CARD */}
-        {activeWorkout && (
-          <div className="continue-workout-card">
+        {/* ATHLETIC WORKOUT PROGRAM CARD (START OR CONTINUE) */}
+        {activeWorkout ? (
+          <Link to="/workouttracker" className="continue-workout-card" title="Continue Active Workout">
             <div className="continue-workout-top">
               <div className="continue-workout-title-col">
                 <div className="continue-badge-row">
@@ -529,26 +547,52 @@ const Dashboard = () => {
                   {activeWorkout.name} — <span className="legs-loading-highlight">Legs Loading...</span>
                 </h3>
                 <p className="continue-workout-focus">
-                  Focus: {activeWorkout.focus || 'Elastic Jump & Ankle Stiffness'}
+                  Focus: {activeWorkout.focus || 'Kinetic Jump & Conditioning'}
                 </p>
               </div>
 
-              <Link to="/shottracker" className="btn-resume-cta" title="Continue Workout">
+              <div className="btn-resume-cta" title="Continue Workout">
                 <IoBasketball size={18} />
-              </Link>
+              </div>
             </div>
 
             <div className="continue-workout-meter-wrap">
               <div
                 className="continue-workout-meter-fill"
-                style={{ width: `${activeWorkout.percentDone || 65}%` }}
+                style={{ width: `${activeWorkout.percentDone || 0}%` }}
               />
             </div>
             <div className="continue-workout-meta-row">
-              <span>Day {activeWorkout.dayNumber || 3} Prescription</span>
-              <span>{activeWorkout.percentDone || 65}% Completed</span>
+              <span>Day {activeWorkout.dayNumber || 1} Prescription</span>
+              <span>{activeWorkout.percentDone || 0}% Completed</span>
             </div>
-          </div>
+          </Link>
+        ) : (
+          <Link to="/workouttracker" className="continue-workout-card start-plan-card" title="Start Athletic Workout Plan">
+            <div className="continue-workout-top">
+              <div className="continue-workout-title-col">
+                <div className="continue-badge-row">
+                  <span className="workout-pulse-dot" />
+                  <span className="continue-workout-label">START YOUR ATHLETIC WORKOUT</span>
+                </div>
+                <h3 className="continue-workout-headline">
+                  Choose Your Plan — <span className="legs-loading-highlight">Legs Loading</span>
+                </h3>
+                <p className="continue-workout-focus">
+                  Select your program: Rim Elevation, First-Step Speed, Armor or Stamina
+                </p>
+              </div>
+
+              <div className="btn-resume-cta" title="Start Workout">
+                <LuPlay size={18} />
+              </div>
+            </div>
+
+            <div className="continue-workout-meta-row" style={{ marginTop: '8px' }}>
+              <span>Day 1 • Not Started Yet</span>
+              <span style={{ color: 'var(--orange, #ff5500)', fontWeight: 700 }}>TAP TO BEGIN →</span>
+            </div>
+          </Link>
         )}
 
         {/* PRIMARY WORKOUT LAUNCH BANNER */}

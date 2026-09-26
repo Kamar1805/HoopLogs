@@ -1,5 +1,5 @@
-// src/components/AthleticWorkoutView.jsx
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import {
   LuZap,
   LuTarget,
@@ -174,9 +174,12 @@ export const WORKOUT_DATABASE = {
 };
 
 export default function AthleticWorkoutView() {
+  const { user } = useAuth();
+
   const [goal, setGoal] = useState(() => {
     try {
-      return localStorage.getItem('hooplogs_workout_goal') || 'vertical';
+      const uKey = user?.id ? `hooplogs_workout_goal_${user.id}` : 'hooplogs_workout_goal';
+      return localStorage.getItem(uKey) || localStorage.getItem('hooplogs_workout_goal') || 'vertical';
     } catch {
       return 'vertical';
     }
@@ -184,7 +187,8 @@ export default function AthleticWorkoutView() {
 
   const [equipment, setEquipment] = useState(() => {
     try {
-      return localStorage.getItem('hooplogs_workout_equip') || 'home';
+      const uKey = user?.id ? `hooplogs_workout_equip_${user.id}` : 'hooplogs_workout_equip';
+      return localStorage.getItem(uKey) || localStorage.getItem('hooplogs_workout_equip') || 'home';
     } catch {
       return 'home';
     }
@@ -192,7 +196,8 @@ export default function AthleticWorkoutView() {
 
   const [currentDayIndex, setCurrentDayIndex] = useState(() => {
     try {
-      const saved = localStorage.getItem('hooplogs_workout_day');
+      const uKey = user?.id ? `hooplogs_workout_day_${user.id}` : 'hooplogs_workout_day';
+      const saved = localStorage.getItem(uKey) || localStorage.getItem('hooplogs_workout_day');
       return saved ? parseInt(saved, 10) : 0;
     } catch {
       return 0;
@@ -201,7 +206,8 @@ export default function AthleticWorkoutView() {
 
   const [completedDrills, setCompletedDrills] = useState(() => {
     try {
-      const saved = localStorage.getItem('hooplogs_workout_completed_drills');
+      const uKey = user?.id ? `hooplogs_workout_completed_drills_${user.id}` : 'hooplogs_workout_completed_drills';
+      const saved = localStorage.getItem(uKey) || localStorage.getItem('hooplogs_workout_completed_drills');
       return saved ? JSON.parse(saved) : {};
     } catch {
       return {};
@@ -224,6 +230,13 @@ export default function AthleticWorkoutView() {
   // Sync program to localStorage for Dashboard "Continue Workouts" widget
   useEffect(() => {
     try {
+      const uId = user?.id;
+      if (uId) {
+        localStorage.setItem(`hooplogs_workout_goal_${uId}`, goal);
+        localStorage.setItem(`hooplogs_workout_equip_${uId}`, equipment);
+        localStorage.setItem(`hooplogs_workout_day_${uId}`, currentDayIndex.toString());
+        localStorage.setItem(`hooplogs_workout_completed_drills_${uId}`, JSON.stringify(completedDrills));
+      }
       localStorage.setItem('hooplogs_workout_goal', goal);
       localStorage.setItem('hooplogs_workout_equip', equipment);
       localStorage.setItem('hooplogs_workout_day', currentDayIndex.toString());
@@ -239,11 +252,14 @@ export default function AthleticWorkoutView() {
         drillsCount: drillsList.length,
         doneCount: dayDoneSet.length
       };
+      if (uId) {
+        localStorage.setItem(`hooplogs_active_workout_${uId}`, JSON.stringify(dashboardState));
+      }
       localStorage.setItem('hooplogs_active_workout', JSON.stringify(dashboardState));
     } catch (e) {
       console.warn('Could not save workout progress:', e);
     }
-  }, [goal, equipment, currentDayIndex, completedDrills, percentDone, activeProgram, currentDay, drillsList.length, dayDoneSet.length]);
+  }, [user, goal, equipment, currentDayIndex, completedDrills, percentDone, activeProgram, currentDay, drillsList.length, dayDoneSet.length]);
 
   const toggleDrill = (drillName) => {
     const isDone = dayDoneSet.includes(drillName);

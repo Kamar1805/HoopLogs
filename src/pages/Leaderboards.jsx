@@ -82,14 +82,16 @@ export default function Leaderboards() {
     try {
       setLoading(true);
 
-      // 1. Fetch profiles
+      // 1. Fetch profiles safely with select('*')
       let dbProfiles = [];
       try {
         const { data: profs, error: profErr } = await supabase
           .from('profiles')
-          .select('id, full_name, nickname, role, position, whatsapp, avatar_url, updated_at, created_at');
+          .select('*');
         if (!profErr && profs) {
-          dbProfiles = profs;
+          dbProfiles = [...profs];
+        } else if (profErr) {
+          console.warn('Profiles query error:', profErr);
         }
       } catch (e) {
         console.warn('Profiles query warn:', e);
@@ -130,7 +132,7 @@ export default function Leaderboards() {
         console.warn('Team members query warn:', e);
       }
 
-      // Check local storage team rosters
+      // Merge players from custom team rosters if created
       try {
         const customRosters = localStorage.getItem('hooplogs_custom_rosters');
         const customTeams = localStorage.getItem('hooplogs_custom_teams');
@@ -144,11 +146,24 @@ export default function Leaderboards() {
 
           Object.entries(rosters).forEach(([teamId, members]) => {
             const tMeta = teamIdToMeta[teamId];
-            if (tMeta && Array.isArray(members)) {
+            if (Array.isArray(members)) {
               members.forEach((m) => {
                 const pid = typeof m === 'string' ? m : m.user_id || m.id;
                 if (pid) {
-                  teamMap[pid] = { team_name: tMeta.name, team_emblem: tMeta.emblem };
+                  if (tMeta) {
+                    teamMap[pid] = { team_name: tMeta.name, team_emblem: tMeta.emblem };
+                  }
+                  if (!dbProfiles.some((p) => p.id === pid)) {
+                    dbProfiles.push({
+                      id: pid,
+                      full_name: m.full_name || m.name || 'Hooper',
+                      nickname: m.nickname || '',
+                      position: m.position || 'G',
+                      role: 'player',
+                      avatar_url: m.avatar_url || null,
+                      created_at: new Date().toISOString()
+                    });
+                  }
                 }
               });
             }
