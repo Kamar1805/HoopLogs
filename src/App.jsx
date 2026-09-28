@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import ArenaSplashLoader from './components/ArenaSplashLoader';
+import RouteTransitionLoader from './components/RouteTransitionLoader';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import './App.css';
@@ -41,8 +42,9 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <Router>
-        <Routes>
-          <Route path="/" element={<HomeRoute />} />
+          <RouteTransitionLoader />
+          <Routes>
+            <Route path="/" element={<HomeRoute />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/land" element={<LandingPage />} />
           <Route path="/signup" element={<Signup />} />

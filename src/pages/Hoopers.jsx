@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
+import { fetchUnifiedHoopers } from "../services/basketballCommunityService";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import "./Hoopers.css";
@@ -34,18 +33,16 @@ const Spinner = () => (
 );
 
 const HooperCard = ({ hooper }) => {
-  const {
-    name,
-    nickname,
-    height,
-    team,
-    weight,
-    photoURL,
-    phonePublic,
-    phoneNumber,
-    position,
-    experience,
-  } = hooper;
+  const name = hooper.full_name || hooper.name || "Hooper";
+  const nickname = hooper.nickname || "";
+  const height = hooper.height || "—";
+  const weight = hooper.weight || "—";
+  const team = hooper.team_name || hooper.team || "Free Agent";
+  const photoURL = hooper.avatar_url || hooper.photoURL || null;
+  const phoneNumber = hooper.phone_number || hooper.whatsapp || hooper.phoneNumber || (typeof window !== 'undefined' ? (localStorage.getItem(`hooplogs_wa_${hooper.id || hooper.user_id}`) || '') : '');
+  const phonePublic = Boolean(phoneNumber);
+  const position = hooper.position || "—";
+  const experience = hooper.experience || "—";
 
   const whatsappLink =
     phonePublic && phoneNumber
@@ -110,12 +107,14 @@ const Hoopers = () => {
   useEffect(() => {
     const fetchHoopers = async () => {
       setLoading(true);
-      const snap = await getDocs(collection(db, "users"));
-      const data = snap.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter((u) => u.name && u.nickname); // Only show users with basic info
-      setHoopers(data);
-      setLoading(false);
+      try {
+        const unified = await fetchUnifiedHoopers();
+        setHoopers(unified);
+      } catch (err) {
+        console.error("Error fetching hoopers from Supabase:", err);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchHoopers();
   }, []);
@@ -123,38 +122,43 @@ const Hoopers = () => {
   // Filter by name or nickname (case-insensitive)
   const filteredHoopers = hoopers.filter(
     (h) =>
-      h.name?.toLowerCase().includes(search.toLowerCase()) ||
+      (h.full_name || h.name)?.toLowerCase().includes(search.toLowerCase()) ||
       h.nickname?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <>
       <SiteHeader />
-      <main className="hoopers-main wide">
-        <h1 className="hoopers-title">Meet the Hoopers</h1>
-        <p className="hoopers-desc">
-          Discover basketball players on HoopLogs. Connect, chat, and grow your network!
-        </p>
-        <div className="hoopers-search-panel">
-          <input
-            type="text"
-            className="hoopers-search-input"
-            placeholder="Search by name or nickname..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+      <main className="hoopers-container">
+        <div className="hoopers-header">
+          <h1>Community Hoopers</h1>
+          <p className="hoopers-subtitle">
+            Find and connect with basketball players in the community.
+          </p>
+          <div className="hoopers-search-box">
+            <input
+              type="text"
+              placeholder="Search by name or @nickname..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="hoopers-search-input"
+            />
+          </div>
         </div>
-        <div className="hoopers-list">
-          {loading ? (
-            <div className="hoopers-loading"><Spinner /></div>
-          ) : filteredHoopers.length === 0 ? (
-            <div className="hoopers-empty">No hoopers found.</div>
-          ) : (
-            filteredHoopers.map((hooper) => (
-              <HooperCard hooper={hooper} key={hooper.id} />
-            ))
-          )}
-        </div>
+
+        {loading ? (
+          <div className="hoopers-loading">
+            <Spinner />
+          </div>
+        ) : filteredHoopers.length === 0 ? (
+          <div className="hoopers-empty">No hoopers found.</div>
+        ) : (
+          <div className="hoopers-grid">
+            {filteredHoopers.map((hooper) => (
+              <HooperCard key={hooper.id || hooper.user_id} hooper={hooper} />
+            ))}
+          </div>
+        )}
       </main>
       <SiteFooter />
     </>

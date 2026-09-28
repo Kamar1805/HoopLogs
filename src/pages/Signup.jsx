@@ -12,16 +12,13 @@ import { sendWelcomeEmail } from '../utils/sendWelcomeEmail';
 import './Signup.css';
 
 const POSITIONS = ['PG', 'SG', 'SF', 'PF', 'C'];
-const LEVELS    = ['Beginner', 'Intermediate', 'Pro'];
 const GENDERS   = ['Male', 'Female'];
-const ADMIN_SECRET = 'hooplogsadmin001';
 
 const Signup = () => {
   const [form, setForm] = useState({
     name: '', email: '', password: '', confirmPassword: '',
-    gender: 'Male', level: 'Beginner', position: 'PG',
+    gender: 'Male', position: 'PG',
     height: '', weight: '', nickname: '',
-    whatsapp: '', role: 'player', adminPasscode: '',
   });
   const [step, setStep]       = useState(1);
   const [loading, setLoading] = useState(false);
@@ -56,34 +53,18 @@ const Signup = () => {
     setLoading(true);
     setError('');
 
-    // Admin passcode verification
-    if (form.role === 'admin') {
-      if (form.adminPasscode?.trim() !== ADMIN_SECRET) {
-        setError('Invalid admin passcode. Only authorized staff can create an admin account.');
-        setLoading(false);
-        return;
-      }
-    }
-
     try {
       const userMeta = {
         full_name: form.name,
         nickname:  form.nickname || '',
-        role:      form.role,
+        role:      'player',
         gender:    form.gender,
-        whatsapp:  form.whatsapp || '',
       };
 
       const res = await signUp(form.email, form.password, userMeta);
       const user = res?.user;
 
       if (user) {
-        try {
-          if (form.whatsapp) {
-            localStorage.setItem(`hooplogs_wa_${user.id}`, form.whatsapp);
-          }
-        } catch (e) {}
-
         try {
           await supabase.from('profiles').upsert({
             id:         user.id,
@@ -92,13 +73,16 @@ const Signup = () => {
             height:     form.height || null,
             weight:     form.weight || null,
             position:   form.position,
-            experience: form.level,
-            role:       form.role,
+            role:       'player',
             updated_at: new Date().toISOString(),
           });
         } catch (dbErr) {
           console.warn('Profile upsert note:', dbErr);
         }
+
+        try {
+          localStorage.setItem('hooplogs_needs_onboarding_prompt', 'true');
+        } catch (e) {}
       }
 
       // Send official welcome email via Resend
@@ -122,8 +106,7 @@ const Signup = () => {
 
   const STEPS = [
     { num: 1, label: 'Account' },
-    { num: 2, label: 'Athlete' },
-    { num: 3, label: 'Details' },
+    { num: 2, label: 'Athlete Profile' },
   ];
 
   // 1. VERIFIED WELCOME SCREEN
@@ -241,7 +224,7 @@ const Signup = () => {
             </div>
           )}
 
-          {/* ─ STEP 2 ─ Athlete Profile & Gender ─────── */}
+          {/* ─ STEP 2 ─ Athlete Profile ─────── */}
           {step === 2 && (
             <div className="auth-fields">
               {/* Gender Selection */}
@@ -276,117 +259,38 @@ const Signup = () => {
                 </div>
               </div>
 
-              {/* Skill Level */}
-              <div className="auth-field-group">
-                <label className="auth-label">Skill Level</label>
-                <div className="auth-chips">
-                  {LEVELS.map(lvl => (
-                    <div
-                      key={lvl}
-                      className={`auth-chip ${form.level === lvl ? 'selected' : ''}`}
-                      onClick={() => set('level', lvl)}
-                    >
-                      {lvl}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="auth-field-group">
-                <label className="auth-label">Height (Optional)</label>
-                <input name="height" value={form.height} onChange={handleChange}
-                  placeholder='e.g. 6&apos;2"' className="auth-input" />
-              </div>
-
-              <div className="auth-btn-row">
-                <button type="button" onClick={() => setStep(1)} className="auth-btn-back">
-                  <LuArrowLeft size={16} />
-                </button>
-                <button type="button" onClick={nextStep} className="auth-btn-primary">
-                  NEXT <LuArrowRight size={16} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ─ STEP 3 ─ Details, WhatsApp & Role ─────── */}
-          {step === 3 && (
-            <div className="auth-fields">
+              {/* Nickname / Handle */}
               <div className="auth-field-group">
                 <label className="auth-label">Handle / Nickname <span style={{color:'var(--t-muted)',fontWeight:400}}>(optional)</span></label>
                 <input name="nickname" value={form.nickname} onChange={handleChange}
                   placeholder="e.g. SplashBro" className="auth-input" />
               </div>
 
-              {/* WhatsApp Details */}
-              <div className="auth-field-group">
-                <label className="auth-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <IoLogoWhatsapp size={14} color="#22c55e" />
-                  <span>WhatsApp Number</span>
-                  <span style={{color:'var(--t-muted)',fontWeight:400}}>(optional)</span>
-                </label>
-                <input
-                  name="whatsapp"
-                  type="tel"
-                  value={form.whatsapp}
-                  onChange={handleChange}
-                  placeholder="e.g. +1 555 123 4567"
-                  className="auth-input"
-                />
-                <span style={{ fontSize: '0.68rem', color: 'var(--t-muted)', marginTop: '3px' }}>
-                  Allows teammates and coaches to message you on WhatsApp.
-                </span>
-              </div>
-
-              {/* Account Role with Secret Admin Passcode */}
-              <div className="auth-field-group">
-                <label className="auth-label">Account Type</label>
-                <div className="auth-chips">
-                  <div
-                    className={`auth-chip ${form.role === 'player' ? 'selected' : ''}`}
-                    onClick={() => set('role', 'player')}
-                  >
-                    Athlete / Player
-                  </div>
-                  <div
-                    className={`auth-chip ${form.role === 'admin' ? 'selected' : ''}`}
-                    onClick={() => set('role', 'admin')}
-                  >
-                    Staff / Admin
-                  </div>
+              {/* Height & Weight */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="auth-field-group">
+                  <label className="auth-label">Height <span style={{color:'var(--t-muted)',fontWeight:400}}>(optional)</span></label>
+                  <input name="height" value={form.height} onChange={handleChange}
+                    placeholder='e.g. 6&apos;2"' className="auth-input" />
+                </div>
+                <div className="auth-field-group">
+                  <label className="auth-label">Weight <span style={{color:'var(--t-muted)',fontWeight:400}}>(optional)</span></label>
+                  <input name="weight" value={form.weight} onChange={handleChange}
+                    placeholder='e.g. 195 lbs' className="auth-input" />
                 </div>
               </div>
 
-              {/* Secret Admin Passcode Field (if Admin selected) */}
-              {form.role === 'admin' && (
-                <div className="auth-field-group" style={{ animation: 'slide-up 0.25s ease' }}>
-                  <label className="auth-label" style={{ color: 'var(--orange-hot)', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <LuLock size={12} />
-                    <span>Admin Security Passcode</span>
-                  </label>
-                  <input
-                    name="adminPasscode"
-                    type="password"
-                    value={form.adminPasscode}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter admin passcode"
-                    className="auth-input"
-                    style={{ borderColor: 'var(--orange)' }}
-                  />
-                  <span style={{ fontSize: '0.68rem', color: 'var(--t-muted)', marginTop: '3px' }}>
-                    Protected access: only authorized staff with code can register as Admin.
-                  </span>
-                </div>
-              )}
-
-              <div className="auth-btn-row" style={{ marginTop: '8px' }}>
-                <button type="button" onClick={() => setStep(2)} className="auth-btn-back">
+              <div className="auth-btn-row" style={{ marginTop: '12px' }}>
+                <button type="button" onClick={() => setStep(1)} className="auth-btn-back">
                   <LuArrowLeft size={16} />
                 </button>
                 <button type="submit" className="auth-btn-primary" disabled={loading}>
-                  <LuUserPlus size={16} />
-                  <span>{loading ? 'CREATING…' : 'CREATE ACCOUNT'}</span>
+                  {loading ? (
+                    <IoBasketball className="spin-icon" size={18} />
+                  ) : (
+                    <LuUserPlus size={16} />
+                  )}
+                  <span>{loading ? 'CREATING ARENA ACCOUNT…' : 'CREATE ACCOUNT'}</span>
                 </button>
               </div>
             </div>

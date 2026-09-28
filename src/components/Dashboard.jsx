@@ -5,6 +5,7 @@ import { supabase } from '../supabase';
 import SiteHeader from './SiteHeader';
 import MobileBottomNav from './MobileBottomNav';
 import AppGuideModal from './AppGuideModal';
+import OnboardingPromptModal from './OnboardingPromptModal';
 import ArenaSplashLoader from './ArenaSplashLoader';
 import { IoBasketball, IoLogoWhatsapp } from 'react-icons/io5';
 import {
@@ -25,15 +26,6 @@ import {
   LuPlay,
   LuTrash2
 } from 'react-icons/lu';
-import {
-  collection,
-  addDoc,
-  onSnapshot,
-  doc,
-  updateDoc,
-  deleteDoc
-} from 'firebase/firestore';
-import { db } from '../firebase';
 import './Dashboard.css';
 
 
@@ -72,6 +64,20 @@ const Dashboard = () => {
     }
   });
 
+  // Post-tour / First-time onboarding prompt (Photo + optional WhatsApp)
+  const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false);
+
+  useEffect(() => {
+    try {
+      const needsPrompt = localStorage.getItem('hooplogs_needs_onboarding_prompt') === 'true';
+      const uId = user?.id;
+      const alreadyOnboarded = uId ? localStorage.getItem(`hooplogs_onboarded_${uId}`) === 'true' : false;
+      if (!showTour && (needsPrompt || (!alreadyOnboarded && !profile?.avatar_url))) {
+        setShowOnboardingPrompt(true);
+      }
+    } catch (e) {}
+  }, [showTour, user, profile]);
+
   useEffect(() => {
     if (location.state?.openTour) {
       setShowTour(true);
@@ -88,7 +94,7 @@ const Dashboard = () => {
     }
   });
 
-  // Announcements state - Real-time from Firestore with localStorage fallback (ZERO dummy posts)
+  // Announcements state - Real-time from Supabase with localStorage fallback (ZERO dummy posts)
   const [announcements, setAnnouncements] = useState(() => {
     try {
       const saved = localStorage.getItem('hooplogs_arena_announcements');
@@ -137,82 +143,73 @@ const Dashboard = () => {
     setActiveWorkout(loadUserWorkout());
   }, [user]);
 
-  // Real-time Announcements from Firebase Firestore with Local Fallback (ZERO dummy posts)
+  // Real-time Announcements from Supabase with Local Fallback (ZERO dummy posts)
   useEffect(() => {
-    let unsubscribe = () => {};
+    let channel = null;
 
-    try {
-      const q = collection(db, 'arena_announcements');
+    const fetchAnnouncements = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('arena_announcements')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          const fetched = [];
-          snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            // Discard any lingering dummy posts
-            if (
-              !data.authorName?.includes('Coach AK') &&
-              !data.authorName?.includes('Test User') &&
-              !data.text?.includes('Practice scheduled at 5 PM') &&
-              !data.text?.includes('Shooting session tomorrow')
-            ) {
-              fetched.push({ id: docSnap.id, ...data });
-            }
-          });
-
-          // Sort newest first
-          fetched.sort((a, b) => {
-            const timeA = new Date(a.createdAt || a.timestamp || 0).getTime();
-            const timeB = new Date(b.createdAt || b.timestamp || 0).getTime();
-            return timeB - timeA;
-          });
-
-          // Purge any stale dummy posts from localStorage
-          try {
-            const localRaw = localStorage.getItem('hooplogs_arena_announcements');
-            if (
-              localRaw &&
-              (localRaw.includes('Coach AK') ||
-                localRaw.includes('Test User') ||
-                localRaw.includes('Shooting session tomorrow') ||
-                localRaw.includes('Practice scheduled at 5 PM'))
-            ) {
-              localStorage.removeItem('hooplogs_arena_announcements');
-            }
-          } catch (e) {}
+        if (!error && data) {
+          const fetched = data
+            .filter(
+              (p) =>
+                !p.author_name?.includes('Coach AK') &&
+                !p.author_name?.includes('Test User') &&
+                !p.authorName?.includes('Coach AK') &&
+                !p.authorName?.includes('Test User') &&
+                !p.text?.includes('Practice scheduled at 5 PM') &&
+                !p.text?.includes('Shooting session tomorrow')
+            )
+            .map((p) => ({
+              id: p.id,
+              authorName: p.author_name || p.authorName || 'Hooper',
+              authorId: p.author_id || p.authorId || null,
+              team: p.team || 'All Teams',
+              text: p.text || '',
+              time: p.time || 'Today',
+              date: p.date || '',
+              createdAt: p.created_at || p.createdAt,
+              attendance: p.attendance || {},
+              comments: p.comments || [],
+              cheers: p.cheers || []
+            }));
 
           setAnnouncements(fetched);
           try {
             localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(fetched));
-          } catch (e) {}
-        },
-        (err) => {
-          console.warn('Firestore announcements listener error, falling back to local:', err);
-          try {
-            const saved = localStorage.getItem('hooplogs_arena_announcements');
-            if (saved) {
-              const parsed = JSON.parse(saved);
-              setAnnouncements(
-                Array.isArray(parsed)
-                  ? parsed.filter(
-                      (p) =>
-                        p &&
-                        !p.authorName?.includes('Coach AK') &&
-                        !p.authorName?.includes('Test User')
-                    )
-                  : []
-              );
-            }
-          } catch (e) {}
+          } catch (_) {}
         }
-      );
-    } catch (err) {
-      console.warn('Failed to initialize announcements onSnapshot:', err);
+      } catch (err) {
+        console.warn('Supabase announcements query notice, loading local:', err);
+      }
+    };
+
+    fetchAnnouncements();
+
+    try {
+      channel = supabase
+        .channel('arena_announcements_realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'arena_announcements' },
+          () => {
+            fetchAnnouncements();
+          }
+        )
+        .subscribe();
+    } catch (realtimeErr) {
+      console.warn('Supabase announcements realtime notice:', realtimeErr);
     }
 
     return () => {
-      unsubscribe();
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [user, profile]);
 
@@ -254,13 +251,38 @@ const Dashboard = () => {
       console.warn('Could not save announcement locally:', err);
     }
 
-    // Persist to Firebase Firestore
+    // Persist to Supabase arena_announcements table
     try {
-      await addDoc(collection(db, 'arena_announcements'), postData);
-      setAnnouncementMsg('Update broadcasted to all players! 📢');
+      const { data, error } = await supabase.from('arena_announcements').insert({
+        author_name: postData.authorName,
+        author_id: postData.authorId,
+        team: postData.team,
+        text: postData.text,
+        time: postData.time,
+        date: postData.date,
+        attendance: postData.attendance,
+        comments: postData.comments,
+        cheers: postData.cheers
+      }).select().single();
+
+      if (!error && data) {
+        const actualPost = {
+          ...postData,
+          id: data.id,
+          authorName: data.author_name || postData.authorName,
+          authorId: data.author_id || postData.authorId,
+        };
+        setAnnouncements((prev) => [actualPost, ...prev.filter((p) => p.id !== tempId)]);
+        try {
+          const currentSaved = JSON.parse(localStorage.getItem('hooplogs_arena_announcements') || '[]');
+          const replaced = [actualPost, ...currentSaved.filter((p) => p.id !== tempId)];
+          localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(replaced));
+        } catch (_) {}
+      }
+      setAnnouncementMsg('Post published to arena feed! 📢');
     } catch (err) {
-      console.error('Error posting announcement to Firestore:', err);
-      setAnnouncementMsg('Announcement posted locally! 📢');
+      console.warn('Notice posting announcement to Supabase:', err);
+      setAnnouncementMsg('Post published to feed! 📢');
     } finally {
       setNewPostText('');
       setPostingAnnouncement(false);
@@ -294,27 +316,63 @@ const Dashboard = () => {
       });
       try {
         localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(updated));
-      } catch (e) {}
+      } catch (_) {}
       return updated;
     });
 
-    // Update in Firestore
+    // Update in Supabase
     try {
-      const postRef = doc(db, 'arena_announcements', postId);
-      await updateDoc(postRef, { attendance: targetAttendance });
+      await supabase
+        .from('arena_announcements')
+        .update({ attendance: targetAttendance })
+        .eq('id', postId);
     } catch (err) {
-      console.warn('Could not sync attendance to Firestore:', err);
+      console.warn('Could not sync attendance to Supabase:', err);
+    }
+  };
+
+  const handleToggleCheer = async (postId) => {
+    const userId = user?.id || 'hooper-user';
+    let targetCheers = [];
+    setAnnouncements((prev) => {
+      const updated = prev.map((p) => {
+        if (p.id === postId) {
+          const current = p.cheers || [];
+          const cheers = current.includes(userId)
+            ? current.filter((id) => id !== userId)
+            : [...current, userId];
+          targetCheers = cheers;
+          return { ...p, cheers };
+        }
+        return p;
+      });
+      try {
+        localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+
+    // Update in Supabase
+    try {
+      await supabase
+        .from('arena_announcements')
+        .update({ cheers: targetCheers })
+        .eq('id', postId);
+    } catch (err) {
+      console.warn('Could not sync cheer to Supabase:', err);
     }
   };
 
   const handleAddComment = async (postId) => {
     if (!commentInput.trim()) return;
+    const text = commentInput.trim();
     const userName = profile?.full_name || user?.user_metadata?.full_name || 'Hooper';
     const newComment = {
       id: `c-${Date.now()}`,
       author: userName,
-      text: commentInput.trim(),
-      time: 'Just now',
+      authorId: user?.id || null,
+      text,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       createdAt: new Date().toISOString()
     };
 
@@ -330,39 +388,45 @@ const Dashboard = () => {
       });
       try {
         localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(updated));
-      } catch (e) {}
+      } catch (_) {}
       return updated;
     });
 
     setCommentInput('');
-    setActiveCommentPostId(null);
+    setActiveCommentPostId(postId); // Keep tray open!
 
-    // Update in Firestore
+    // Update in Supabase
     try {
-      const postRef = doc(db, 'arena_announcements', postId);
-      await updateDoc(postRef, { comments: targetComments });
+      await supabase
+        .from('arena_announcements')
+        .update({ comments: targetComments })
+        .eq('id', postId);
     } catch (err) {
-      console.warn('Could not sync comment to Firestore:', err);
+      console.warn('Could not sync comment to Supabase:', err);
     }
   };
 
   const handleDeleteAnnouncement = async (postId) => {
-    if (!window.confirm('Delete this announcement from the arena board?')) return;
+    if (!window.confirm('Delete this post from the arena feed?')) return;
 
     setAnnouncements((prev) => {
       const updated = prev.filter((p) => p.id !== postId);
       try {
         localStorage.setItem('hooplogs_arena_announcements', JSON.stringify(updated));
-      } catch (e) {}
+      } catch (_) {}
       return updated;
     });
 
+    // Delete in Supabase
     try {
-      await deleteDoc(doc(db, 'arena_announcements', postId));
-      setAnnouncementMsg('Announcement removed.');
+      await supabase
+        .from('arena_announcements')
+        .delete()
+        .eq('id', postId);
+      setAnnouncementMsg('Post deleted.');
       setTimeout(() => setAnnouncementMsg(''), 3000);
     } catch (err) {
-      console.warn('Error deleting announcement from Firestore:', err);
+      console.warn('Error deleting post from Supabase:', err);
     }
   };
 
@@ -569,40 +633,55 @@ const Dashboard = () => {
                 const absent = attendees.filter((a) => a.status === 'unavailable');
                 const myStatus = attendance[user?.id || 'guest-user']?.status;
                 const comments = post.comments || [];
+                const cheers = post.cheers || [];
+                const hasCheered = cheers.includes(user?.id);
+                const isAuthor = (post.authorId && post.authorId === user?.id) ||
+                  (post.authorName && (post.authorName === profile?.full_name || post.authorName === user?.user_metadata?.full_name));
+                const authorInitial = (post.authorName || 'H').charAt(0).toUpperCase();
 
                 return (
-                  <div key={post.id} className="announcement-item">
+                  <div key={post.id} className="announcement-item social-feed-card">
+                    {/* Header Row: Author Avatar + Name + Team + Timestamp + Delete */}
                     <div className="announcement-top-bar">
-                      <div className="announcement-author-info">
-                        <span className="announcement-author">
-                          <LuShieldCheck size={12} color="#10b981" /> {post.authorName}
-                        </span>
-                        {post.team && (
-                          <span className="announcement-team-tag">{post.team}</span>
-                        )}
+                      <div className="social-author-left">
+                        <div className="social-author-avatar">
+                          {authorInitial}
+                        </div>
+                        <div className="announcement-author-info">
+                          <div className="social-author-name-row">
+                            <span className="announcement-author">
+                              {post.authorName}
+                            </span>
+                            {isAuthor && <span className="social-author-you-badge">YOU</span>}
+                            {post.team && (
+                              <span className="announcement-team-tag">{post.team}</span>
+                            )}
+                          </div>
+                          <span className="announcement-time-stamp">
+                            <LuClock size={11} /> {post.time || post.date || 'Today'}
+                          </span>
+                        </div>
                       </div>
+
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span className="announcement-time-stamp">
-                          <LuClock size={11} /> {post.time || post.date || 'Today'}
-                        </span>
-                        {isCoach && (
+                        {(isAuthor || isCoach) && (
                           <button
                             type="button"
                             className="btn-delete-announcement"
                             onClick={() => handleDeleteAnnouncement(post.id)}
-                            title="Delete announcement"
+                            title="Delete this post"
                             style={{
                               background: 'transparent',
                               border: 'none',
                               color: '#ef4444',
                               cursor: 'pointer',
-                              padding: '2px 4px',
+                              padding: '4px',
                               display: 'flex',
                               alignItems: 'center',
-                              opacity: 0.75
+                              opacity: 0.8
                             }}
                           >
-                            <LuTrash2 size={13} />
+                            <LuTrash2 size={14} />
                           </button>
                         )}
                       </div>
@@ -610,74 +689,106 @@ const Dashboard = () => {
 
                     <p className="announcement-body-text">{post.text}</p>
 
-                    {/* Attendance Reactions Row */}
-                    <div className="announcement-reactions-row">
-                      <button
-                        type="button"
-                        className={`reaction-pill-btn available ${myStatus === 'available' ? 'active' : ''}`}
-                        onClick={() => handleToggleAttendance(post.id, 'available')}
-                        title="Confirm you will attend"
-                      >
-                        🏀 I'll be available ({attending.length})
-                      </button>
-                      <button
-                        type="button"
-                        className={`reaction-pill-btn unavailable ${myStatus === 'unavailable' ? 'active' : ''}`}
-                        onClick={() => handleToggleAttendance(post.id, 'unavailable')}
-                        title="Mark yourself not available"
-                      >
-                        ❌ Not available ({absent.length})
-                      </button>
-                      <button
-                        type="button"
-                        className="comment-toggle-btn"
-                        onClick={() => setActiveCommentPostId(activeCommentPostId === post.id ? null : post.id)}
-                      >
-                        💬 Comments ({comments.length})
-                      </button>
-                    </div>
-
-                    {/* Attendance Summary */}
+                    {/* Attendance summary if anyone responded */}
                     {attendees.length > 0 && (
                       <div className="attendance-attendees-strip">
                         {attending.length > 0 && (
                           <span className="attending-names">
-                            ✅ Available: {attending.map((a) => a.name).join(', ')}
+                            🏀 {attending.length} Attending: {attending.map((a) => a.name).join(', ')}
                           </span>
                         )}
                         {absent.length > 0 && (
                           <span className="absent-names">
-                            ❌ Absent: {absent.map((a) => a.name).join(', ')}
+                            ❌ {absent.length} Absent: {absent.map((a) => a.name).join(', ')}
                           </span>
                         )}
                       </div>
                     )}
 
-                    {/* Comments Dropdown */}
+                    {/* Social Feed Action Bar */}
+                    <div className="announcement-reactions-row social-action-bar">
+                      {/* Cheer / Hype Reaction */}
+                      <button
+                        type="button"
+                        className={`reaction-pill-btn cheer ${hasCheered ? 'active' : ''}`}
+                        onClick={() => handleToggleCheer(post.id)}
+                        title="Cheer / Hype this post"
+                      >
+                        🔥 {cheers.length > 0 ? `${cheers.length} ` : ''}Hype
+                      </button>
+
+                      {/* Comments Toggle */}
+                      <button
+                        type="button"
+                        className={`comment-toggle-btn ${activeCommentPostId === post.id ? 'active' : ''}`}
+                        onClick={() => setActiveCommentPostId(activeCommentPostId === post.id ? null : post.id)}
+                      >
+                        💬 {comments.length > 0 ? `${comments.length} ` : ''}Comments
+                      </button>
+
+                      {/* RSVP Buttons: ONLY FOR NON-AUTHORS */}
+                      {!isAuthor && (
+                        <>
+                          <button
+                            type="button"
+                            className={`reaction-pill-btn available ${myStatus === 'available' ? 'active' : ''}`}
+                            onClick={() => handleToggleAttendance(post.id, 'available')}
+                            title="Confirm you will attend"
+                          >
+                            🏀 Available ({attending.length})
+                          </button>
+                          <button
+                            type="button"
+                            className={`reaction-pill-btn unavailable ${myStatus === 'unavailable' ? 'active' : ''}`}
+                            onClick={() => handleToggleAttendance(post.id, 'unavailable')}
+                            title="Mark yourself not available"
+                          >
+                            ❌ Out ({absent.length})
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Social Comments Tray */}
                     {activeCommentPostId === post.id && (
                       <div className="post-comments-tray">
-                        {comments.length > 0 && (
+                        {comments.length > 0 ? (
                           <div className="comments-list">
                             {comments.map((c) => (
-                              <div key={c.id} className="comment-bubble">
-                                <span className="comment-author">{c.author}:</span>
-                                <span className="comment-text">{c.text}</span>
+                              <div key={c.id} className="comment-bubble social-comment-item">
+                                <div className="comment-author-avatar">
+                                  {(c.author || 'H').charAt(0).toUpperCase()}
+                                </div>
+                                <div className="comment-body-col">
+                                  <div className="comment-author-line">
+                                    <span className="comment-author">{c.author}</span>
+                                    {c.time && <span className="comment-time">{c.time}</span>}
+                                  </div>
+                                  <span className="comment-text">{c.text}</span>
+                                </div>
                               </div>
                             ))}
                           </div>
+                        ) : (
+                          <div className="empty-comments-hint">
+                            <span>No comments yet. Start the conversation! 💬</span>
+                          </div>
                         )}
+
                         <div className="comment-input-row">
                           <input
                             type="text"
-                            placeholder="Add your note or comment..."
+                            placeholder="Add a comment or reply..."
                             value={commentInput}
                             onChange={(e) => setCommentInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleAddComment(post.id)}
+                            className="social-comment-input"
                           />
                           <button
                             type="button"
                             onClick={() => handleAddComment(post.id)}
                             className="btn-send-comment"
+                            disabled={!commentInput.trim()}
                           >
                             Post
                           </button>
@@ -960,6 +1071,12 @@ const Dashboard = () => {
 
       {/* Guided Tour Modal */}
       <AppGuideModal isOpen={showTour} onClose={() => setShowTour(false)} />
+
+      {/* First-Time Onboarding Prompt Modal (Photo + WhatsApp) */}
+      <OnboardingPromptModal
+        isOpen={showOnboardingPrompt}
+        onClose={() => setShowOnboardingPrompt(false)}
+      />
 
       <MobileBottomNav />
     </div>

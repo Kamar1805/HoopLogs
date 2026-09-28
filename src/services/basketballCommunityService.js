@@ -1,22 +1,11 @@
 // src/services/basketballCommunityService.js
-// Unified Real-Time Basketball Data Layer connecting Firebase Firestore & Supabase
+// Pure Supabase Basketball Community Data Layer
 
-import { db } from '../firebase';
 import { supabase } from '../supabase';
-import {
-  collection,
-  doc,
-  getDocs,
-  getDoc,
-  setDoc,
-  updateDoc,
-  addDoc,
-  onSnapshot
-} from 'firebase/firestore';
 
 /**
  * 1. Fetch Unified Hoopers based on Supabase 'profiles' (SOURCE OF TRUTH)
- * Only hoopers registered in Supabase are included; users from former Firebase DB who are not on Supabase are excluded.
+ * Strictly uses Supabase data.
  */
 export async function fetchUnifiedHoopers() {
   const playersMap = new Map();
@@ -26,7 +15,8 @@ export async function fetchUnifiedHoopers() {
     const { data: profs, error } = await supabase.from('profiles').select('*');
     if (!error && profs) {
       profs.forEach((p) => {
-        const rawWa = p.whatsapp || p.phone_number || '';
+        const localCachedWa = typeof window !== 'undefined' ? localStorage.getItem(`hooplogs_wa_${p.id}`) : '';
+        const rawWa = p.phone_number || p.whatsapp || localCachedWa || '';
         const cleanWa = String(rawWa).replace(/[^0-9]/g, '');
 
         playersMap.set(p.id, {
@@ -39,10 +29,11 @@ export async function fetchUnifiedHoopers() {
           height: p.height || "—",
           weight: p.weight || "—",
           avatar_url: p.avatar_url || p.photo_url || p.photoURL || null,
-          team_name: null,
+          team_name: p.team_name || null,
           team_emblem: '🏀',
           whatsapp: cleanWa,
           phoneNumber: cleanWa,
+          phone_number: cleanWa,
           phonePublic: true,
           source: 'supabase',
           ppg: 0.0,
@@ -60,55 +51,51 @@ export async function fetchUnifiedHoopers() {
     console.warn('Supabase profiles fetch notice:', sbErr);
   }
 
-  // B. Enrich ONLY existing Supabase athletes with any team/phone updates from Firestore (no phantom Firebase users)
+  // B. Merge Supabase Team Memberships
   try {
-    const snap = await getDocs(collection(db, 'users'));
-    snap.forEach((d) => {
-      if (playersMap.has(d.id)) {
-        const u = d.data();
-        const existing = playersMap.get(d.id);
+    const { data: tm, error: tmErr } = await supabase
+      .from('team_members')
+      .select('player_id, team_id, teams (name, emblem)');
+    if (!tmErr && tm) {
+      tm.forEach((item) => {
         if (
-          !existing.team_name &&
-          u.teamName &&
-          u.teamName !== 'No' &&
-          !u.teamName.toLowerCase().includes('varsity')
+          item.player_id &&
+          item.teams &&
+          !item.teams.name?.toLowerCase().includes('varsity') &&
+          playersMap.has(item.player_id)
         ) {
-          existing.team_name = u.teamName;
+          const p = playersMap.get(item.player_id);
+          p.team_name = item.teams.name;
+          p.team_emblem = item.teams.emblem || '🏀';
         }
-        if (!existing.whatsapp) {
-          const rawWa = u.phoneNumber || u.whatsapp || u.phone || '';
-          const cleanWa = String(rawWa).replace(/[^0-9]/g, '');
-          if (cleanWa) existing.whatsapp = cleanWa;
-        }
-      }
-    });
-  } catch (fbErr) {
-    console.warn('Firebase users enrich notice:', fbErr);
-  }
+      });
+    }
+  } catch (_) {}
 
-  // C. Fetch Live Season Box Score Averages from Firebase Firestore 'player_season_stats'
+  // C. Fetch Supabase player_season_stats (if table exists)
   try {
-    const statsSnap = await getDocs(collection(db, 'player_season_stats'));
-    statsSnap.forEach((docSnap) => {
-      const s = docSnap.data();
-      const pId = docSnap.id;
-      if (playersMap.has(pId)) {
-        const p = playersMap.get(pId);
-        p.ppg = parseFloat(s.ppg || 0);
-        p.rpg = parseFloat(s.rpg || 0);
-        p.apg = parseFloat(s.apg || 0);
-        p.spg = parseFloat(s.spg || 0);
-        p.bpg = parseFloat(s.bpg || 0);
-        p.topg = parseFloat(s.topg || 0);
-        p.gp = parseInt(s.gp || 0, 10);
-        if (s.teamName && !s.teamName.toLowerCase().includes('varsity')) {
-          p.team_name = s.teamName;
+    const { data: statsData } = await supabase
+      .from('player_season_stats')
+      .select('*');
+    if (statsData) {
+      statsData.forEach((s) => {
+        const pId = s.player_id || s.id;
+        if (pId && playersMap.has(pId)) {
+          const p = playersMap.get(pId);
+          p.ppg = parseFloat(s.ppg || 0);
+          p.rpg = parseFloat(s.rpg || 0);
+          p.apg = parseFloat(s.apg || 0);
+          p.spg = parseFloat(s.spg || 0);
+          p.bpg = parseFloat(s.bpg || 0);
+          p.topg = parseFloat(s.topg || 0);
+          p.gp = parseInt(s.gp || 0, 10);
+          if (s.team_name && !s.team_name.toLowerCase().includes('varsity')) {
+            p.team_name = s.team_name;
+          }
         }
-      }
-    });
-  } catch (statsErr) {
-    console.warn('Firestore player_season_stats notice:', statsErr);
-  }
+      });
+    }
+  } catch (_) {}
 
   // D. Merge local cached averages fallback
   try {
@@ -129,45 +116,7 @@ export async function fetchUnifiedHoopers() {
     });
   } catch (_) {}
 
-  // E. Merge Supabase Team Memberships
-  try {
-    const { data: tm } = await supabase
-      .from('team_members')
-      .select('player_id, team_id, teams (name, emblem)');
-    if (tm) {
-      tm.forEach((item) => {
-        if (
-          item.player_id &&
-          item.teams &&
-          !item.teams.name?.toLowerCase().includes('varsity') &&
-          playersMap.has(item.player_id)
-        ) {
-          const p = playersMap.get(item.player_id);
-          p.team_name = item.teams.name;
-          p.team_emblem = item.teams.emblem || '🏀';
-        }
-      });
-    }
-  } catch (_) {}
-
-  // F. Merge Firestore 'team_rosters' collection for real-time team assignments
-  try {
-    const rosterSnap = await getDocs(collection(db, 'team_rosters'));
-    rosterSnap.forEach((d) => {
-      const rData = d.data();
-      const pId = rData.playerId;
-      if (pId && playersMap.has(pId)) {
-        if (rData.teamName && !rData.teamName.toLowerCase().includes('varsity')) {
-          const p = playersMap.get(pId);
-          p.team_name = rData.teamName;
-        }
-      }
-    });
-  } catch (rosterErr) {
-    console.warn('Firestore team_rosters enrich notice:', rosterErr);
-  }
-
-  // G. Merge LocalStorage Custom Rosters fallback
+  // E. Merge LocalStorage Custom Rosters fallback
   try {
     const customTeams = JSON.parse(localStorage.getItem('hooplogs_custom_teams') || '[]');
     const customRosters = JSON.parse(localStorage.getItem('hooplogs_custom_rosters') || '{}');
@@ -190,7 +139,7 @@ export async function fetchUnifiedHoopers() {
 }
 
 /**
- * 2. Save / Update User WhatsApp Number across both Supabase and Firebase
+ * 2. Save / Update User WhatsApp Number in Supabase
  */
 export async function saveUserWhatsApp(userId, phoneRaw) {
   const cleanWa = String(phoneRaw || '').replace(/[^0-9]/g, '');
@@ -201,36 +150,41 @@ export async function saveUserWhatsApp(userId, phoneRaw) {
     localStorage.setItem(`hooplogs_wa_${userId}`, cleanWa);
   } catch (_) {}
 
-  // B. Firebase Firestore 'users' collection
+  // B. Supabase 'profiles' (update phone_number column, avoiding non-existent columns)
   try {
-    const userRef = doc(db, 'users', userId);
-    await setDoc(userRef, {
-      phoneNumber: cleanWa,
-      whatsapp: cleanWa,
-      phonePublic: true,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
-  } catch (e) {
-    console.warn('Firebase save WhatsApp notice:', e);
-  }
-
-  // C. Supabase 'profiles'
-  try {
-    await supabase.from('profiles').update({
-      whatsapp: cleanWa,
+    const { error } = await supabase.from('profiles').update({
+      phone_number: cleanWa,
       updated_at: new Date().toISOString()
     }).eq('id', userId);
+    if (error) {
+      console.warn('Supabase profiles phone_number update notice:', error);
+    }
   } catch (e) {
     console.warn('Supabase save WhatsApp notice:', e);
+  }
+
+  // C. Supabase Auth user metadata update so session retains whatsapp & phone_number
+  try {
+    await supabase.auth.updateUser({
+      data: {
+        phone_number: cleanWa,
+        whatsapp: cleanWa
+      }
+    });
+  } catch (authErr) {
+    console.warn('Supabase auth.updateUser notice:', authErr);
   }
 
   return cleanWa;
 }
 
+/**
+ * 3. Assign Player to Team via Supabase
+ */
 export async function assignPlayerToTeam(playerId, teamId, teamName, playerProfile = null) {
   if (!playerId || !teamId) return false;
 
-  // A. Supabase team_members with column 'player_id'
+  // A. Supabase team_members
   try {
     await supabase.from('team_members').upsert({
       team_id: teamId,
@@ -241,34 +195,16 @@ export async function assignPlayerToTeam(playerId, teamId, teamName, playerProfi
     console.warn('Supabase team_members insert notice:', e);
   }
 
-  // B. Firebase Firestore 'users' collection
+  // B. Supabase profiles team_name update
   try {
-    const uRef = doc(db, 'users', playerId);
-    await setDoc(uRef, {
-      inTeam: 'Yes',
-      teamName: teamName,
-      teamId: teamId,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
+    await supabase.from('profiles').update({
+      team_name: teamName
+    }).eq('id', playerId);
   } catch (e) {
-    console.warn('Firebase users team update notice:', e);
+    console.warn('Supabase profiles team update notice:', e);
   }
 
-  // C. Firestore 'team_rosters' collection for real-time team view
-  try {
-    const rosterDocRef = doc(db, 'team_rosters', `${teamId}_${playerId}`);
-    await setDoc(rosterDocRef, {
-      teamId,
-      playerId,
-      teamName,
-      profiles: playerProfile || {},
-      addedAt: new Date().toISOString()
-    }, { merge: true });
-  } catch (e) {
-    console.warn('Firestore team_rosters update notice:', e);
-  }
-
-  // D. LocalStorage cache update with full profile so athletes are NEVER unnamed
+  // C. LocalStorage cache update with full profile
   try {
     const customRosters = JSON.parse(localStorage.getItem('hooplogs_custom_rosters') || '{}');
     const list = customRosters[teamId] || [];
@@ -294,7 +230,7 @@ export async function assignPlayerToTeam(playerId, teamId, teamName, playerProfi
 }
 
 /**
- * 4. Save Post-Game Box Score Stats across Firebase, Supabase and localStorage
+ * 4. Save Post-Game Box Score Stats into Supabase & localStorage
  * Recalculates season averages (PPG, RPG, APG, SPG, BPG, TOPG) and publishes them live.
  */
 export async function saveGameBoxScores(gameId, teamId, teamName, playerStatsMap) {
@@ -303,7 +239,6 @@ export async function saveGameBoxScores(gameId, teamId, teamName, playerStatsMap
   const currentLocalAvg = JSON.parse(localStorage.getItem('hooplogs_player_game_averages') || '{}');
 
   for (const [playerId, st] of Object.entries(playerStatsMap)) {
-    // 1. Fetch current historical stats for this player from Firestore or local
     let existing = currentLocalAvg[playerId] || {
       gp: 0,
       totalPts: 0,
@@ -314,18 +249,23 @@ export async function saveGameBoxScores(gameId, teamId, teamName, playerStatsMap
       totalTo: 0,
     };
 
+    // Try fetching existing from Supabase player_season_stats
     try {
-      const statDoc = await getDoc(doc(db, 'player_season_stats', playerId));
-      if (statDoc.exists()) {
-        const d = statDoc.data();
+      const { data } = await supabase
+        .from('player_season_stats')
+        .select('*')
+        .eq('player_id', playerId)
+        .maybeSingle();
+
+      if (data) {
         existing = {
-          gp: d.gp || existing.gp || 0,
-          totalPts: d.totalPts || (parseFloat(d.ppg || 0) * (d.gp || 1)) || 0,
-          totalReb: d.totalReb || (parseFloat(d.rpg || 0) * (d.gp || 1)) || 0,
-          totalAst: d.totalAst || (parseFloat(d.apg || 0) * (d.gp || 1)) || 0,
-          totalStl: d.totalStl || (parseFloat(d.spg || 0) * (d.gp || 1)) || 0,
-          totalBlk: d.totalBlk || (parseFloat(d.bpg || 0) * (d.gp || 1)) || 0,
-          totalTo: d.totalTo || (parseFloat(d.topg || 0) * (d.gp || 1)) || 0,
+          gp: data.gp || existing.gp || 0,
+          totalPts: data.total_pts || (parseFloat(data.ppg || 0) * (data.gp || 1)) || 0,
+          totalReb: data.total_reb || (parseFloat(data.rpg || 0) * (data.gp || 1)) || 0,
+          totalAst: data.total_ast || (parseFloat(data.apg || 0) * (data.gp || 1)) || 0,
+          totalStl: data.total_stl || (parseFloat(data.spg || 0) * (data.gp || 1)) || 0,
+          totalBlk: data.total_blk || (parseFloat(data.bpg || 0) * (data.gp || 1)) || 0,
+          totalTo: data.total_to || (parseFloat(data.topg || 0) * (data.gp || 1)) || 0,
         };
       }
     } catch (_) {}
@@ -339,39 +279,48 @@ export async function saveGameBoxScores(gameId, teamId, teamName, playerStatsMap
     const newTotalTo = (existing.totalTo || 0) + (Number(st.to) || 0);
 
     const updatedStats = {
+      player_id: playerId,
       gp: newGp,
-      totalPts: newTotalPts,
-      totalReb: newTotalReb,
-      totalAst: newTotalAst,
-      totalStl: newTotalStl,
-      totalBlk: newTotalBlk,
-      totalTo: newTotalTo,
+      total_pts: newTotalPts,
+      total_reb: newTotalReb,
+      total_ast: newTotalAst,
+      total_stl: newTotalStl,
+      total_blk: newTotalBlk,
+      total_to: newTotalTo,
       ppg: (newTotalPts / newGp).toFixed(1),
       rpg: (newTotalReb / newGp).toFixed(1),
       apg: (newTotalAst / newGp).toFixed(1),
       spg: (newTotalStl / newGp).toFixed(1),
       bpg: (newTotalBlk / newGp).toFixed(1),
       topg: (newTotalTo / newGp).toFixed(1),
-      teamName: teamName || 'Hooper',
-      lastUpdated: new Date().toISOString()
+      team_name: teamName || 'Hooper',
+      updated_at: new Date().toISOString()
     };
 
-    // A. Persist to Firebase Firestore 'player_season_stats'
+    // A. Upsert to Supabase player_season_stats
     try {
-      await setDoc(doc(db, 'player_season_stats', playerId), updatedStats, { merge: true });
+      await supabase.from('player_season_stats').upsert(updatedStats, { onConflict: 'player_id' });
     } catch (e) {
-      console.warn('Error syncing player season stats to Firestore:', e);
+      console.warn('Supabase player_season_stats upsert notice:', e);
     }
 
     // B. Local storage backup
-    currentLocalAvg[playerId] = updatedStats;
+    currentLocalAvg[playerId] = {
+      ...updatedStats,
+      totalPts: newTotalPts,
+      totalReb: newTotalReb,
+      totalAst: newTotalAst,
+      totalStl: newTotalStl,
+      totalBlk: newTotalBlk,
+      totalTo: newTotalTo,
+    };
   }
 
   localStorage.setItem('hooplogs_player_game_averages', JSON.stringify(currentLocalAvg));
 }
 
 /**
- * 5. Create Team with League Assignment & Standings Initialization
+ * 5. Create Team with League Assignment & Standings Initialization (Supabase)
  */
 export async function createTeamWithLeague(teamData, leagueId = 'default_league') {
   const newTeamObj = {
@@ -386,47 +335,42 @@ export async function createTeamWithLeague(teamData, leagueId = 'default_league'
     team_members: [{ count: 0 }]
   };
 
-  // A. Supabase
+  // A. Supabase teams table
   try {
-    const { data } = await supabase.from('teams').insert({
+    const { data, error } = await supabase.from('teams').insert({
       name: newTeamObj.name,
       coach_id: newTeamObj.coach_id,
       emblem: newTeamObj.emblem
     }).select().single();
-    if (data) newTeamObj.id = data.id;
+
+    if (!error && data) {
+      newTeamObj.id = data.id;
+    }
   } catch (e) {
     console.warn('Supabase team creation notice:', e);
   }
 
-  // B. Firebase Firestore 'teams'
+  // B. Supabase league_standings table (if available)
   try {
-    await setDoc(doc(db, 'teams', String(newTeamObj.id)), newTeamObj, { merge: true });
-  } catch (e) {
-    console.warn('Firestore team creation notice:', e);
-  }
-
-  // C. Initialize League Standings in Firestore and Local
-  try {
-    const standingsRef = doc(db, 'league_standings', String(newTeamObj.id));
-    await setDoc(standingsRef, {
-      teamId: newTeamObj.id,
-      teamName: newTeamObj.name,
+    await supabase.from('league_standings').upsert({
+      team_id: newTeamObj.id,
+      team_name: newTeamObj.name,
       emblem: newTeamObj.emblem,
-      leagueId: leagueId,
+      league_id: leagueId,
       gp: 0,
       wins: 0,
       losses: 0,
-      ptsFor: 0,
-      ptsAgainst: 0,
+      pts_for: 0,
+      pts_against: 0,
       diff: 0,
-      winPct: '.000',
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
+      win_pct: '.000',
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'team_id' });
   } catch (e) {
-    console.warn('Standings init notice:', e);
+    console.warn('Supabase league_standings init notice:', e);
   }
 
-  // D. LocalStorage
+  // C. LocalStorage sync
   try {
     const localTeams = JSON.parse(localStorage.getItem('hooplogs_custom_teams') || '[]');
     localTeams.unshift(newTeamObj);

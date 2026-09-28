@@ -1808,3 +1808,790 @@
   text-align: center;
 }
 
+/* ========================================================
+   TEAMS DIRECTORY (List of all teams view)
+   ======================================================== */
+.teams-directory-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.teams-directory-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px 20px;
+}
+
+[data-theme="light"] .teams-directory-header {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.teams-directory-title-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.teams-directory-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.teams-directory-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+}
+
+[data-theme="light"] .teams-directory-title {
+  color: #0f172a;
+}
+
+.teams-directory-sub {
+  margin: 3px 0 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+[data-theme="light"] .teams-directory-sub {
+  color: #64748b;
+}
+
+.btn-create-team-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--brand-primary, #ff5500);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 85, 0, 0.25);
+}
+
+.btn-create-team-trigger:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+
+.teams-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.team-directory-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.2s ease;
+}
+
+.team-directory-card:hover {
+  border-color: var(--brand-primary, #ff5500);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="light"] .team-directory-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .team-directory-card:hover {
+  background: #ffffff;
+  border-color: var(--brand-primary, #ff5500);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.team-directory-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.team-directory-emblem {
+  font-size: 2.2rem;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+[data-theme="light"] .team-directory-emblem {
+  background: #f1f5f9;
+}
+
+.team-directory-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.team-directory-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="light"] .team-directory-name {
+  color: #0f172a;
+}
+
+.team-directory-league {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+[data-theme="light"] .team-directory-league {
+  color: #64748b;
+}
+
+.team-directory-meta-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .team-directory-meta-strip {
+  border-top: 1px solid #f1f5f9;
+}
+
+.team-roster-count-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+[data-theme="light"] .team-roster-count-badge {
+  color: #64748b;
+}
+
+.team-card-open-link {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--brand-primary, #ff5500);
+}
+
+/* ========================================================
+   TEAM DETAIL VIEW NAVIGATION & SUB-BAR
+   ======================================================== */
+.team-nav-switcher-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.team-nav-switcher-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.btn-back-to-all-teams {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.btn-back-to-all-teams:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--brand-primary, #ff5500);
+}
+
+[data-theme="light"] .btn-back-to-all-teams {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.team-quick-switcher-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.team-quick-tab-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.team-quick-tab-pill.active {
+  background: var(--brand-primary, #ff5500);
+  border-color: var(--brand-primary, #ff5500);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(255, 85, 0, 0.3);
+}
+
+.team-quick-tab-pill.new-squad {
+  border-style: dashed;
+  color: var(--brand-primary, #ff5500);
+  border-color: rgba(255, 85, 0, 0.4);
+}
+
+[data-theme="light"] .team-quick-tab-pill {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+[data-theme="light"] .team-quick-tab-pill.active {
+  background: var(--brand-primary, #ff5500);
+  border-color: var(--brand-primary, #ff5500);
+  color: #ffffff;
+}
+
+/* Sub-View Mode Bar: Squad Roster vs League Games */
+.team-view-mode-bar {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+}
+
+[data-theme="light"] .team-view-mode-bar {
+  border-bottom-color: #e2e8f0;
+}
+
+.team-mode-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.team-mode-tab-btn.active {
+  background: rgba(255, 85, 0, 0.12);
+  color: var(--brand-primary, #ff5500);
+  border: 1px solid rgba(255, 85, 0, 0.3);
+}
+
+[data-theme="light"] .team-mode-tab-btn {
+  color: #64748b;
+}
+
+[data-theme="light"] .team-mode-tab-btn.active {
+  background: rgba(255, 85, 0, 0.08);
+  color: var(--brand-primary, #ff5500);
+  border: 1px solid rgba(255, 85, 0, 0.25);
+}
+
+/* ========================================================
+   ROSTER CAREER STATS BAR (Inside Team Roster Card)
+   ======================================================== */
+.roster-career-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.roster-career-stats-bar::-webkit-scrollbar {
+  display: none;
+}
+
+[data-theme="light"] .roster-career-stats-bar {
+  border-top-color: #f1f5f9;
+}
+
+.roster-stat-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 44px;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+}
+
+[data-theme="light"] .roster-stat-unit {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.roster-stat-val {
+  font-size: 0.86rem;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+[data-theme="light"] .roster-stat-val {
+  color: #0f172a;
+}
+
+.roster-stat-lbl {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--brand-primary, #ff5500);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.athlete-card-avatar-img {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 1.5px solid var(--brand-primary, #ff5500);
+}
+
+/* ========================================================
+   LEAGUE SCHEDULE & GAMES VIEW (Dynamic Round-Robin)
+   ======================================================== */
+.league-schedule-view {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.schedule-header-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px 20px;
+}
+
+[data-theme="light"] .schedule-header-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.schedule-league-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--brand-primary, #ff5500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.schedule-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+[data-theme="light"] .schedule-title {
+  color: #0f172a;
+}
+
+.schedule-subtitle {
+  margin: 3px 0 0;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+[data-theme="light"] .schedule-subtitle {
+  color: #64748b;
+}
+
+.schedule-squads-count-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 14px;
+  background: rgba(255, 85, 0, 0.1);
+  border: 1px solid rgba(255, 85, 0, 0.25);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.schedule-squads-count-badge .count-num {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--brand-primary, #ff5500);
+  line-height: 1;
+}
+
+.schedule-squads-count-badge .count-lbl {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.single-team-league-notice {
+  text-align: center;
+  padding: 36px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1.5px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+[data-theme="light"] .single-team-league-notice {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.single-team-league-notice h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+}
+
+[data-theme="light"] .single-team-league-notice h4 {
+  color: #0f172a;
+}
+
+.single-team-league-notice p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  max-width: 440px;
+  line-height: 1.45;
+}
+
+[data-theme="light"] .single-team-league-notice p {
+  color: #64748b;
+}
+
+.schedule-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+
+[data-theme="light"] .schedule-section-title {
+  color: #0f172a;
+}
+
+.schedule-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 9999px;
+}
+
+[data-theme="light"] .schedule-badge {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.empty-schedule-box {
+  padding: 20px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+}
+
+[data-theme="light"] .empty-schedule-box {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.empty-schedule-box p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+[data-theme="light"] .empty-schedule-box p {
+  color: #64748b;
+}
+
+.league-matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.league-match-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.15s ease;
+}
+
+.league-match-card:hover {
+  border-color: rgba(255, 85, 0, 0.4);
+}
+
+[data-theme="light"] .league-match-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.match-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.matchday-pill {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--brand-primary, #ff5500);
+  background: rgba(255, 85, 0, 0.1);
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+}
+
+.match-court-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+[data-theme="light"] .match-court-tag {
+  color: #64748b;
+}
+
+.match-final-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.match-teams-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.match-team-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  text-align: center;
+  padding: 6px;
+  border-radius: 8px;
+}
+
+.match-team-col.highlight {
+  background: rgba(255, 85, 0, 0.08);
+}
+
+.match-team-emblem {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.match-team-name {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+[data-theme="light"] .match-team-name {
+  color: #0f172a;
+}
+
+.squad-tag {
+  font-size: 0.58rem;
+  font-weight: 900;
+  color: var(--brand-primary, #ff5500);
+  letter-spacing: 0.03em;
+}
+
+.match-vs-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.vs-badge {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+
+[data-theme="light"] .vs-badge {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.match-time-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.match-score {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  margin-top: 3px;
+}
+
+[data-theme="light"] .match-score {
+  color: #0f172a;
+}
+
+/* ── LIGHT MODE OVERRIDES FOR FEEDBACK & ROSTER MODALS ── */
+[data-theme="light"] .feedback-modal-sheet {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme="light"] .feedback-player-name {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .feedback-close-btn {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #64748b !important;
+}
+
+[data-theme="light"] .previous-reviews-container {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .review-bubble {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="light"] .review-body {
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .review-date {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .feedback-textarea {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .feedback-textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+

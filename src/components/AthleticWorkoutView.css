@@ -469,7 +469,7 @@
 }
 
 .btn-apply-config {
-  background: #ff5500;
+  background: var(--brand-primary, #ff5500);
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -481,4 +481,181 @@
   text-transform: uppercase;
   cursor: pointer;
   margin-top: 6px;
+  transition: opacity 0.15s;
 }
+
+.btn-apply-config:hover {
+  opacity: 0.92;
+}
+
+/* ========================================================
+   LIGHT MODE ATHLETIC WORKOUT — ZERO COLOR MIXING
+   ======================================================== */
+[data-theme='light'] .athletic-program-hero {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .goal-badge {
+  background: var(--brand-primary, #ff5500);
+  color: #ffffff;
+}
+
+[data-theme='light'] .equip-badge {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+
+[data-theme='light'] .btn-open-config {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme='light'] .btn-open-config:hover {
+  border-color: var(--brand-primary, #ff5500);
+  color: var(--brand-primary, #ff5500);
+}
+
+[data-theme='light'] .program-main-title {
+  color: #0f172a;
+}
+
+[data-theme='light'] .program-tagline {
+  color: var(--brand-primary, #ea580c);
+}
+
+[data-theme='light'] .session-day-num {
+  color: #0f172a;
+}
+
+[data-theme='light'] .session-day-focus {
+  color: #64748b;
+}
+
+[data-theme='light'] .session-pct-pill {
+  color: var(--brand-primary, #ea580c);
+  background: rgba(255, 85, 0, 0.09);
+  border: 1px solid rgba(255, 85, 0, 0.2);
+}
+
+[data-theme='light'] .program-progress-meter {
+  background: #e2e8f0;
+}
+
+[data-theme='light'] .progress-fill {
+  background: linear-gradient(90deg, var(--brand-primary, #ff5500), var(--orange-hot, #ff7a2e));
+}
+
+[data-theme='light'] .drills-title-wrap h3 {
+  color: #475569;
+}
+
+[data-theme='light'] .btn-reset-drills {
+  color: #64748b;
+}
+
+[data-theme='light'] .btn-reset-drills:hover {
+  color: var(--brand-primary, #ff5500);
+}
+
+[data-theme='light'] .drill-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme='light'] .drill-card:hover {
+  border-color: var(--brand-primary, #ff5500);
+  background: #fbfcfe;
+}
+
+[data-theme='light'] .drill-card.completed {
+  background: rgba(16, 185, 129, 0.06);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+[data-theme='light'] .drill-checkbox {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  color: #475569;
+}
+
+[data-theme='light'] .drill-card.completed .drill-checkbox {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+[data-theme='light'] .drill-name {
+  color: #0f172a;
+}
+
+[data-theme='light'] .drill-card.completed .drill-name {
+  color: #94a3b8;
+}
+
+[data-theme='light'] .drill-param {
+  background: rgba(255, 85, 0, 0.08);
+  color: var(--brand-primary, #ea580c);
+  border: 1px solid rgba(255, 85, 0, 0.2);
+}
+
+[data-theme='light'] .drill-coaching-cue {
+  color: #475569;
+}
+
+[data-theme='light'] .drill-coaching-cue strong {
+  color: #1e293b;
+}
+
+[data-theme='light'] .rest-timer-badge {
+  color: #64748b;
+}
+
+[data-theme='light'] .tap-status-hint {
+  color: #64748b;
+}
+
+[data-theme='light'] .drill-card.completed .tap-status-hint {
+  color: #059669;
+}
+
+[data-theme='light'] .config-modal-sheet {
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme='light'] .config-header-title h3 {
+  color: #0f172a;
+}
+
+[data-theme='light'] .config-close-btn {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+[data-theme='light'] .config-sheet-sub {
+  color: #64748b;
+}
+
+[data-theme='light'] .config-group label {
+  color: #475569;
+}
+
+[data-theme='light'] .config-chip {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+[data-theme='light'] .config-chip.active {
+  background: rgba(255, 85, 0, 0.1);
+  border-color: var(--brand-primary, #ff5500);
+  color: #0f172a;
+  box-shadow: 0 0 10px rgba(255, 85, 0, 0.15);
+}
+

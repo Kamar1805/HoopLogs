@@ -1729,3 +1729,36 @@
 .wt-btn.danger:hover {
   background: #c0392b;
 }
+
+/* ========================================================
+   LIGHT MODE WORKOUT TRACKER — ZERO COLOR MIXING
+   ======================================================== */
+[data-theme='light'] .workout-page-wrapper {
+  background: transparent;
+  color: #0f172a;
+}
+
+[data-theme='light'] .wt-hero {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='light'] .wt-hero-tag {
+  color: #475569;
+}
+
+[data-theme='light'] .wt-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme='light'] .wt-card-title {
+  color: #0f172a;
+}
+
+[data-theme='light'] .wt-card-sub {
+  color: #64748b;
+}

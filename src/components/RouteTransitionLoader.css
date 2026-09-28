@@ -1,0 +1,123 @@
+/* src/components/RouteTransitionLoader.css */
+.route-transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  background: rgba(6, 8, 16, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+  animation: routeFadeIn 0.15s ease-out;
+}
+
+[data-theme='light'] .route-transition-overlay {
+  background: rgba(248, 250, 252, 0.85);
+}
+
+.route-spinner-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px 32px;
+  background: var(--bg-1, #0f1522);
+  border: 1px solid var(--border-accent, rgba(255, 85, 0, 0.3));
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 24px var(--orange-glow, rgba(255, 85, 0, 0.25));
+  animation: routeCardPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme='light'] .route-spinner-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1), 0 0 20px var(--orange-glow, rgba(255, 85, 0, 0.15));
+}
+
+.route-ball-orbit {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.route-spinning-ball {
+  color: var(--brand-primary, #ff5500);
+  animation: routeBallSpin 0.75s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  filter: drop-shadow(0 0 10px var(--orange-glow, rgba(255, 85, 0, 0.5)));
+}
+
+.route-orbit-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px dashed var(--brand-primary, #ff5500);
+  opacity: 0.4;
+  animation: routeRingRotate 2s linear infinite;
+}
+
+.route-loading-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-2, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-1, rgba(255, 255, 255, 0.1));
+  padding: 5px 14px;
+  border-radius: 999px;
+}
+
+[data-theme='light'] .route-loading-pill {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.route-pulsing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand-primary, #ff5500);
+  animation: routeDotPulse 0.9s ease-in-out infinite alternate;
+}
+
+.route-loading-text {
+  font-family: var(--f-athletic, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--t-primary, #ffffff);
+}
+
+[data-theme='light'] .route-loading-text {
+  color: #0f172a;
+}
+
+@keyframes routeFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes routeCardPop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes routeBallSpin {
+  0% { transform: rotate(0deg) scale(0.96); }
+  50% { transform: rotate(180deg) scale(1.04); }
+  100% { transform: rotate(360deg) scale(0.96); }
+}
+
+@keyframes routeRingRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes routeDotPulse {
+  from { transform: scale(0.8); opacity: 0.4; }
+  to { transform: scale(1.3); opacity: 1; }
+}

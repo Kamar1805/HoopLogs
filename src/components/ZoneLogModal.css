@@ -384,3 +384,50 @@
 .zone-btn-reset:hover {
   color: #f87171;
 }
+
+/* ── LIGHT MODE OVERRIDES FOR ZONE LOG MODAL ── */
+[data-theme='light'] .zone-modal-sheet {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme='light'] .zone-modal-title {
+  color: #0f172a !important;
+}
+
+[data-theme='light'] .zone-modal-badge {
+  color: #64748b !important;
+}
+
+[data-theme='light'] .zone-btn-close {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #64748b !important;
+}
+
+[data-theme='light'] .zone-stats-strip {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme='light'] .zone-stat-num {
+  color: #0f172a !important;
+}
+
+[data-theme='light'] .zone-stat-sub {
+  color: #64748b !important;
+}
+
+[data-theme='light'] .counter-card {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme='light'] .counter-val {
+  color: #0f172a !important;
+}
+
+[data-theme='light'] .counter-lbl {
+  color: #475569 !important;
+}

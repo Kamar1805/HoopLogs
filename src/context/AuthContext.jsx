@@ -23,8 +23,19 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (data) {
-        setProfile(data);
-        return data;
+        const localWa = typeof window !== 'undefined' ? (localStorage.getItem(`hooplogs_wa_${userId}`) || '') : '';
+        const phone = data.phone_number || userMetadata?.phone_number || userMetadata?.whatsapp || localWa || '';
+        const merged = {
+          ...data,
+          phone_number: phone,
+          whatsapp: phone,
+          phoneNumber: phone,
+          gender: userMetadata?.gender || 'Male',
+          jersey_number: userMetadata?.jersey_number || '',
+          bio: userMetadata?.bio || ''
+        };
+        setProfile(merged);
+        return merged;
       } else {
         // Fallback: If trigger didn't run, create profile now
         const newProfile = {
@@ -39,8 +50,19 @@ export const AuthProvider = ({ children }) => {
           .select()
           .single();
         if (!insertErr && created) {
-          setProfile(created);
-          return created;
+          const localWa = typeof window !== 'undefined' ? (localStorage.getItem(`hooplogs_wa_${userId}`) || '') : '';
+          const phone = created.phone_number || userMetadata?.phone_number || userMetadata?.whatsapp || localWa || '';
+          const mergedCreated = {
+            ...created,
+            phone_number: phone,
+            whatsapp: phone,
+            phoneNumber: phone,
+            gender: userMetadata?.gender || 'Male',
+            jersey_number: userMetadata?.jersey_number || '',
+            bio: userMetadata?.bio || ''
+          };
+          setProfile(mergedCreated);
+          return mergedCreated;
         }
       }
     } catch (err) {
@@ -115,15 +137,67 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (updates) => {
     if (!user) return;
+
+    const rawPhone = updates.phone_number !== undefined ? updates.phone_number : updates.whatsapp;
+    const cleanWa = rawPhone !== undefined ? String(rawPhone || '').replace(/[^0-9]/g, '') : null;
+
+    const dbPayload = {
+      updated_at: new Date().toISOString()
+    };
+    if (updates.full_name !== undefined) dbPayload.full_name = updates.full_name;
+    if (updates.nickname !== undefined) dbPayload.nickname = updates.nickname;
+    if (updates.position !== undefined) dbPayload.position = updates.position;
+    if (updates.experience !== undefined) dbPayload.experience = updates.experience;
+    if (updates.height !== undefined) dbPayload.height = updates.height;
+    if (updates.weight !== undefined) dbPayload.weight = updates.weight;
+    if (updates.avatar_url !== undefined) dbPayload.avatar_url = updates.avatar_url;
+    if (updates.role !== undefined) dbPayload.role = updates.role;
+    if (cleanWa !== null) dbPayload.phone_number = cleanWa;
+
+    // A. Update Supabase 'profiles' table safely
+    let savedData = null;
     const { data, error } = await supabase
       .from('profiles')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update(dbPayload)
       .eq('id', user.id)
       .select()
-      .single();
-    if (error) throw error;
-    setProfile(data);
-    return data;
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Supabase profiles update notice:', error);
+    } else {
+      savedData = data;
+    }
+
+    // B. Save extended metadata to Supabase Auth so it is persistently attached to account
+    try {
+      const authMetaUpdates = {};
+      if (updates.full_name !== undefined) authMetaUpdates.full_name = updates.full_name;
+      if (updates.nickname !== undefined) authMetaUpdates.nickname = updates.nickname;
+      if (cleanWa !== null) {
+        authMetaUpdates.phone_number = cleanWa;
+        authMetaUpdates.whatsapp = cleanWa;
+        localStorage.setItem(`hooplogs_wa_${user.id}`, cleanWa);
+      }
+      if (updates.gender !== undefined) authMetaUpdates.gender = updates.gender;
+      if (updates.jersey_number !== undefined) authMetaUpdates.jersey_number = updates.jersey_number;
+      if (updates.bio !== undefined) authMetaUpdates.bio = updates.bio;
+
+      await supabase.auth.updateUser({ data: authMetaUpdates });
+    } catch (authErr) {
+      console.warn('Supabase auth updateUser metadata notice:', authErr);
+    }
+
+    const merged = {
+      ...(profile || {}),
+      ...(savedData || {}),
+      ...updates,
+      phone_number: cleanWa !== null ? cleanWa : (savedData?.phone_number || profile?.phone_number || ''),
+      whatsapp: cleanWa !== null ? cleanWa : (savedData?.phone_number || profile?.whatsapp || ''),
+      phoneNumber: cleanWa !== null ? cleanWa : (savedData?.phone_number || profile?.phoneNumber || '')
+    };
+    setProfile(merged);
+    return merged;
   };
 
   // Strictly protected admin role update

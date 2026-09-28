@@ -35,7 +35,7 @@ import './MyProfile.css';
 
 export default function MyProfile() {
   const { user, profile, isAdmin, updateProfile, upgradeToAdmin, refreshProfile, signOut } = useAuth();
-  const { theme, toggleTheme, accentColor, setAccentColor, accents } = useTheme();
+  const { theme, toggleTheme, accentColor, setAccentColor, changeThemeWithSpinner, changeAccentWithSpinner, accents } = useTheme();
   const navigate = useNavigate();
   const isCoach = isAdmin || (typeof window !== 'undefined' && localStorage.getItem('hooplogs_admin_elevated') === 'true');
 
@@ -43,6 +43,7 @@ export default function MyProfile() {
   const [saving, setSaving] = useState(false);
   const [compressingPhoto, setCompressingPhoto] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -89,20 +90,22 @@ export default function MyProfile() {
 
   // Sync profile data when loaded
   useEffect(() => {
-    if (profile) {
-      setFullName(profile.full_name || profile.name || '');
-      setNickname(profile.nickname || '');
-      setGender(profile.gender || 'Male');
-      setWhatsapp(profile.whatsapp || profile.phoneNumber || '');
-      setPosition(profile.position || 'PG');
-      setExperience(profile.experience || 'High School');
-      setJerseyNumber(profile.jersey_number || profile.jersey || '');
-      setHeight(profile.height || '');
-      setWeight(profile.weight || '');
-      setBio(profile.bio || '');
+    if (profile || user) {
+      const localWa = user?.id ? (localStorage.getItem(`hooplogs_wa_${user.id}`) || '') : '';
+      setFullName(profile?.full_name || profile?.name || user?.user_metadata?.full_name || '');
+      setNickname(profile?.nickname || user?.user_metadata?.nickname || '');
+      setGender(profile?.gender || user?.user_metadata?.gender || 'Male');
+      const loadedPhone = profile?.phone_number || profile?.whatsapp || profile?.phoneNumber || user?.user_metadata?.phone_number || user?.user_metadata?.whatsapp || localWa;
+      setWhatsapp(loadedPhone || '');
+      setPosition(profile?.position || 'PG');
+      setExperience(profile?.experience || 'High School');
+      setJerseyNumber(profile?.jersey_number || profile?.jersey || user?.user_metadata?.jersey_number || '');
+      setHeight(profile?.height || '');
+      setWeight(profile?.weight || '');
+      setBio(profile?.bio || user?.user_metadata?.bio || '');
 
       const savedLocalAvatar = user?.id ? localStorage.getItem(`hooplogs_avatar_${user.id}`) : null;
-      setAvatarUrl(profile.avatar_url || savedLocalAvatar || '');
+      setAvatarUrl(profile?.avatar_url || savedLocalAvatar || '');
     }
   }, [profile, user]);
 
@@ -208,7 +211,7 @@ export default function MyProfile() {
       // Clean whatsapp
       const cleanWa = whatsapp.replace(/[^0-9]/g, '');
 
-      // Sync WhatsApp to both Firebase and Supabase immediately
+      // Sync WhatsApp to Supabase & localStorage immediately
       if (user?.id) {
         await saveUserWhatsApp(user.id, cleanWa);
       }
@@ -218,6 +221,8 @@ export default function MyProfile() {
         nickname: nickname.trim(),
         gender: gender,
         whatsapp: cleanWa,
+        phone_number: cleanWa,
+        phoneNumber: cleanWa,
         position,
         experience,
         jersey_number: jerseyNumber.trim(),
@@ -229,11 +234,20 @@ export default function MyProfile() {
       // Try saving to Supabase
       if (updateProfile) {
         await updateProfile(updates);
-      } else {
+      } else if (user?.id) {
         // Direct fallback
         await supabase
           .from('profiles')
-          .update(updates)
+          .update({
+            full_name: fullName.trim(),
+            nickname: nickname.trim(),
+            position,
+            experience,
+            height: height.trim(),
+            weight: weight.trim(),
+            phone_number: cleanWa,
+            updated_at: new Date().toISOString()
+          })
           .eq('id', user.id);
         if (refreshProfile) refreshProfile();
       }
@@ -245,6 +259,7 @@ export default function MyProfile() {
       console.error('Error saving profile:', err);
       // Fallback: If some columns don't exist yet, save safe subset
       try {
+        const cleanWa = whatsapp.replace(/[^0-9]/g, '');
         await supabase
           .from('profiles')
           .update({
@@ -252,6 +267,8 @@ export default function MyProfile() {
             nickname: nickname.trim(),
             position,
             experience,
+            phone_number: cleanWa,
+            updated_at: new Date().toISOString()
           })
           .eq('id', user.id);
         setSuccessMsg('Profile basic details saved!');
@@ -372,7 +389,14 @@ export default function MyProfile() {
     setTimeout(() => setSuccessMsg(''), 3500);
   };
 
-  const cleanWhatsAppNumber = (profile?.whatsapp || whatsapp || '').replace(/[^0-9]/g, '');
+  const cleanWhatsAppNumber = (
+    profile?.phone_number ||
+    profile?.whatsapp ||
+    profile?.phoneNumber ||
+    whatsapp ||
+    (user?.id ? localStorage.getItem(`hooplogs_wa_${user.id}`) : '') ||
+    ''
+  ).replace(/[^0-9]/g, '');
 
   return (
     <div className="profile-page-wrapper">
@@ -443,22 +467,6 @@ export default function MyProfile() {
             </div>
 
             {nickname && <p className="athlete-nickname">"{nickname}"</p>}
-
-            {/* WHATSAPP ACTION BUTTON */}
-            {cleanWhatsAppNumber ? (
-              <a
-                href={`https://wa.me/${cleanWhatsAppNumber}?text=Hey%20${encodeURIComponent(profile?.full_name || 'Hooper')},%20connecting%20via%20HoopLogs!`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="profile-wa-btn"
-              >
-                <IoLogoWhatsapp /> Chat on WhatsApp ({cleanWhatsAppNumber})
-              </a>
-            ) : (
-              <p className="no-wa-hint">
-                <IoLogoWhatsapp /> No WhatsApp linked. Tap Edit to connect!
-              </p>
-            )}
           </div>
         </div>
 
@@ -718,7 +726,7 @@ export default function MyProfile() {
                 key={acc.id}
                 type="button"
                 className={`profile-theme-swatch ${accentColor === acc.id ? 'active' : ''}`}
-                onClick={() => setAccentColor(acc.id)}
+                onClick={() => changeAccentWithSpinner(acc.id)}
               >
                 <span className="swatch-color-dot" style={{ background: acc.hex }} />
                 <span className="swatch-color-name">{acc.name}</span>
@@ -928,15 +936,7 @@ export default function MyProfile() {
         <section className="profile-section-card profile-logout-card" style={{ marginTop: '1.25rem', padding: '14px', textAlign: 'center' }}>
           <button
             type="button"
-            onClick={async () => {
-              try {
-                localStorage.removeItem('hooplogs_admin_elevated');
-                await signOut();
-                navigate('/login');
-              } catch (e) {
-                console.error('Logout error:', e);
-              }
-            }}
+            onClick={() => setShowSignOutModal(true)}
             style={{
               width: '100%',
               padding: '13px',
@@ -956,6 +956,38 @@ export default function MyProfile() {
             <LuLogOut size={16} /> SIGN OUT OF HOOPLOGS
           </button>
         </section>
+
+        {/* SIGN OUT CONFIRMATION MODAL */}
+        {showSignOutModal && (
+          <div className="arena-modal-backdrop" onClick={() => setShowSignOutModal(false)}>
+            <div className="arena-modal-sheet" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-basketball-icon">
+                <IoBasketball size={48} color="#ff5500" />
+              </div>
+              <h3>Leaving the Court?</h3>
+              <p>Are you sure you want to sign out of HoopLogs? All your data and session stats remain synced to the cloud.</p>
+              <div className="arena-modal-actions">
+                <button
+                  className="modal-btn-confirm"
+                  onClick={async () => {
+                    try {
+                      localStorage.removeItem('hooplogs_admin_elevated');
+                      await signOut();
+                      navigate('/login');
+                    } catch (e) {
+                      console.error('Logout error:', e);
+                    }
+                  }}
+                >
+                  YES, SIGN OUT
+                </button>
+                <button className="modal-btn-cancel" onClick={() => setShowSignOutModal(false)}>
+                  STAY ON COURT
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       <MobileBottomNav activeTab="profile" />

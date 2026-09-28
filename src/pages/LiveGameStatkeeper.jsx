@@ -266,7 +266,7 @@ export default function LiveGameStatkeeper() {
 
       localStorage.setItem('hooplogs_player_game_averages', JSON.stringify(storedAverages));
 
-      // Persist to unified real-time community database (Firestore + Supabase)
+      // Persist to unified real-time community database (Supabase)
       try {
         const teamId = claimedTeam === 'A' ? game.teamAId : game.teamBId;
         await saveGameBoxScores(gameId || `game-${Date.now()}`, teamId, teamName, playerStats);

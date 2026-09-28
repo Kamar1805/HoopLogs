@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../supabase';
-import { db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 import SiteHeader from '../components/SiteHeader';
 import MobileBottomNav from '../components/MobileBottomNav';
 import {
@@ -35,6 +34,7 @@ const STAT_METRICS = [
 ];
 
 export default function Leaderboards() {
+  const { user } = useAuth();
   const [positionFilter, setPositionFilter] = useState('ALL');
   const [sortBy, setSortBy] = useState('ppg');
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,7 +43,7 @@ export default function Leaderboards() {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load custom teams from Supabase, Firestore & localStorage (zero mock teams)
+  // Load custom teams from Supabase & localStorage (zero mock teams)
   useEffect(() => {
     const loadTeams = async () => {
       let loadedTeams = [];
@@ -55,21 +55,6 @@ export default function Leaderboards() {
         }
       } catch (err) {
         console.warn('Supabase teams fetch warn:', err);
-      }
-
-      // Fetch from Firestore 'teams'
-      try {
-        const snap = await getDocs(collection(db, 'teams'));
-        snap.forEach((d) => {
-          const t = { id: d.id, ...d.data() };
-          if (t.name && !t.name.toLowerCase().includes('varsity')) {
-            if (!loadedTeams.some((lt) => lt.id === t.id || lt.name === t.name)) {
-              loadedTeams.push(t);
-            }
-          }
-        });
-      } catch (e) {
-        console.warn('Firestore teams read warn:', e);
       }
 
       // Check local storage custom teams (purging Varsity Squad)
@@ -95,7 +80,7 @@ export default function Leaderboards() {
     loadTeams();
   }, []);
 
-  // Fetch unified hoopers across Firebase Firestore, Supabase, and live season stats
+  // Fetch unified hoopers across Supabase profiles and live season stats
   const fetchRankings = useCallback(async () => {
     try {
       setLoading(true);
@@ -146,12 +131,15 @@ export default function Leaderboards() {
       );
     }
 
-    // Sort by metric
+    // Sort by Name A-Z by default, or squad
     result.sort((a, b) => {
-      if (sortBy === 'accuracy') {
-        return b.accuracy_percentage - a.accuracy_percentage;
+      if (sortBy === 'name') {
+        return (a.full_name || '').localeCompare(b.full_name || '');
       }
-      return (b[sortBy] || 0) - (a[sortBy] || 0);
+      if (sortBy === 'team') {
+        return (a.team_name || 'zzz').localeCompare(b.team_name || 'zzz');
+      }
+      return (a.full_name || '').localeCompare(b.full_name || '');
     });
 
     return result;
@@ -165,7 +153,7 @@ export default function Leaderboards() {
         {/* Header */}
         <div className="lb-arena-header">
           <h1>HOOPERS DIRECTORY</h1>
-          <p>Verified Athletes • Season Box Scores • Position Filters • Direct Connect</p>
+          <p>Registered Athletes • Position & Squad Directory • Direct WhatsApp Connect</p>
         </div>
 
         {/* Search Bar */}
@@ -202,25 +190,8 @@ export default function Leaderboards() {
           </div>
         </div>
 
-        {/* Sort & Team Filter Bar */}
+        {/* Team Filter & Sort Bar */}
         <div className="lb-controls-bar">
-          <div className="lb-control-group">
-            <label className="lb-control-label">
-              <LuArrowUpDown size={13} /> SORT STAT:
-            </label>
-            <select
-              className="lb-select-input"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-            >
-              {STAT_METRICS.map((m) => (
-                <option key={m.key} value={m.key}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
           <div className="lb-control-group">
             <label className="lb-control-label">
               <LuUsers size={13} /> SQUAD:
@@ -236,6 +207,20 @@ export default function Leaderboards() {
                   {t.logo || t.emblem || '🏀'} {t.name}
                 </option>
               ))}
+            </select>
+          </div>
+
+          <div className="lb-control-group">
+            <label className="lb-control-label">
+              <LuArrowUpDown size={13} /> ORDER:
+            </label>
+            <select
+              className="lb-select-input"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="name">Name (A-Z)</option>
+              <option value="team">By Team / Squad</option>
             </select>
           </div>
         </div>
@@ -262,8 +247,15 @@ export default function Leaderboards() {
             <div className="lb-players-list">
               {filteredAndSorted.map((player, idx) => {
                 const rank = idx + 1;
-                const cleanWa = (player.whatsapp || '').replace(/[^0-9]/g, '');
+                const cleanWa = (
+                  player.whatsapp ||
+                  player.phoneNumber ||
+                  player.phone_number ||
+                  (typeof window !== 'undefined' ? (localStorage.getItem(`hooplogs_wa_${player.id || player.user_id}`) || '') : '') ||
+                  ''
+                ).replace(/[^0-9]/g, '');
                 const hasWa = cleanWa.length >= 7;
+                const isSelf = Boolean(user?.id && (player.id === user.id || player.user_id === user.id));
 
                 return (
                   <div key={player.user_id || idx} className="lb-player-row hooper-card-elevated">
@@ -275,7 +267,7 @@ export default function Leaderboards() {
                     {/* Avatar */}
                     <div className="lb-avatar-wrap">
                       {player.avatar_url ? (
-                        <img src={player.avatar_url} alt="" className="lb-avatar-img" />
+                        <img src={player.avatar_url} alt={player.full_name} className="lb-avatar-img" />
                       ) : (
                         <div className="lb-avatar-circle">
                           {player.full_name?.charAt(0)?.toUpperCase() || 'P'}
@@ -287,10 +279,26 @@ export default function Leaderboards() {
                     <div className="lb-player-center">
                       <div className="lb-player-name-row">
                         <span className="lb-player-name">{player.full_name}</span>
+                        {player.nickname && (
+                          <span className="lb-player-nickname">@{player.nickname}</span>
+                        )}
+                      </div>
+
+                      {/* Physical & Team Metadata Badges */}
+                      <div className="lb-hooper-meta-row">
                         {player.position && (
                           <span className="lb-pos-pill">{player.position}</span>
                         )}
-                        {/* Team Badge */}
+                        <span className={`lb-gender-pill ${(player.gender || 'Male').toLowerCase()}`}>
+                          {player.gender || 'Male'}
+                        </span>
+                        {(player.height && player.height !== '—') || (player.weight && player.weight !== '—') ? (
+                          <span className="lb-phys-badge">
+                            {player.height && player.height !== '—' ? player.height : ''}
+                            {player.height && player.height !== '—' && player.weight && player.weight !== '—' ? ' • ' : ''}
+                            {player.weight && player.weight !== '—' ? player.weight : ''}
+                          </span>
+                        ) : null}
                         {player.team_name ? (
                           <span className="lb-squad-badge">
                             {player.team_emblem || '🏀'} {player.team_name}
@@ -301,44 +309,13 @@ export default function Leaderboards() {
                           </span>
                         )}
                       </div>
-
-                      {/* Clean Pro Stat Strip (NBA / SofaScore Style) */}
-                      <div className="hooper-stat-bar">
-                        <div className="stat-cell highlight">
-                          <span className="stat-cell-num">{player.ppg.toFixed(1)}</span>
-                          <span className="stat-cell-dim">PPG</span>
-                        </div>
-                        <div className="stat-cell-divider" />
-                        <div className="stat-cell">
-                          <span className="stat-cell-num">{player.rpg.toFixed(1)}</span>
-                          <span className="stat-cell-dim">RPG</span>
-                        </div>
-                        <div className="stat-cell-divider" />
-                        <div className="stat-cell">
-                          <span className="stat-cell-num">{player.apg.toFixed(1)}</span>
-                          <span className="stat-cell-dim">APG</span>
-                        </div>
-                        <div className="stat-cell-divider" />
-                        <div className="stat-cell">
-                          <span className="stat-cell-num">{player.spg.toFixed(1)}</span>
-                          <span className="stat-cell-dim">SPG</span>
-                        </div>
-                        <div className="stat-cell-divider" />
-                        <div className="stat-cell">
-                          <span className="stat-cell-num">{player.bpg.toFixed(1)}</span>
-                          <span className="stat-cell-dim">BPG</span>
-                        </div>
-                        <div className="stat-cell-divider" />
-                        <div className="stat-cell subtle">
-                          <span className="stat-cell-num">{player.gp}</span>
-                          <span className="stat-cell-dim">GP</span>
-                        </div>
-                      </div>
                     </div>
 
                     {/* Right WhatsApp Action */}
                     <div className="lb-player-right">
-                      {hasWa ? (
+                      {isSelf ? (
+                        <span className="lb-self-pill" title="Your Account">YOU</span>
+                      ) : hasWa ? (
                         <a
                           href={`https://wa.me/${cleanWa}?text=${encodeURIComponent(
                             `Hey ${player.full_name}! Connecting with you from HoopLogs 🏀`
@@ -348,12 +325,12 @@ export default function Leaderboards() {
                           className="lb-wa-btn active"
                           title={`Chat with ${player.full_name} on WhatsApp`}
                         >
-                          <IoLogoWhatsapp size={14} /> CHAT
+                          <IoLogoWhatsapp size={14} /> <span>CHAT</span>
                         </a>
                       ) : (
                         <div
                           className="lb-wa-unlinked"
-                          title="WhatsApp not linked"
+                          title="WhatsApp not yet linked by player"
                         >
                           <IoLogoWhatsapp size={15} />
                         </div>
