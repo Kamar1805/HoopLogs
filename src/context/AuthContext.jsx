@@ -73,16 +73,25 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check initial active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user);
-        fetchProfile(session.user.id, session.user.user_metadata);
-      } else {
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        const session = data?.session;
+        if (session?.user) {
+          setUser(session.user);
+          fetchProfile(session.user.id, session.user.user_metadata);
+        } else {
+          setUser(null);
+          setProfile(null);
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not connect to Supabase (backend may be paused or offline):', err);
         setUser(null);
         setProfile(null);
-      }
-      setLoading(false);
-    });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
 
     // Listen to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
